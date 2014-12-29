@@ -1,9 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>metricsdatamanager</groupId>
-	<artifactId>com.ampaiva.metricsdatamanager</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<groupId>com.ampaiva.metricsdatamanager</groupId>
+	<version>0.0.1</version>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 		<resources>
@@ -29,7 +28,7 @@
 		<dependency>
 			<groupId>com.ampaiva.hlo</groupId>
 			<artifactId>hlo</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>
@@ -45,7 +44,7 @@
 			<groupId>org.easymock</groupId>
 			<artifactId>easymock</artifactId>
 			<version>3.2</version>
-			<scope>test</scope>
 		</dependency>
 	</dependencies>
+	<artifactId>metricsdatamanager</artifactId>
 </project>
