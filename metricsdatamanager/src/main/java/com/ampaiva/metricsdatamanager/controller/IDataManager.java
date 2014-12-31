@@ -8,4 +8,5 @@ public interface IDataManager {
 
     void close();
 
+    <H> void removeAll(Class<H> _class);
 }

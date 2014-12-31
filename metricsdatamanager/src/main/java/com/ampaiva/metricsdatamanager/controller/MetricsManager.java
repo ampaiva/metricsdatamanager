@@ -17,6 +17,12 @@ public class MetricsManager {
         this.dataManager = dataManager;
     }
 
+    public void deleteAllData() {
+        dataManager.open();
+        dataManager.removeAll(Project.class);
+        dataManager.close();
+    }
+
     public Project persist(String projectName, String projectLocation, Map<String, List<ConcernMetricNode>> metrics) {
         Project project = new Project();
         project.setName(projectName);

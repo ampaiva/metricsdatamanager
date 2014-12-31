@@ -24,7 +24,10 @@ import com.ampaiva.metricsdatamanager.controller.IDataManager;
 import com.ampaiva.metricsdatamanager.controller.MetricsManager;
 
 public class Main {
-    public MetricsColector getMetrics(List<String> sources) throws ParseException, FileNotFoundException, IOException {
+    private final IDataManager dataManager = new DataManager("metricsdatamanager");
+    private final MetricsManager metricsManager = new MetricsManager(dataManager);
+
+    private MetricsColector getMetrics(List<String> sources) throws ParseException, FileNotFoundException, IOException {
         MetricsColector metricsColector = new MetricsColector(sources);
         return metricsColector;
     }
@@ -38,14 +41,13 @@ public class Main {
             if (entry.isDirectory() || !entry.getName().toLowerCase().endsWith(".java")) {
                 continue;
             }
-            System.out.println(entry.getName());
             sources.add(Helper.convertInputStream2String(zipFile.getInputStream(entry)));
         }
         zipFile.close();
         return sources;
     }
 
-    public void getMetricsofAllFiles(String folder) throws Exception {
+    private void getMetricsofAllFiles(String folder) throws Exception {
         File[] files = new File(folder).listFiles(new FilenameFilter() {
 
             @Override
@@ -53,16 +55,16 @@ public class Main {
                 return name.toLowerCase().endsWith(".zip");
             }
         });
+        metricsManager.deleteAllData();
         for (File zipFile : files) {
+            System.out.println(zipFile.getName());
             MetricsColector metricsColector = getMetrics(getFilesInZip(zipFile.getAbsolutePath()));
             persist(zipFile.getName(), zipFile.getAbsolutePath(), metricsColector);
         }
     }
 
-    public void persist(String projectName, String projectLocation, MetricsColector metricsColector)
+    private void persist(String projectName, String projectLocation, MetricsColector metricsColector)
             throws ParseException {
-        IDataManager dataManager = new DataManager("metricsdatamanager");
-        MetricsManager metricsManager = new MetricsManager(dataManager);
         Map<String, List<ConcernMetricNode>> metrics = new HashMap<String, List<ConcernMetricNode>>();
         HashMap<String, ConcernMetric> hash = metricsColector.getMetrics().getHash();
         for (Entry<String, ConcernMetric> entry : hash.entrySet()) {

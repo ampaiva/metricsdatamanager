@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.RollbackException;
@@ -20,7 +21,7 @@ import com.ampaiva.metricsdatamanager.model.Resource;
 public class DataManagerTest {
 
     private static final String RESOURCE_NAME = "com.ampaiva.AnyClass";
-    private static final String PU_NAME = "metricsdatamanager";
+    private static final String PU_NAME = "metricsdatamanagerTEST";
     private static final String PROJECT_LOCATION = "/somewhere/TestProject.zip";
     private static final String PROJECT_NAME = "TestProject";
 
@@ -91,6 +92,38 @@ public class DataManagerTest {
         dataManager.commit();
         p1_2 = dataManager.find(project, project.getId());
         assertNull(p1_2);
+        dataManager.close();
+    }
+
+    @Test
+    public void testFindAll() throws Exception {
+        DataManager dataManager = new DataManager(PU_NAME);
+        dataManager.open();
+        Project project1 = new Project();
+        project1.setName(PROJECT_NAME);
+        project1.setLocation(PROJECT_LOCATION);
+        Project project2 = new Project();
+        project2.setName(PROJECT_NAME + "2");
+        project2.setLocation(PROJECT_LOCATION);
+        dataManager.persist(project1);
+        dataManager.persist(project2);
+        dataManager.commit();
+
+        int id1 = project1.getId();
+        assertTrue(id1 > 0);
+        int id2 = project2.getId();
+        assertTrue(id2 > 0);
+        Collection<Project> projects = dataManager.findAll(Project.class);
+        assertNotNull(projects);
+        assertEquals(2, projects.size());
+        assertTrue(projects.contains(project1));
+
+        dataManager.begin();
+        dataManager.removeAll(Project.class);
+        dataManager.commit();
+        Collection<Project> projects2 = dataManager.findAll(Project.class);
+        assertNotNull(projects2);
+        assertEquals(0, projects2.size());
         dataManager.close();
     }
 }

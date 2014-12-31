@@ -48,6 +48,18 @@ public class MetricsManagerTest extends EasyMockSupport {
     }
 
     @Test
+    public void testDeleteAllData() {
+
+        dataManager.open();
+        dataManager.removeAll(Project.class);
+        dataManager.close();
+
+        replayAll();
+
+        metricsManager.deleteAllData();
+    }
+
+    @Test
     public void testPersist() {
 
         dataManager.open();

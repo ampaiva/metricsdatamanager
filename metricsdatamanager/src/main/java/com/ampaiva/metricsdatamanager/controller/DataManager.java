@@ -1,8 +1,11 @@
 package com.ampaiva.metricsdatamanager.controller;
 
+import java.util.Collection;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import javax.persistence.Query;
 
 public class DataManager implements IDataManager {
     private EntityManagerFactory emFactory;
@@ -64,4 +67,19 @@ public class DataManager implements IDataManager {
         T obj = (T) entityManager.find(project.getClass(), id);
         return obj;
     }
+
+    @SuppressWarnings("unchecked")
+    public <U> Collection<U> findAll(Class<U> _class) {
+        Query query = entityManager.createQuery("SELECT e FROM " + _class.getSimpleName() + " e");
+        return query.getResultList();
+    }
+
+    @Override
+    public <H> void removeAll(Class<H> _class) {
+        Collection<H> entities = findAll(_class);
+        for (H entity : entities) {
+            remove(entity);
+        }
+    }
+
 }

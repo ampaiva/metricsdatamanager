@@ -13,6 +13,21 @@
 			<property name="javax.persistence.jdbc.user" value="cm" />
 			<property name="javax.persistence.jdbc.password" value="cm" />
 			<property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />
+			<property name="eclipselink.ddl-generation" value="create-or-extend-tables" />
+			<property name="eclipselink.logging.level" value="INFO" />
+		</properties>
+	</persistence-unit>
+	<persistence-unit name="metricsdatamanagerTEST"
+		transaction-type="RESOURCE_LOCAL">
+		<class>com.ampaiva.metricsdatamanager.model.Metric</class>
+		<class>com.ampaiva.metricsdatamanager.model.Ocurrency</class>
+		<class>com.ampaiva.metricsdatamanager.model.Project</class>
+		<class>com.ampaiva.metricsdatamanager.model.Resource</class>
+		<properties>
+			<property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/test" />
+			<property name="javax.persistence.jdbc.user" value="cm" />
+			<property name="javax.persistence.jdbc.password" value="cm" />
+			<property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />
 			<property name="eclipselink.ddl-generation" value="drop-and-create-tables" />
 			<property name="eclipselink.logging.level" value="INFO" />
 		</properties>
