@@ -8,6 +8,8 @@
 		<class>com.ampaiva.metricsdatamanager.model.Ocurrency</class>
 		<class>com.ampaiva.metricsdatamanager.model.Project</class>
 		<class>com.ampaiva.metricsdatamanager.model.Resource</class>
+		<class>com.ampaiva.metricsdatamanager.model.DuplicationBlock</class>
+		<class>com.ampaiva.metricsdatamanager.model.DuplicationSection</class>
 		<properties>
 			<property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/cm" />
 			<property name="javax.persistence.jdbc.user" value="cm" />
@@ -23,6 +25,8 @@
 		<class>com.ampaiva.metricsdatamanager.model.Ocurrency</class>
 		<class>com.ampaiva.metricsdatamanager.model.Project</class>
 		<class>com.ampaiva.metricsdatamanager.model.Resource</class>
+		<class>com.ampaiva.metricsdatamanager.model.DuplicationBlock</class>
+		<class>com.ampaiva.metricsdatamanager.model.DuplicationSection</class>
 		<properties>
 			<property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/test" />
 			<property name="javax.persistence.jdbc.user" value="cm" />

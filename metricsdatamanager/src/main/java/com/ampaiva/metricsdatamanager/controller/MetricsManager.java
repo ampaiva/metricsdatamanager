@@ -23,7 +23,8 @@ public class MetricsManager {
         dataManager.close();
     }
 
-    public Project persist(String projectName, String projectLocation, Map<String, List<ConcernMetricNode>> metrics) {
+    public Project persist(String projectName, String projectLocation, EOcurrencyType ocurrencyType,
+            Map<String, List<ConcernMetricNode>> metrics) {
         Project project = new Project();
         project.setName(projectName);
         project.setLocation(projectLocation);
@@ -35,6 +36,7 @@ public class MetricsManager {
             List<Ocurrency> ocurrencies = new ArrayList<Ocurrency>();
             for (ConcernMetricNode concernMetricNode : entry.getValue()) {
                 Ocurrency ocurrency = new Ocurrency();
+                ocurrency.setType(ocurrencyType);
                 ocurrency.setResourceBean(resource);
                 ocurrency.setBeginline(concernMetricNode.getBeginLine());
                 ocurrency.setBegincolumn(concernMetricNode.getBeginColumn());

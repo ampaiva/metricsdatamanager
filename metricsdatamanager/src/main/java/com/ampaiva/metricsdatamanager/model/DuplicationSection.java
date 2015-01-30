@@ -13,16 +13,14 @@ import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
-import com.ampaiva.metricsdatamanager.controller.EOcurrencyType;
-
 /**
- * The persistent class for the ocurrencies database table.
+ * The persistent class for the DuplicationSection database table.
  * 
  */
 @Entity
-@Table(name = "ocurrencies")
-@NamedQuery(name = "Ocurrency.findAll", query = "SELECT o FROM Ocurrency o")
-public class Ocurrency implements Serializable {
+@Table(name = "duplicationsection")
+@NamedQuery(name = "DuplicationSection.findAll", query = "SELECT o FROM DuplicationSection o")
+public class DuplicationSection implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id
@@ -30,13 +28,7 @@ public class Ocurrency implements Serializable {
     @Column(unique = true, nullable = false)
     private int id;
 
-    private EOcurrencyType type;
-
-    private int begincolumn;
-
     private int beginline;
-
-    private int endcolumn;
 
     private int endline;
 
@@ -45,7 +37,12 @@ public class Ocurrency implements Serializable {
     @JoinColumn(name = "resource", nullable = false)
     private Resource resourceBean;
 
-    public Ocurrency() {
+    //bi-directional many-to-one association to DuplicationBlock
+    @ManyToOne(cascade = { CascadeType.ALL })
+    @JoinColumn(name = "duplicationblock", nullable = false)
+    private DuplicationBlock duplicationBlockBean;
+
+    public DuplicationSection() {
     }
 
     public int getId() {
@@ -56,42 +53,12 @@ public class Ocurrency implements Serializable {
         this.id = id;
     }
 
-    /**
-     * @return the type
-     */
-    public EOcurrencyType getType() {
-        return type;
-    }
-
-    /**
-     * @param type the type to set
-     */
-    public void setType(EOcurrencyType type) {
-        this.type = type;
-    }
-
-    public int getBegincolumn() {
-        return this.begincolumn;
-    }
-
-    public void setBegincolumn(int begincolumn) {
-        this.begincolumn = begincolumn;
-    }
-
     public int getBeginline() {
         return this.beginline;
     }
 
     public void setBeginline(int beginline) {
         this.beginline = beginline;
-    }
-
-    public int getEndcolumn() {
-        return this.endcolumn;
-    }
-
-    public void setEndcolumn(int endcolumn) {
-        this.endcolumn = endcolumn;
     }
 
     public int getEndline() {
@@ -108,6 +75,14 @@ public class Ocurrency implements Serializable {
 
     public void setResourceBean(Resource resourceBean) {
         this.resourceBean = resourceBean;
+    }
+
+    public DuplicationBlock getDuplicationBlock() {
+        return this.duplicationBlockBean;
+    }
+
+    public void setDuplicationBlockBean(DuplicationBlock duplicationBlockBean) {
+        this.duplicationBlockBean = duplicationBlockBean;
     }
 
 }

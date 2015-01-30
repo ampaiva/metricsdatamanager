@@ -20,6 +20,7 @@ import com.ampaiva.hlo.cm.ConcernMetricNode;
 import com.ampaiva.hlo.cm.MetricsColector;
 import com.ampaiva.hlo.util.Helper;
 import com.ampaiva.metricsdatamanager.controller.DataManager;
+import com.ampaiva.metricsdatamanager.controller.EOcurrencyType;
 import com.ampaiva.metricsdatamanager.controller.IDataManager;
 import com.ampaiva.metricsdatamanager.controller.MetricsManager;
 
@@ -70,7 +71,7 @@ public class Main {
         for (Entry<String, ConcernMetric> entry : hash.entrySet()) {
             metrics.put(entry.getKey(), entry.getValue().getNodes());
         }
-        metricsManager.persist(projectName, projectLocation, metrics);
+        metricsManager.persist(projectName, projectLocation, EOcurrencyType.EXCEPTION_HANDLING, metrics);
     }
 
     public static void main(String[] args) throws Exception {

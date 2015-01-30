@@ -14,6 +14,8 @@ import javax.persistence.RollbackException;
 
 import org.junit.Test;
 
+import com.ampaiva.metricsdatamanager.model.DuplicationBlock;
+import com.ampaiva.metricsdatamanager.model.DuplicationSection;
 import com.ampaiva.metricsdatamanager.model.Ocurrency;
 import com.ampaiva.metricsdatamanager.model.Project;
 import com.ampaiva.metricsdatamanager.model.Resource;
@@ -126,4 +128,60 @@ public class DataManagerTest {
         assertEquals(0, projects2.size());
         dataManager.close();
     }
+
+    @Test
+    public void testDuplicationBlock() throws Exception {
+        DataManager dataManager = new DataManager(PU_NAME);
+        dataManager.open();
+        Project project = new Project();
+        project.setName(PROJECT_NAME);
+        project.setLocation(PROJECT_LOCATION);
+        Resource resource1 = new Resource();
+        resource1.setProjectBean(project);
+        resource1.setName(RESOURCE_NAME);
+        DuplicationBlock duplicationBlock = new DuplicationBlock();
+        DuplicationSection duplicationSection = new DuplicationSection();
+        duplicationSection.setResourceBean(resource1);
+        duplicationSection.setDuplicationBlockBean(duplicationBlock);
+        duplicationSection.setBeginline(10);
+        duplicationSection.setEndline(15);
+        resource1.setDuplicationSections(Arrays.asList(duplicationSection));
+        duplicationBlock.setDuplicationSection(Arrays.asList(duplicationSection));
+        project.setResources(Arrays.asList(resource1));
+        dataManager.persist(project);
+        dataManager.persist(duplicationBlock);
+        dataManager.commit();
+
+        int id1 = project.getId();
+        assertTrue(id1 > 0);
+        Project p1 = dataManager.find(project, id1);
+        assertNotNull(p1);
+        assertEquals(id1, project.getId());
+        assertEquals(PROJECT_NAME, project.getName());
+        assertEquals(PROJECT_LOCATION, project.getLocation());
+        List<Resource> resources = p1.getResources();
+        assertNotNull(resources);
+        assertEquals(1, resources.size());
+        Resource resource2 = resources.get(0);
+        assertEquals(p1, resource2.getProjectBean());
+        assertTrue(resource2.getId() > 0);
+        assertEquals(RESOURCE_NAME, resource2.getName());
+        List<DuplicationSection> duplicationSections = resource2.getDuplicationSections();
+        assertNotNull(duplicationSections);
+        assertEquals(1, duplicationSections.size());
+        DuplicationSection duplicationSection2 = duplicationSections.get(0);
+        assertTrue(duplicationSection2.getId() > 0);
+        assertEquals(resource2, duplicationSection2.getResourceBean());
+        assertEquals(10, duplicationSection2.getBeginline());
+        assertEquals(15, duplicationSection2.getEndline());
+        Project p1_2 = dataManager.find(project, id1);
+        assertNotNull(p1_2);
+        dataManager.begin();
+        dataManager.remove(p1_2);
+        dataManager.commit();
+        p1_2 = dataManager.find(project, project.getId());
+        assertNull(p1_2);
+        dataManager.close();
+    }
+
 }

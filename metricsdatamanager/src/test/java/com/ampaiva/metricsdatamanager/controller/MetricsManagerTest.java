@@ -73,7 +73,8 @@ public class MetricsManagerTest extends EasyMockSupport {
         nodes.add(concernMetricNode);
         metrics.put(CLASS_NAME, nodes);
 
-        Project project = metricsManager.persist(PROJECT_NAME, PROJECT_LOCATION, metrics);
+        Project project = metricsManager.persist(PROJECT_NAME, PROJECT_LOCATION, EOcurrencyType.EXCEPTION_HANDLING,
+                metrics);
         assertNotNull(project);
         assertEquals(PROJECT_NAME, project.getName());
         assertEquals(PROJECT_LOCATION, project.getLocation());
@@ -88,6 +89,7 @@ public class MetricsManagerTest extends EasyMockSupport {
         assertEquals(1, ocurrencies.size());
         Ocurrency ocurrency = ocurrencies.get(0);
         assertNotNull(ocurrency);
+        assertEquals(EOcurrencyType.EXCEPTION_HANDLING, ocurrency.getType());
         assertEquals(1, ocurrency.getBeginline());
         assertEquals(2, ocurrency.getBegincolumn());
         assertEquals(3, ocurrency.getEndline());
