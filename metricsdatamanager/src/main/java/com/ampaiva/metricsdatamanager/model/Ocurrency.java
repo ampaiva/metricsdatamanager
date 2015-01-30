@@ -1,113 +1,96 @@
 package com.ampaiva.metricsdatamanager.model;
 
 import java.io.Serializable;
+import javax.persistence.*;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-
-import com.ampaiva.metricsdatamanager.controller.EOcurrencyType;
 
 /**
  * The persistent class for the ocurrencies database table.
  * 
  */
 @Entity
-@Table(name = "ocurrencies")
-@NamedQuery(name = "Ocurrency.findAll", query = "SELECT o FROM Ocurrency o")
+@Table(name="ocurrencies")
+@NamedQuery(name="Ocurrency.findAll", query="SELECT o FROM Ocurrency o")
 public class Ocurrency implements Serializable {
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.TABLE)
-    @Column(unique = true, nullable = false)
-    private int id;
+	@Id
+	@GeneratedValue(strategy=GenerationType.TABLE)
+	@Column(unique=true, nullable=false)
+	private int id;
 
-    private EOcurrencyType type;
+	private int begincolumn;
 
-    private int begincolumn;
+	private int beginline;
 
-    private int beginline;
+	private int endcolumn;
 
-    private int endcolumn;
+	private int endline;
 
-    private int endline;
+	private int type;
 
-    //bi-directional many-to-one association to Resource
-    @ManyToOne(cascade = { CascadeType.ALL })
-    @JoinColumn(name = "resource", nullable = false)
-    private Resource resourceBean;
+	//bi-directional many-to-one association to Resource
+	@ManyToOne(cascade={CascadeType.ALL})
+	@JoinColumn(name="resource", nullable=false)
+	private Resource resourceBean;
 
-    public Ocurrency() {
-    }
+	public Ocurrency() {
+	}
 
-    public int getId() {
-        return this.id;
-    }
+	public int getId() {
+		return this.id;
+	}
 
-    public void setId(int id) {
-        this.id = id;
-    }
+	public void setId(int id) {
+		this.id = id;
+	}
 
-    /**
-     * @return the type
-     */
-    public EOcurrencyType getType() {
-        return type;
-    }
+	public int getBegincolumn() {
+		return this.begincolumn;
+	}
 
-    /**
-     * @param type the type to set
-     */
-    public void setType(EOcurrencyType type) {
-        this.type = type;
-    }
+	public void setBegincolumn(int begincolumn) {
+		this.begincolumn = begincolumn;
+	}
 
-    public int getBegincolumn() {
-        return this.begincolumn;
-    }
+	public int getBeginline() {
+		return this.beginline;
+	}
 
-    public void setBegincolumn(int begincolumn) {
-        this.begincolumn = begincolumn;
-    }
+	public void setBeginline(int beginline) {
+		this.beginline = beginline;
+	}
 
-    public int getBeginline() {
-        return this.beginline;
-    }
+	public int getEndcolumn() {
+		return this.endcolumn;
+	}
 
-    public void setBeginline(int beginline) {
-        this.beginline = beginline;
-    }
+	public void setEndcolumn(int endcolumn) {
+		this.endcolumn = endcolumn;
+	}
 
-    public int getEndcolumn() {
-        return this.endcolumn;
-    }
+	public int getEndline() {
+		return this.endline;
+	}
 
-    public void setEndcolumn(int endcolumn) {
-        this.endcolumn = endcolumn;
-    }
+	public void setEndline(int endline) {
+		this.endline = endline;
+	}
 
-    public int getEndline() {
-        return this.endline;
-    }
+	public int getType() {
+		return this.type;
+	}
 
-    public void setEndline(int endline) {
-        this.endline = endline;
-    }
+	public void setType(int type) {
+		this.type = type;
+	}
 
-    public Resource getResourceBean() {
-        return this.resourceBean;
-    }
+	public Resource getResourceBean() {
+		return this.resourceBean;
+	}
 
-    public void setResourceBean(Resource resourceBean) {
-        this.resourceBean = resourceBean;
-    }
+	public void setResourceBean(Resource resourceBean) {
+		this.resourceBean = resourceBean;
+	}
 
 }

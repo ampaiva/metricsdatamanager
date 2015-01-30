@@ -36,7 +36,7 @@ public class MetricsManager {
             List<Ocurrency> ocurrencies = new ArrayList<Ocurrency>();
             for (ConcernMetricNode concernMetricNode : entry.getValue()) {
                 Ocurrency ocurrency = new Ocurrency();
-                ocurrency.setType(ocurrencyType);
+                ocurrency.setType(ocurrencyType.ordinal());
                 ocurrency.setResourceBean(resource);
                 ocurrency.setBeginline(concernMetricNode.getBeginLine());
                 ocurrency.setBegincolumn(concernMetricNode.getBeginColumn());

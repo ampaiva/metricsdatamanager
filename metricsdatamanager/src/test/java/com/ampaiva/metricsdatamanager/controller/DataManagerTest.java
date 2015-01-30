@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -14,8 +15,7 @@ import javax.persistence.RollbackException;
 
 import org.junit.Test;
 
-import com.ampaiva.metricsdatamanager.model.DuplicationBlock;
-import com.ampaiva.metricsdatamanager.model.DuplicationSection;
+import com.ampaiva.metricsdatamanager.model.Duplication;
 import com.ampaiva.metricsdatamanager.model.Ocurrency;
 import com.ampaiva.metricsdatamanager.model.Project;
 import com.ampaiva.metricsdatamanager.model.Resource;
@@ -26,6 +26,82 @@ public class DataManagerTest {
     private static final String PU_NAME = "metricsdatamanagerTEST";
     private static final String PROJECT_LOCATION = "/somewhere/TestProject.zip";
     private static final String PROJECT_NAME = "TestProject";
+
+    static class ProjectBuilder {
+
+        List<Project> projects = new ArrayList<Project>();
+
+        static ProjectBuilder New() {
+            ProjectBuilder projectBuilder = new ProjectBuilder();
+            return projectBuilder;
+        }
+
+        ProjectBuilder add() {
+            Project project = new Project();
+            project.setName(PROJECT_NAME + projects.size());
+            project.setLocation(PROJECT_LOCATION + projects.size());
+            project.setResources(new ArrayList<Resource>());
+            projects.add(project);
+            return this;
+        }
+
+        ProjectBuilder addResource() {
+            Project project = get();
+            Resource resource = new Resource();
+            resource.setName(RESOURCE_NAME + project.getResources().size());
+            resource.setProjectBean(project);
+            resource.setOcurrencies(new ArrayList<Ocurrency>());
+            project.addResource(resource);
+            return this;
+        }
+
+        ProjectBuilder addOcurrency(EOcurrencyType eOcurrencyType, int beginline, int begincolumn, int endline,
+                int endcolumn) {
+            Project project = get();
+            Resource resource = get(project);
+            Ocurrency ocurrency = new Ocurrency();
+            ocurrency.setType(eOcurrencyType.ordinal());
+            ocurrency.setBeginline(beginline);
+            ocurrency.setBegincolumn(begincolumn);
+            ocurrency.setEndline(endline);
+            ocurrency.setEndcolumn(endcolumn);
+            ocurrency.setResourceBean(resource);
+            resource.addOcurrency(ocurrency);
+            return this;
+        }
+
+        Project get() {
+            return get(projects.size() - 1);
+        }
+
+        Resource get(Project project) {
+            return project.getResources().get(project.getResources().size() - 1);
+        }
+
+        Resource get(Project project, int resourceIndex) {
+            return project.getResources().get(resourceIndex);
+        }
+
+        Ocurrency get(Resource resource) {
+            return resource.getOcurrencies().get(resource.getOcurrencies().size() - 1);
+        }
+
+        Ocurrency get(Resource resource, int index) {
+            return resource.getOcurrencies().get(index);
+        }
+
+        Project get(int projectIndex) {
+            return projects.get(projectIndex);
+        }
+
+        Resource getResource(int projectIndex, int resourceIndex) {
+            return get(get(projectIndex), resourceIndex);
+        }
+
+        Ocurrency getOcurrency(int projectIndex, int resourceIndex, int ocurrencyIndex) {
+            return get(getResource(projectIndex, resourceIndex), ocurrencyIndex);
+        }
+    }
 
     @Test
     public void testEmpty() throws Exception {
@@ -133,55 +209,31 @@ public class DataManagerTest {
     public void testDuplicationBlock() throws Exception {
         DataManager dataManager = new DataManager(PU_NAME);
         dataManager.open();
-        Project project = new Project();
-        project.setName(PROJECT_NAME);
-        project.setLocation(PROJECT_LOCATION);
-        Resource resource1 = new Resource();
-        resource1.setProjectBean(project);
-        resource1.setName(RESOURCE_NAME);
-        DuplicationBlock duplicationBlock = new DuplicationBlock();
-        DuplicationSection duplicationSection = new DuplicationSection();
-        duplicationSection.setResourceBean(resource1);
-        duplicationSection.setDuplicationBlockBean(duplicationBlock);
-        duplicationSection.setBeginline(10);
-        duplicationSection.setEndline(15);
-        resource1.setDuplicationSections(Arrays.asList(duplicationSection));
-        duplicationBlock.setDuplicationSection(Arrays.asList(duplicationSection));
-        project.setResources(Arrays.asList(resource1));
-        dataManager.persist(project);
-        dataManager.persist(duplicationBlock);
+        ProjectBuilder projectBuilder = ProjectBuilder.New().add().addResource()
+                .addOcurrency(EOcurrencyType.DUPLICATION, 1, 0, 3, 0).addResource()
+                .addOcurrency(EOcurrencyType.DUPLICATION, 1, 0, 3, 0);
+        dataManager.persist(projectBuilder.get());
+        Duplication duplication = new Duplication();
+        int copy = projectBuilder.getOcurrency(0, 0, 0).getId();
+        duplication.setCopy(copy);
+        int paste = projectBuilder.getOcurrency(0, 1, 0).getId();
+        duplication.setPaste(paste);
+        dataManager.persist(duplication);
         dataManager.commit();
 
-        int id1 = project.getId();
+        int id1 = duplication.getId();
         assertTrue(id1 > 0);
-        Project p1 = dataManager.find(project, id1);
-        assertNotNull(p1);
-        assertEquals(id1, project.getId());
-        assertEquals(PROJECT_NAME, project.getName());
-        assertEquals(PROJECT_LOCATION, project.getLocation());
-        List<Resource> resources = p1.getResources();
-        assertNotNull(resources);
-        assertEquals(1, resources.size());
-        Resource resource2 = resources.get(0);
-        assertEquals(p1, resource2.getProjectBean());
-        assertTrue(resource2.getId() > 0);
-        assertEquals(RESOURCE_NAME, resource2.getName());
-        List<DuplicationSection> duplicationSections = resource2.getDuplicationSections();
-        assertNotNull(duplicationSections);
-        assertEquals(1, duplicationSections.size());
-        DuplicationSection duplicationSection2 = duplicationSections.get(0);
-        assertTrue(duplicationSection2.getId() > 0);
-        assertEquals(resource2, duplicationSection2.getResourceBean());
-        assertEquals(10, duplicationSection2.getBeginline());
-        assertEquals(15, duplicationSection2.getEndline());
-        Project p1_2 = dataManager.find(project, id1);
-        assertNotNull(p1_2);
+        Duplication duplication1 = dataManager.find(duplication, id1);
+        assertNotNull(duplication1);
+        assertEquals(id1, duplication.getId());
+        assertEquals(copy, duplication.getCopy());
+        assertEquals(paste, duplication.getPaste());
         dataManager.begin();
-        dataManager.remove(p1_2);
+        dataManager.remove(projectBuilder.get());
+        dataManager.remove(duplication);
         dataManager.commit();
-        p1_2 = dataManager.find(project, project.getId());
-        assertNull(p1_2);
+        duplication = dataManager.find(duplication, duplication.getId());
+        assertNull(duplication);
         dataManager.close();
     }
-
 }
