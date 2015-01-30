@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.ampaiva.hlo.cm.ConcernMetricNode;
+import com.ampaiva.metricsdatamanager.model.Duplication;
 import com.ampaiva.metricsdatamanager.model.Ocurrency;
 import com.ampaiva.metricsdatamanager.model.Project;
 import com.ampaiva.metricsdatamanager.model.Resource;
@@ -19,6 +20,7 @@ public class MetricsManager {
 
     public void deleteAllData() {
         dataManager.open();
+        dataManager.removeAll(Duplication.class);
         dataManager.removeAll(Project.class);
         dataManager.close();
     }

@@ -14,6 +14,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.ampaiva.hlo.cm.ConcernMetricNode;
+import com.ampaiva.metricsdatamanager.model.Duplication;
 import com.ampaiva.metricsdatamanager.model.Ocurrency;
 import com.ampaiva.metricsdatamanager.model.Project;
 import com.ampaiva.metricsdatamanager.model.Resource;
@@ -51,6 +52,7 @@ public class MetricsManagerTest extends EasyMockSupport {
     public void testDeleteAllData() {
 
         dataManager.open();
+        dataManager.removeAll(Duplication.class);
         dataManager.removeAll(Project.class);
         dataManager.close();
 
@@ -89,7 +91,7 @@ public class MetricsManagerTest extends EasyMockSupport {
         assertEquals(1, ocurrencies.size());
         Ocurrency ocurrency = ocurrencies.get(0);
         assertNotNull(ocurrency);
-        assertEquals(EOcurrencyType.EXCEPTION_HANDLING, ocurrency.getType());
+        assertEquals(EOcurrencyType.EXCEPTION_HANDLING.ordinal(), ocurrency.getType());
         assertEquals(1, ocurrency.getBeginline());
         assertEquals(2, ocurrency.getBegincolumn());
         assertEquals(3, ocurrency.getEndline());
