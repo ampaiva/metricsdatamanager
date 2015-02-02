@@ -45,6 +45,11 @@
 			<artifactId>easymock</artifactId>
 			<version>3.2</version>
 		</dependency>
+		<dependency>
+			<groupId>org.codehaus.sonar</groupId>
+			<artifactId>manual-measure-ws</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 	<artifactId>metricsdatamanager</artifactId>
 </project>

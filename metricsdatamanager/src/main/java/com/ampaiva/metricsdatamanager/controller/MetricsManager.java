@@ -35,18 +35,11 @@ public class MetricsManager {
             Resource resource = new Resource();
             resource.setProjectBean(project);
             resource.setName(entry.getKey());
-            List<Ocurrency> ocurrencies = new ArrayList<Ocurrency>();
             for (ConcernMetricNode concernMetricNode : entry.getValue()) {
-                Ocurrency ocurrency = new Ocurrency();
-                ocurrency.setType(ocurrencyType.ordinal());
-                ocurrency.setResourceBean(resource);
-                ocurrency.setBeginline(concernMetricNode.getBeginLine());
-                ocurrency.setBegincolumn(concernMetricNode.getBeginColumn());
-                ocurrency.setEndline(concernMetricNode.getEndLine());
-                ocurrency.setEndcolumn(concernMetricNode.getEndColumn());
-                ocurrencies.add(ocurrency);
+                addOcurrency(resource, ocurrencyType, concernMetricNode.getBeginLine(),
+                        concernMetricNode.getBeginColumn(), concernMetricNode.getEndLine(),
+                        concernMetricNode.getEndColumn());
             }
-            resource.setOcurrencies(ocurrencies);
             resources.add(resource);
         }
         project.setResources(resources);
@@ -54,5 +47,46 @@ public class MetricsManager {
         dataManager.persist(project);
         dataManager.close();
         return project;
+    }
+
+    private Ocurrency addOcurrency(Resource resource, EOcurrencyType ocurrencyType, int beginline, int begincolumn,
+            int endline, int endcolumn) {
+        Ocurrency ocurrency = new Ocurrency();
+        ocurrency.setType(ocurrencyType.ordinal());
+        ocurrency.setResourceBean(resource);
+        ocurrency.setBeginline(beginline);
+        ocurrency.setBegincolumn(begincolumn);
+        ocurrency.setEndline(endline);
+        ocurrency.setEndcolumn(endcolumn);
+        List<Ocurrency> ocurrenciesList = resource.getOcurrencies();
+        if (ocurrenciesList == null) {
+            resource.setOcurrencies(new ArrayList<Ocurrency>());
+        }
+        resource.addOcurrency(ocurrency);
+        return ocurrency;
+    }
+
+    public Ocurrency persist(String projectName, String resourceName, EOcurrencyType ocurrencyType, int beginline,
+            int begincolumn, int endline, int endcolumn) {
+        dataManager.open();
+        Resource resource = dataManager.getResourceByName(projectName, resourceName);
+        Ocurrency ocurrency = addOcurrency(resource, ocurrencyType, beginline, begincolumn, endline, endcolumn);
+        dataManager.persist(ocurrency);
+        dataManager.close();
+        return ocurrency;
+    }
+
+    public List<Duplication> persist(int copy, List<Integer> pastes) {
+        dataManager.open();
+        List<Duplication> duplications = new ArrayList<Duplication>();
+        for (Integer paste : pastes) {
+            Duplication duplication = new Duplication();
+            duplication.setCopy(copy);
+            duplication.setPaste(paste);
+            dataManager.persist(duplication);
+            duplications.add(duplication);
+        }
+        dataManager.close();
+        return duplications;
     }
 }

@@ -11,7 +11,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import javax.persistence.NoResultException;
 import javax.persistence.RollbackException;
+import javax.persistence.TypedQuery;
 
 import org.junit.Test;
 
@@ -100,6 +102,13 @@ public class DataManagerTest {
 
         Ocurrency getOcurrency(int projectIndex, int resourceIndex, int ocurrencyIndex) {
             return get(getResource(projectIndex, resourceIndex), ocurrencyIndex);
+        }
+
+        public void commit(DataManager dataManager) {
+            for (Project project : projects) {
+                dataManager.persist(project);
+            }
+            dataManager.commit();
         }
     }
 
@@ -236,4 +245,32 @@ public class DataManagerTest {
         assertNull(duplication);
         dataManager.close();
     }
+
+    @Test
+    public void testFindProject() throws Exception {
+        DataManager dataManager = new DataManager(PU_NAME);
+        dataManager.open();
+        ProjectBuilder projectBuilder = ProjectBuilder.New().add().addResource().add().addResource();
+        projectBuilder.commit(dataManager);
+
+        TypedQuery<Project> query1 = dataManager.entityManager.createQuery("SELECT p FROM Project p WHERE p.name = ?1",
+                Project.class);
+        query1.setParameter(1, PROJECT_NAME + 1);
+        Project project1 = query1.getSingleResult();
+        assertNotNull(project1);
+        Resource resource0 = dataManager.getResourceByName(PROJECT_NAME + 0, RESOURCE_NAME + 0);
+        assertNotNull(resource0);
+
+        dataManager.begin();
+        dataManager.removeAll(Project.class);
+        dataManager.commit();
+        try {
+            project1 = query1.getSingleResult();
+            fail("Should throw NoResultException");
+        } catch (NoResultException ex) {
+
+        }
+        dataManager.close();
+    }
+
 }

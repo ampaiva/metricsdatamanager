@@ -1,5 +1,6 @@
 package com.ampaiva.metricsdatamanager.controller;
 
+import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -24,6 +25,7 @@ public class MetricsManagerTest extends EasyMockSupport {
     private static final String CLASS_NAME = "com.ampaiva.metricsdatamanager.test.TestClass";
     private static final String PROJECT_LOCATION = "projectLocation";
     private static final String PROJECT_NAME = "projectName";
+    private static final String RESOURCE_NAME = "/src/main/com/ampaiva/test/Any.java";
     // Class under test
     private MetricsManager metricsManager;
     // Mocks
@@ -62,7 +64,7 @@ public class MetricsManagerTest extends EasyMockSupport {
     }
 
     @Test
-    public void testPersist() {
+    public void testPersistMetrics() {
 
         dataManager.open();
         dataManager.persist(isA(Project.class));
@@ -92,6 +94,34 @@ public class MetricsManagerTest extends EasyMockSupport {
         Ocurrency ocurrency = ocurrencies.get(0);
         assertNotNull(ocurrency);
         assertEquals(EOcurrencyType.EXCEPTION_HANDLING.ordinal(), ocurrency.getType());
+        assertEquals(1, ocurrency.getBeginline());
+        assertEquals(2, ocurrency.getBegincolumn());
+        assertEquals(3, ocurrency.getEndline());
+        assertEquals(4, ocurrency.getEndcolumn());
+    }
+
+    @Test
+    public void testPersistDuplication() {
+
+        Resource resource = new Resource();
+        resource.setName(RESOURCE_NAME);
+        Project project = new Project();
+        project.setName(PROJECT_NAME);
+        resource.setProjectBean(project);
+        expect(dataManager.getResourceByName(PROJECT_NAME, RESOURCE_NAME)).andReturn(resource);
+
+        dataManager.open();
+        dataManager.persist(isA(Ocurrency.class));
+        dataManager.close();
+
+        replayAll();
+
+        Ocurrency ocurrency = metricsManager.persist(PROJECT_NAME, RESOURCE_NAME, EOcurrencyType.DUPLICATION, 1, 2, 3,
+                4);
+        assertNotNull(ocurrency);
+        assertEquals(PROJECT_NAME, ocurrency.getResourceBean().getProjectBean().getName());
+        assertEquals(RESOURCE_NAME, ocurrency.getResourceBean().getName());
+        assertEquals(EOcurrencyType.DUPLICATION.ordinal(), ocurrency.getType());
         assertEquals(1, ocurrency.getBeginline());
         assertEquals(2, ocurrency.getBegincolumn());
         assertEquals(3, ocurrency.getEndline());

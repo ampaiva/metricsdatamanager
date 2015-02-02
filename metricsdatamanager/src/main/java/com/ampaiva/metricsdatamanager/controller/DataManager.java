@@ -6,6 +6,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+
+import com.ampaiva.metricsdatamanager.model.Resource;
 
 public class DataManager implements IDataManager {
     private EntityManagerFactory emFactory;
@@ -62,15 +65,15 @@ public class DataManager implements IDataManager {
         entityManager.remove(entity);
     }
 
-    public <T> T find(T project, int id) {
+    public <T> T find(T clazz, int id) {
         @SuppressWarnings("unchecked")
-        T obj = (T) entityManager.find(project.getClass(), id);
+        T obj = (T) entityManager.find(clazz.getClass(), id);
         return obj;
     }
 
     @SuppressWarnings("unchecked")
-    public <U> Collection<U> findAll(Class<U> _class) {
-        Query query = entityManager.createQuery("SELECT e FROM " + _class.getSimpleName() + " e");
+    public <U> Collection<U> findAll(Class<U> clazz) {
+        Query query = entityManager.createQuery("SELECT e FROM " + clazz.getSimpleName() + " e");
         return query.getResultList();
     }
 
@@ -80,6 +83,16 @@ public class DataManager implements IDataManager {
         for (H entity : entities) {
             remove(entity);
         }
+    }
+
+    @Override
+    public Resource getResourceByName(String projectName, String resourceName) {
+        TypedQuery<Resource> query = entityManager.createQuery(
+                "SELECT r FROM Resource r WHERE r.projectBean.name = ?1 and r.name = ?2", Resource.class);
+        query.setParameter(1, projectName);
+        query.setParameter(2, resourceName);
+
+        return query.getSingleResult();
     }
 
 }
