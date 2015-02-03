@@ -106,8 +106,7 @@ public class Main {
     }
 
     public void persistDuplicationBlock(String projectKey, Duplications duplications, String stBlock) {
-        int copy = -1;
-        List<Integer> pastes = new ArrayList<Integer>();
+        List<Integer> ocurrencies = new ArrayList<Integer>();
         while (stBlock.length() > 0) {
             String[] duplication2 = stBlock.substring(stBlock.indexOf('[') + 1, stBlock.indexOf(']')).split(",");
             stBlock = stBlock.substring(stBlock.indexOf(']') + 1);
@@ -125,14 +124,11 @@ public class Main {
 
             Ocurrency ocurrency = metricsManager.persist(projectKey, resourceName, EOcurrencyType.DUPLICATION, from, 0,
                     from + size + 1, 0);
-            if (copy == -1) {
-                copy = ocurrency.getId();
-            } else {
-                pastes.add(ocurrency.getId());
-            }
+            ocurrencies.add(ocurrency.getId());
         }
-        System.out.println("Duplication: copy=" + copy + " paste=" + pastes);
-        metricsManager.persist(copy, pastes);
+        int copy = ocurrencies.remove(0).intValue();
+        System.out.println("Duplication: copy=" + copy + " paste=" + ocurrencies);
+        metricsManager.persist(copy, ocurrencies);
     }
 
     private List<Duplications> getDuplicationsofProject(String projectName) throws Exception {
