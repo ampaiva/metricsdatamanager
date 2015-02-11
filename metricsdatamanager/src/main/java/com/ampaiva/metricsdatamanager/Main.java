@@ -123,7 +123,7 @@ public class Main {
             int size = Integer.parseInt(duplication2[2].substring(duplication2[2].indexOf('=') + 1));
 
             Ocurrency ocurrency = metricsManager.persist(projectKey, resourceName, EOcurrencyType.DUPLICATION, from, 0,
-                    from + size + 1, 0);
+                    from + size, 0);
             ocurrencies.add(ocurrency.getId());
         }
         int copy = ocurrencies.remove(0).intValue();
