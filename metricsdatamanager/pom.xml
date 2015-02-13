@@ -50,6 +50,11 @@
 			<artifactId>manual-measure-ws</artifactId>
 			<version>1.0-SNAPSHOT</version>
 		</dependency>
+		<dependency>
+			<groupId>org.codehaus.sonar</groupId>
+			<artifactId>sonar-ws-client</artifactId>
+			<version>5.0-SNAPSHOT</version>
+		</dependency>
 	</dependencies>
 	<artifactId>metricsdatamanager</artifactId>
 </project>
