@@ -118,6 +118,7 @@ public class Main {
             stFile.nextToken();
             stFile.nextToken();
             String resourceName = stFile.nextToken();
+            resourceName = resourceName.substring(resourceName.indexOf('/') + 1);
             System.out.println(resourceName);
             int from = Integer.parseInt(duplication2[1].substring(duplication2[1].indexOf('=') + 1));
             int size = Integer.parseInt(duplication2[2].substring(duplication2[2].indexOf('=') + 1));
