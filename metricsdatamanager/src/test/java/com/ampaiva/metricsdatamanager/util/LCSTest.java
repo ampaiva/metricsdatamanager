@@ -48,4 +48,16 @@ public class LCSTest {
                 LCS.lcs(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, new int[] { 2, 3, 3, 4, 8, 5, 7, 8, 3, 9 }));
     }
 
+    @Test
+    public void testLcsEqualsScenario2() {
+        int[] arr1 = new int[50];
+        int[] arr2 = new int[50];
+        for (int i = 0; i < arr1.length; i++) {
+            arr1[i] = i;
+        }
+        for (int i = 0; i < arr2.length; i++) {
+            arr2[i] = i + arr1.length;
+        }
+        Assert.assertArrayEquals(new int[] {}, LCS.lcs(arr1, arr2));
+    }
 }

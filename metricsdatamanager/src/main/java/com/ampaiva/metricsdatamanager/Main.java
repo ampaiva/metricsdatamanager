@@ -26,19 +26,24 @@ import org.sonar.wsclient.services.Duplications;
 import org.sonar.wsclient.services.Duplications.Block;
 import org.sonar.wsclient.services.DuplicationsMgr;
 
+import com.ampaiva.hlo.cm.ConcernCollection;
 import com.ampaiva.hlo.cm.ConcernMetric;
 import com.ampaiva.hlo.cm.ConcernMetricNode;
+import com.ampaiva.hlo.cm.IMethodCalls;
 import com.ampaiva.hlo.cm.MetricsColector;
 import com.ampaiva.hlo.util.Helper;
+import com.ampaiva.metricsdatamanager.controller.ConcernCallsManager;
 import com.ampaiva.metricsdatamanager.controller.DataManager;
 import com.ampaiva.metricsdatamanager.controller.EOcurrencyType;
 import com.ampaiva.metricsdatamanager.controller.IDataManager;
 import com.ampaiva.metricsdatamanager.controller.MetricsManager;
 import com.ampaiva.metricsdatamanager.model.Ocurrency;
+import com.ampaiva.metricsdatamanager.util.HashArray;
 
 public class Main {
     private final IDataManager dataManager = new DataManager("metricsdatamanager");
     private final MetricsManager metricsManager = new MetricsManager(dataManager);
+    private final List<IMethodCalls> concernCollections = new ArrayList<IMethodCalls>();
 
     private MetricsColector getMetrics(Map<String, String> sources) throws ParseException, FileNotFoundException,
             IOException {
@@ -74,24 +79,45 @@ public class Main {
         return files;
     }
 
-    private void getMetricsofAllFiles(String folder) throws Exception {
+    private void getMetricsofAllFiles(String folder, boolean shouldPersist) throws Exception {
         File[] files = getZipFilesFrom(folder);
-        metricsManager.deleteAllData();
+        if (shouldPersist) {
+            metricsManager.deleteAllData();
+        }
         for (File zipFile : files) {
             System.out.println(zipFile.getName());
             MetricsColector metricsColector = getMetrics(getFilesInZip(zipFile.getAbsolutePath()));
-            persist(getProjectKey(zipFile), zipFile.getAbsolutePath(), metricsColector);
+            if (shouldPersist) {
+                persist(getProjectKey(zipFile), zipFile.getAbsolutePath(), metricsColector);
+            }
+            persistConcernCollection(zipFile.getAbsolutePath(), metricsColector);
         }
     }
 
     private void persist(String projectKey, String projectLocation, MetricsColector metricsColector)
             throws ParseException {
         Map<String, List<ConcernMetricNode>> metrics = new HashMap<String, List<ConcernMetricNode>>();
-        HashMap<String, ConcernMetric> hash = metricsColector.getMetrics().getHash();
-        for (Entry<String, ConcernMetric> entry : hash.entrySet()) {
-            metrics.put(entry.getKey(), entry.getValue().getNodes());
+        HashMap<String, List<ConcernMetric>> hash = metricsColector.getMetrics().getHash();
+        for (Entry<String, List<ConcernMetric>> entry : hash.entrySet()) {
+            for (ConcernMetric concernMetric : entry.getValue()) {
+                if (!(concernMetric instanceof ConcernCollection)) {
+                    metrics.put(entry.getKey(), concernMetric.getNodes());
+                }
+            }
         }
         metricsManager.persist(projectKey, projectLocation, EOcurrencyType.EXCEPTION_HANDLING, metrics);
+    }
+
+    private void persistConcernCollection(String projectLocation, MetricsColector metricsColector)
+            throws ParseException {
+        HashMap<String, List<ConcernMetric>> hash = metricsColector.getMetrics().getHash();
+        for (Entry<String, List<ConcernMetric>> entry : hash.entrySet()) {
+            for (ConcernMetric concernMetric : entry.getValue()) {
+                if (concernMetric instanceof ConcernCollection) {
+                    concernCollections.add((ConcernCollection) concernMetric);
+                }
+            }
+        }
     }
 
     private void persist(String projectKey, List<Duplications> duplicationsList) {
@@ -150,6 +176,12 @@ public class Main {
 
     }
 
+    private List<String> getDuplicationsofConcernMetrics() {
+        ConcernCallsManager concernCallsManager = new ConcernCallsManager(new HashArray());
+        concernCallsManager.setCallsHash(concernCollections);
+        return concernCallsManager.getDuplications(concernCollections);
+    }
+
     private void getDuplicationsofAllFiles(String folder) throws Exception {
         File[] files = getZipFilesFrom(folder);
         for (File zipFile : files) {
@@ -169,8 +201,17 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         Main main = new Main();
-        String folder = "C:/opt/tools/target-projects";
-        main.getMetricsofAllFiles(folder);
-        main.getDuplicationsofAllFiles(folder);
+        //        String folder = "C:/opt/tools/target-projects";
+        String folder = "C:/Temp";
+        main.getMetricsofAllFiles(folder, false);
+        //main.getDuplicationsofAllFiles(folder);
+        for (String string : main.getDuplicationsofConcernMetrics()) {
+            String[] dup = string.split(ConcernCallsManager.SEPARATOR);
+            for (String string2 : dup) {
+                System.out.println(string2);
+            }
+            System.out.println();
+        }
+        System.out.println(main.getDuplicationsofConcernMetrics().size());
     }
 }
