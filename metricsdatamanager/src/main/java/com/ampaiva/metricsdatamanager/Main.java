@@ -4,20 +4,17 @@ import japa.parser.ParseException;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Enumeration;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.StringTokenizer;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.sonar.wsclient.Host;
 import org.sonar.wsclient.Sonar;
@@ -27,11 +24,12 @@ import org.sonar.wsclient.services.Duplications.Block;
 import org.sonar.wsclient.services.DuplicationsMgr;
 
 import com.ampaiva.hlo.cm.ConcernCollection;
-import com.ampaiva.hlo.cm.ConcernMetric;
 import com.ampaiva.hlo.cm.ConcernMetricNode;
+import com.ampaiva.hlo.cm.IConcernMetric;
 import com.ampaiva.hlo.cm.IMethodCalls;
+import com.ampaiva.hlo.cm.IMetricsSource;
 import com.ampaiva.hlo.cm.MetricsColector;
-import com.ampaiva.hlo.util.Helper;
+import com.ampaiva.metricsdatamanager.config.IConcernCallsConfig;
 import com.ampaiva.metricsdatamanager.controller.ConcernCallsManager;
 import com.ampaiva.metricsdatamanager.controller.DataManager;
 import com.ampaiva.metricsdatamanager.controller.EOcurrencyType;
@@ -39,33 +37,12 @@ import com.ampaiva.metricsdatamanager.controller.IDataManager;
 import com.ampaiva.metricsdatamanager.controller.MetricsManager;
 import com.ampaiva.metricsdatamanager.model.Ocurrency;
 import com.ampaiva.metricsdatamanager.util.HashArray;
+import com.ampaiva.metricsdatamanager.util.ZipUtil;
 
 public class Main {
     private final IDataManager dataManager = new DataManager("metricsdatamanager");
     private final MetricsManager metricsManager = new MetricsManager(dataManager);
     private final List<IMethodCalls> concernCollections = new ArrayList<IMethodCalls>();
-
-    private MetricsColector getMetrics(Map<String, String> sources) throws ParseException, FileNotFoundException,
-            IOException {
-        MetricsColector metricsColector = new MetricsColector(sources);
-        return metricsColector;
-    }
-
-    private Map<String, String> getFilesInZip(String zipFilePath) throws IOException {
-        Map<String, String> sources = new HashMap<String, String>();
-        ZipFile zipFile = new ZipFile(zipFilePath);
-        Enumeration<? extends ZipEntry> entries = zipFile.entries();
-        while (entries.hasMoreElements()) {
-            ZipEntry entry = entries.nextElement();
-            if (entry.isDirectory() || !entry.getName().toLowerCase().endsWith(".java")) {
-                continue;
-            }
-            sources.put(entry.getName().substring(entry.getName().indexOf('/') + 1),
-                    Helper.convertInputStream2String(zipFile.getInputStream(entry)));
-        }
-        zipFile.close();
-        return sources;
-    }
 
     private File[] getZipFilesFrom(String folder) throws Exception {
         File[] files = new File(folder).listFiles(new FilenameFilter() {
@@ -79,27 +56,28 @@ public class Main {
         return files;
     }
 
-    private void getMetricsofAllFiles(String folder, boolean shouldPersist) throws Exception {
+    void getMetricsofAllFiles(IMetricsSource metricsSource, String folder, boolean shouldPersist) throws Exception {
         File[] files = getZipFilesFrom(folder);
         if (shouldPersist) {
             metricsManager.deleteAllData();
         }
         for (File zipFile : files) {
             System.out.println(zipFile.getName());
-            MetricsColector metricsColector = getMetrics(getFilesInZip(zipFile.getAbsolutePath()));
+            ZipUtil zipUtil = new ZipUtil(zipFile.getAbsolutePath());
+            MetricsColector metricsColector = new MetricsColector(metricsSource, zipUtil);
             if (shouldPersist) {
                 persist(getProjectKey(zipFile), zipFile.getAbsolutePath(), metricsColector);
             }
-            persistConcernCollection(zipFile.getAbsolutePath(), metricsColector);
+            persistConcernCollection(metricsColector);
         }
     }
 
     private void persist(String projectKey, String projectLocation, MetricsColector metricsColector)
-            throws ParseException {
+            throws ParseException, IOException {
         Map<String, List<ConcernMetricNode>> metrics = new HashMap<String, List<ConcernMetricNode>>();
-        HashMap<String, List<ConcernMetric>> hash = metricsColector.getMetrics().getHash();
-        for (Entry<String, List<ConcernMetric>> entry : hash.entrySet()) {
-            for (ConcernMetric concernMetric : entry.getValue()) {
+        HashMap<String, List<IConcernMetric>> hash = metricsColector.getMetrics().getHash();
+        for (Entry<String, List<IConcernMetric>> entry : hash.entrySet()) {
+            for (IConcernMetric concernMetric : entry.getValue()) {
                 if (!(concernMetric instanceof ConcernCollection)) {
                     metrics.put(entry.getKey(), concernMetric.getNodes());
                 }
@@ -108,11 +86,10 @@ public class Main {
         metricsManager.persist(projectKey, projectLocation, EOcurrencyType.EXCEPTION_HANDLING, metrics);
     }
 
-    private void persistConcernCollection(String projectLocation, MetricsColector metricsColector)
-            throws ParseException {
-        HashMap<String, List<ConcernMetric>> hash = metricsColector.getMetrics().getHash();
-        for (Entry<String, List<ConcernMetric>> entry : hash.entrySet()) {
-            for (ConcernMetric concernMetric : entry.getValue()) {
+    private void persistConcernCollection(MetricsColector metricsColector) throws ParseException, IOException {
+        HashMap<String, List<IConcernMetric>> hash = metricsColector.getMetrics().getHash();
+        for (Entry<String, List<IConcernMetric>> entry : hash.entrySet()) {
+            for (IConcernMetric concernMetric : entry.getValue()) {
                 if (concernMetric instanceof ConcernCollection) {
                     concernCollections.add((ConcernCollection) concernMetric);
                 }
@@ -176,8 +153,14 @@ public class Main {
 
     }
 
-    private List<String> getDuplicationsofConcernMetrics() {
-        ConcernCallsManager concernCallsManager = new ConcernCallsManager(new HashArray());
+    List<String> getDuplicationsofConcernMetrics() {
+        ConcernCallsManager concernCallsManager = new ConcernCallsManager(new IConcernCallsConfig() {
+
+            @Override
+            public int getMinSeq() {
+                return 5;
+            }
+        }, new HashArray());
         concernCallsManager.setCallsHash(concernCollections);
         return concernCallsManager.getDuplications(concernCollections);
     }
@@ -203,8 +186,15 @@ public class Main {
         Main main = new Main();
         //        String folder = "C:/opt/tools/target-projects";
         String folder = "C:/Temp";
-        main.getMetricsofAllFiles(folder, false);
-        //main.getDuplicationsofAllFiles(folder);
+        IMetricsSource metricsSource = new IMetricsSource() {
+
+            @Override
+            public List<IConcernMetric> getConcernMetrics() {
+                return Arrays.asList((IConcernMetric) new ConcernCollection());
+            }
+        };
+        main.getMetricsofAllFiles(metricsSource, folder, false);
+        main.getDuplicationsofAllFiles(folder);
         for (String string : main.getDuplicationsofConcernMetrics()) {
             String[] dup = string.split(ConcernCallsManager.SEPARATOR);
             for (String string2 : dup) {

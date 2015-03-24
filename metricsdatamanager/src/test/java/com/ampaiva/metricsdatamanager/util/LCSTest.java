@@ -19,32 +19,32 @@ public class LCSTest {
 
     @Test
     public void testLcsEquals() {
-        Assert.assertArrayEquals(new int[] { 7 }, LCS.lcs(new int[] { 7 }, new int[] { 7 }));
+        Assert.assertArrayEquals(new int[] { 0, 0 }, LCS.lcs(new int[] { 7 }, new int[] { 7 }));
     }
 
     @Test
     public void testLcsEqualsAfter1() {
-        Assert.assertArrayEquals(new int[] { 7 }, LCS.lcs(new int[] { 7, 8 }, new int[] { 7 }));
-    }
-
-    @Test
-    public void testLcsEqualsBefore1() {
-        Assert.assertArrayEquals(new int[] { 7 }, LCS.lcs(new int[] { 8, 7 }, new int[] { 7 }));
+        Assert.assertArrayEquals(new int[] { 0, 0 }, LCS.lcs(new int[] { 7, 8 }, new int[] { 7 }));
     }
 
     @Test
     public void testLcsEqualsAfter2() {
-        Assert.assertArrayEquals(new int[] { 7 }, LCS.lcs(new int[] { 7 }, new int[] { 7, 8 }));
+        Assert.assertArrayEquals(new int[] { 0, 0 }, LCS.lcs(new int[] { 7 }, new int[] { 7, 8 }));
+    }
+
+    @Test
+    public void testLcsEqualsBefore1() {
+        Assert.assertArrayEquals(new int[] { 1, 0 }, LCS.lcs(new int[] { 8, 7 }, new int[] { 7 }));
     }
 
     @Test
     public void testLcsEqualsBefore2() {
-        Assert.assertArrayEquals(new int[] { 7 }, LCS.lcs(new int[] { 7 }, new int[] { 8, 7 }));
+        Assert.assertArrayEquals(new int[] { 0, 1 }, LCS.lcs(new int[] { 7 }, new int[] { 8, 7 }));
     }
 
     @Test
     public void testLcsEqualsScenario1() {
-        Assert.assertArrayEquals(new int[] { 2, 3, 4, 5, 7, 8, 9 },
+        Assert.assertArrayEquals(new int[] { 1, 0, 2, 1, 3, 3, 4, 5, 6, 6, 7, 7, 8, 9 },
                 LCS.lcs(new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, new int[] { 2, 3, 3, 4, 8, 5, 7, 8, 3, 9 }));
     }
 

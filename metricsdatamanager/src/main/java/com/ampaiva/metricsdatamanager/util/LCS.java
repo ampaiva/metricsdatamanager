@@ -29,6 +29,12 @@ public class LCS {
         }
     }
 
+    /*
+     * Search a list of pair matches, e.g, a ={4, 5, 6}, b={5} will
+     * result of return {1, 0} since a[1] == b[0]
+     * 
+     * @return list of pair matches indexes
+     */
     public static int[] lcs(int[] a, int[] b) {
         int[][] lengths = new int[a.length + 1][b.length + 1];
 
@@ -53,7 +59,8 @@ public class LCS {
                 y--;
             } else {
                 assert a[x - 1] == b[y - 1];
-                sb.add(a[x - 1]);
+                sb.add(y - 1);
+                sb.add(x - 1);
                 x--;
                 y--;
             }

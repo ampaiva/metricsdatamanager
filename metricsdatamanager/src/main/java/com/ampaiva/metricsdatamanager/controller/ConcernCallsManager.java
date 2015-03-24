@@ -6,18 +6,95 @@ import java.util.List;
 
 import com.ampaiva.hlo.cm.ConcernCollection;
 import com.ampaiva.hlo.cm.IMethodCalls;
+import com.ampaiva.metricsdatamanager.config.IConcernCallsConfig;
 import com.ampaiva.metricsdatamanager.util.IHashArray;
 import com.ampaiva.metricsdatamanager.util.LCS;
 
 public class ConcernCallsManager {
     public static final String SEPARATOR = "#";
-    private static final int MIN_SEQ = 5;
     private final IHashArray hashArray;
+    private final IConcernCallsConfig config;
 
-    public ConcernCallsManager(IHashArray hashArray) {
+    public ConcernCallsManager(IConcernCallsConfig config, IHashArray hashArray) {
+        this.config = config;
         this.hashArray = hashArray;
     }
 
+    private int[] getDuplications(List<Integer> seqA, List<Integer> seqB) {
+        if (seqA.size() >= config.getMinSeq() && seqB.size() >= config.getMinSeq()) {
+            Integer[] a = seqA.toArray(new Integer[seqA.size()]);
+            Integer[] b = seqB.toArray(new Integer[seqB.size()]);
+            int[] indexes = LCS.lcs(LCS.convert(a), LCS.convert(b));
+            if (indexes.length / 2 >= config.getMinSeq()) {
+                return indexes;
+            }
+        }
+        return null;
+    }
+
+    private List<int[]> getSequenceDuplications(List<Integer> seqA, List<List<Integer>> sequencesB) {
+        List<int[]> duplications = new ArrayList<int[]>();
+        for (List<Integer> seqB : sequencesB) {
+            int[] indexes = getDuplications(seqA, seqB);
+            duplications.add(indexes);
+        }
+        return duplications;
+    }
+
+    private List<List<int[]>> getSequencesDuplications(List<List<Integer>> sequencesA, List<List<Integer>> sequencesB) {
+        List<List<int[]>> duplications = new ArrayList<List<int[]>>();
+        for (List<Integer> seqA : sequencesA) {
+            List<int[]> list = getSequenceDuplications(seqA, sequencesB);
+            duplications.add(list);
+        }
+        return duplications;
+    }
+
+    private List<List<List<int[]>>> getAllSequencesDuplications(List<List<Integer>> sequencesA,
+            List<List<List<Integer>>> sequencesList) {
+        List<List<List<int[]>>> duplications = new ArrayList<List<List<int[]>>>();
+        for (List<List<Integer>> sequencesB : sequencesList) {
+            List<List<int[]>> list = getSequencesDuplications(sequencesA, sequencesB);
+            duplications.add(list);
+        }
+        return duplications;
+    }
+
+    public List<List<List<int[]>>> getAllDuplications(IMethodCalls concernCollectionA, List<IMethodCalls> classesList) {
+        List<List<Integer>> sequencesA = getCallsIndexes(concernCollectionA.getSequences());
+        List<List<List<Integer>>> sequencesList = new ArrayList<List<List<Integer>>>();
+        for (IMethodCalls concernCollectionB : classesList) {
+            List<List<Integer>> sequencesB = getCallsIndexes(concernCollectionB.getSequences());
+            sequencesList.add(sequencesB);
+        }
+        return getAllSequencesDuplications(sequencesA, sequencesList);
+    }
+
+    private Collection<? extends String> getDuplications(IMethodCalls concernCollectionA, List<IMethodCalls> classesList) {
+        List<String> collection = new ArrayList<String>();
+        List<List<List<int[]>>> duplications = getAllDuplications(concernCollectionA, classesList);
+        // for duplications of class A
+        for (int i = 0; i < duplications.size(); i++) {
+            List<List<int[]>> methodsA = duplications.get(i);
+            // for methods of class A
+            for (int j = 0; j < methodsA.size(); j++) {
+                List<int[]> methodsB = methodsA.get(j);
+                // for methods of class B compared against methodsA[j]
+                for (int k = 0; k < methodsB.size(); k++) {
+                    int[] dups = methodsB.get(k);
+                    if (dups == null) {
+                        continue;
+                    }
+                    // Found a duplication methodsA[j] is duplicated with methodsB[k]. dups contains the duplications
+                    String str = convert(concernCollectionA, classesList.get(i), j, k, dups);
+                    collection.add(str);
+                }
+            }
+        }
+        return collection;
+    }
+
+    //TODO: Move to a new class
     public List<String> getDuplications(List<IMethodCalls> concernCollections) {
         List<String> duplications = new ArrayList<String>();
         for (int i = 0; i < concernCollections.size() - 1; i++) {
@@ -28,43 +105,20 @@ public class ConcernCallsManager {
         return duplications;
     }
 
-    private Collection<? extends String> getDuplications(IMethodCalls concernCollectionA, List<IMethodCalls> subList) {
-        List<String> collection = new ArrayList<String>();
-        List<List<Integer>> listA = getCallsIndexes(concernCollectionA.getSequences());
-        for (IMethodCalls concernCollectionB : subList) {
-            List<List<Integer>> listB = getCallsIndexes(concernCollectionB.getSequences());
-            for (int i = 0; i < listA.size(); i++) {
-                List<Integer> integersA = listA.get(i);
-                if (integersA.size() < MIN_SEQ) {
-                    continue;
-                }
-                Integer[] a = integersA.toArray(new Integer[integersA.size()]);
-                for (int j = 0; j < listB.size(); j++) {
-                    List<Integer> integersB = listB.get(j);
-                    if (integersB.size() < MIN_SEQ) {
-                        continue;
-                    }
-                    Integer[] b = integersB.toArray(new Integer[integersB.size()]);
-                    int[] indexes = LCS.lcs(LCS.convert(a), LCS.convert(b));
-                    if (indexes.length > MIN_SEQ) {
-                        StringBuilder sb = new StringBuilder();
-                        for (int k : indexes) {
-                            if (sb.length() > 0) {
-                                sb.append(SEPARATOR);
-                            }
-                            String str = k + ":" + hashArray.getByIndex(k);
-                            sb.append(str);
-                        }
-                        String str = ((ConcernCollection) concernCollectionA).getKey() + SEPARATOR
-                                + concernCollectionA.getMethodNames().get(i) + SEPARATOR
-                                + ((ConcernCollection) concernCollectionB).getKey() + SEPARATOR
-                                + concernCollectionB.getMethodNames().get(j) + SEPARATOR + sb.toString();
-                        collection.add(str);
-                    }
-                }
+    private String convert(IMethodCalls concernCollectionA, IMethodCalls concernCollectionB, int i, int j, int[] indexes) {
+        StringBuilder sb = new StringBuilder();
+        for (int k : indexes) {
+            if (sb.length() > 0) {
+                sb.append(SEPARATOR);
             }
+            String str = k + ":" + hashArray.getByIndex(k);
+            sb.append(str);
         }
-        return collection;
+        String str = ((ConcernCollection) concernCollectionA).toString() + SEPARATOR
+                + concernCollectionA.getMethodNames().get(i) + SEPARATOR
+                + ((ConcernCollection) concernCollectionB).toString() + SEPARATOR
+                + concernCollectionB.getMethodNames().get(j) + SEPARATOR + sb.toString();
+        return str;
     }
 
     private List<List<Integer>> getCallsIndexes(List<List<String>> sequences) {

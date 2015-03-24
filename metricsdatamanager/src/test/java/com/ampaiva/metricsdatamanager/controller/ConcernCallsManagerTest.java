@@ -15,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.ampaiva.hlo.cm.IMethodCalls;
+import com.ampaiva.metricsdatamanager.config.IConcernCallsConfig;
 import com.ampaiva.metricsdatamanager.util.IHashArray;
 
 public class ConcernCallsManagerTest extends EasyMockSupport {
@@ -25,6 +26,7 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
 
     // Class under test
     private ConcernCallsManager concernCallsManager;
+    private IConcernCallsConfig config;
     private IHashArray hashArray;
 
     /**
@@ -34,8 +36,9 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
      */
     @Before
     public void setUp() throws Exception {
+        config = createMock(IConcernCallsConfig.class);
         hashArray = createMock(IHashArray.class);
-        concernCallsManager = new ConcernCallsManager(hashArray);
+        concernCallsManager = new ConcernCallsManager(config, hashArray);
     }
 
     /**
@@ -49,28 +52,38 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
     @Test
     public void testGetDuplications() {
         IMethodCalls methodCallsA = createMock(IMethodCalls.class);
-        List<List<String>> methodsA = new ArrayList<List<String>>();
-        List<String> callsA = Arrays.asList(METHOD_CALL_0, METHOD_CALL_1, METHOD_CALL_2);
-        methodsA.add(callsA);
-        expect(methodCallsA.getSequences()).andReturn(methodsA);
+        expect(methodCallsA.getSequences()).andReturn(
+                Arrays.asList(Arrays.asList(METHOD_CALL_0, METHOD_CALL_1, METHOD_CALL_2)));
         expect(hashArray.getByKey(METHOD_CALL_0)).andReturn(0).anyTimes();
         expect(hashArray.getByKey(METHOD_CALL_1)).andReturn(1).anyTimes();
         expect(hashArray.getByKey(METHOD_CALL_2)).andReturn(2).anyTimes();
         expect(hashArray.getByIndex(0)).andReturn(METHOD_CALL_0).anyTimes();
         expect(hashArray.getByIndex(1)).andReturn(METHOD_CALL_1).anyTimes();
         expect(hashArray.getByIndex(2)).andReturn(METHOD_CALL_2).anyTimes();
+        expect(config.getMinSeq()).andReturn(2).anyTimes();
 
         IMethodCalls methodCallsB = createMock(IMethodCalls.class);
-        List<List<String>> methodsB = new ArrayList<List<String>>();
-        List<String> callsB = Arrays.asList(METHOD_CALL_0, METHOD_CALL_2);
-        methodsB.add(callsB);
-        expect(methodCallsB.getSequences()).andReturn(methodsB);
+        expect(methodCallsB.getSequences()).andReturn(Arrays.asList(Arrays.asList(METHOD_CALL_0, METHOD_CALL_2)));
 
         replayAll();
-        List<IMethodCalls> methodCallsList = Arrays.asList(methodCallsA, methodCallsB);
-        List<String> duplications = concernCallsManager.getDuplications(methodCallsList);
+        List<List<List<int[]>>> duplications = concernCallsManager.getAllDuplications(methodCallsA,
+                Arrays.asList(methodCallsB));
         assertNotNull(duplications);
-        assertEquals(2, duplications.size());
-        Assert.assertArrayEquals(new String[] { METHOD_CALL_0, METHOD_CALL_2 }, duplications.toArray(new String[0]));
+        assertEquals(1, duplications.size());
+        assertEquals(1, duplications.get(0).size());
+        assertEquals(1, duplications.get(0).get(0).size());
+        assertNotNull(duplications.get(0).get(0).get(0));
+        assertEquals(4, duplications.get(0).get(0).get(0).length);
+        Assert.assertArrayEquals(new int[] { 0, 0, 2, 1 }, duplications.get(0).get(0).get(0));
     }
+
+    @Test
+    public void getDuplicationsofConcernMetrics() {
+        final List<IMethodCalls> concernCollections = new ArrayList<IMethodCalls>();
+        concernCallsManager.setCallsHash(concernCollections);
+        List<String> duplications = concernCallsManager.getDuplications(concernCollections);
+        assertNotNull(duplications);
+        assertEquals(10, duplications.size());
+    }
+
 }
