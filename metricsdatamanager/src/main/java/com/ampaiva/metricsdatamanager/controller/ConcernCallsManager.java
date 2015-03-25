@@ -105,19 +105,23 @@ public class ConcernCallsManager {
         return duplications;
     }
 
-    private String convert(IMethodCalls concernCollectionA, IMethodCalls concernCollectionB, int i, int j, int[] indexes) {
+    private String convert(IMethodCalls concernCollectionA, IMethodCalls concernCollectionB, int methodAIndex,
+            int methodBIndex, int[] indexes) {
+        List<List<Integer>> sequencesA = getCallsIndexes(concernCollectionA.getSequences());
         StringBuilder sb = new StringBuilder();
-        for (int k : indexes) {
+        for (int k = 0; k < indexes.length; k += 2) {
             if (sb.length() > 0) {
                 sb.append(SEPARATOR);
             }
-            String str = k + ":" + hashArray.getByIndex(k);
+            int index = indexes[k];
+            int seqAIndex = sequencesA.get(methodAIndex).get(index);
+            String str = index + ":" + seqAIndex + ":" + hashArray.getByIndex(seqAIndex);
             sb.append(str);
         }
         String str = ((ConcernCollection) concernCollectionA).toString() + SEPARATOR
-                + concernCollectionA.getMethodNames().get(i) + SEPARATOR
+                + concernCollectionA.getMethodNames().get(methodAIndex) + SEPARATOR
                 + ((ConcernCollection) concernCollectionB).toString() + SEPARATOR
-                + concernCollectionB.getMethodNames().get(j) + SEPARATOR + sb.toString();
+                + concernCollectionB.getMethodNames().get(methodBIndex) + SEPARATOR + sb.toString();
         return str;
     }
 

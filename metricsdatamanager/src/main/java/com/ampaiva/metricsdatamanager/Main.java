@@ -4,6 +4,7 @@ import japa.parser.ParseException;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -178,8 +179,11 @@ public class Main {
         String propFileName = zipFile.getAbsolutePath();
         propFileName = propFileName.substring(0, propFileName.length() - 4) + File.separatorChar
                 + "sonar-project.properties";
-        String projectKey = getProjectKey(propFileName);
-        return projectKey;
+        try {
+            return getProjectKey(propFileName);
+        } catch (FileNotFoundException ex) {
+        }
+        return zipFile.getName();
     }
 
     public static void main(String[] args) throws Exception {
@@ -194,7 +198,7 @@ public class Main {
             }
         };
         main.getMetricsofAllFiles(metricsSource, folder, false);
-        main.getDuplicationsofAllFiles(folder);
+        //main.getDuplicationsofAllFiles(folder);
         for (String string : main.getDuplicationsofConcernMetrics()) {
             String[] dup = string.split(ConcernCallsManager.SEPARATOR);
             for (String string2 : dup) {
