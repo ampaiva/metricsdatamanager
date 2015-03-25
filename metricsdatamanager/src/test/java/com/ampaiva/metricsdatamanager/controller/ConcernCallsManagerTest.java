@@ -79,11 +79,14 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
 
     @Test
     public void getDuplicationsofConcernMetrics() {
+
+        replayAll();
+
         final List<IMethodCalls> concernCollections = new ArrayList<IMethodCalls>();
         concernCallsManager.setCallsHash(concernCollections);
         List<String> duplications = concernCallsManager.getDuplications(concernCollections);
         assertNotNull(duplications);
-        assertEquals(10, duplications.size());
+        assertEquals(0, duplications.size());
     }
 
 }
