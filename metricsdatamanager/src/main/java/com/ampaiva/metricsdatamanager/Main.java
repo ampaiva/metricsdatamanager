@@ -189,7 +189,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         Main main = new Main();
         //        String folder = "C:/opt/tools/target-projects";
-        String folder = "C:/Temp";
+        String folder = "C:/code/target-projects";
         IMetricsSource metricsSource = new IMetricsSource() {
 
             @Override

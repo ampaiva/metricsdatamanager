@@ -109,13 +109,21 @@ public class ConcernCallsManager {
             int methodBIndex, int[] indexes) {
         List<List<Integer>> sequencesA = getCallsIndexes(concernCollectionA.getSequences());
         StringBuilder sb = new StringBuilder();
+        int lastPrinted = 0;
         for (int k = 0; k < indexes.length; k += 2) {
             if (sb.length() > 0) {
                 sb.append(SEPARATOR);
             }
             int index = indexes[k];
+            while (lastPrinted < index) {
+                int seqAIndex = sequencesA.get(methodAIndex).get(lastPrinted++);
+                String str = "**" + ":" + hashArray.getByIndex(seqAIndex) + SEPARATOR;
+                sb.append(str);
+
+            }
+            lastPrinted = index + 1;
             int seqAIndex = sequencesA.get(methodAIndex).get(index);
-            String str = index + ":" + seqAIndex + ":" + hashArray.getByIndex(seqAIndex);
+            String str = index + ":" + hashArray.getByIndex(seqAIndex);
             sb.append(str);
         }
         String str = ((ConcernCollection) concernCollectionA).toString() + SEPARATOR
