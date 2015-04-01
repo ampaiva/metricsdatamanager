@@ -4,6 +4,7 @@ import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,9 +15,13 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.ampaiva.hlo.cm.ICodeSource;
 import com.ampaiva.hlo.cm.IMethodCalls;
+import com.ampaiva.hlo.util.Helper;
 import com.ampaiva.metricsdatamanager.config.IConcernCallsConfig;
+import com.ampaiva.metricsdatamanager.util.HashArray;
 import com.ampaiva.metricsdatamanager.util.IHashArray;
+import com.ampaiva.metricsdatamanager.util.ZipStreamUtil;
 
 public class ConcernCallsManagerTest extends EasyMockSupport {
 
@@ -89,4 +94,18 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         assertEquals(0, duplications.size());
     }
 
+    @Test
+    public void getConcernClones() throws Exception {
+        expect(config.getMinSeq()).andReturn(5).anyTimes();
+
+        replayAll();
+
+        ZipStreamUtil zipStreamUtil = new ZipStreamUtil(Helper.convertFile2InputStream(new File(
+                "src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest2.zip")));
+        List<ICodeSource> codeSources = Arrays.asList((ICodeSource) zipStreamUtil);
+        concernCallsManager = new ConcernCallsManager(config, new HashArray());
+        List<ConcernClone> duplications = concernCallsManager.getConcernClones(codeSources);
+        assertNotNull(duplications);
+        assertEquals(3, duplications.size());
+    }
 }

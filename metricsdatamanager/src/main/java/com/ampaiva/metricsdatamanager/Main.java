@@ -26,6 +26,7 @@ import org.sonar.wsclient.services.DuplicationsMgr;
 
 import com.ampaiva.hlo.cm.ConcernCollection;
 import com.ampaiva.hlo.cm.ConcernMetricNode;
+import com.ampaiva.hlo.cm.ICodeSource;
 import com.ampaiva.hlo.cm.IConcernMetric;
 import com.ampaiva.hlo.cm.IMethodCalls;
 import com.ampaiva.hlo.cm.IMetricsSource;
@@ -71,6 +72,16 @@ public class Main {
             }
             persistConcernCollection(metricsColector);
         }
+    }
+
+    public List<IMethodCalls> getConcernCollectionofAllFiles(IMetricsSource metricsSource, List<ICodeSource> codeSources)
+            throws Exception {
+        for (ICodeSource codeSource : codeSources) {
+            MetricsColector metricsColector = new MetricsColector(metricsSource, codeSource);
+            persistConcernCollection(metricsColector);
+        }
+
+        return concernCollections;
     }
 
     private void persist(String projectKey, String projectLocation, MetricsColector metricsColector)
@@ -154,7 +165,7 @@ public class Main {
 
     }
 
-    List<String> getDuplicationsofConcernMetrics() {
+    public List<String> getDuplicationsofConcernMetrics() {
         ConcernCallsManager concernCallsManager = new ConcernCallsManager(new IConcernCallsConfig() {
 
             @Override
@@ -164,6 +175,11 @@ public class Main {
         }, new HashArray());
         concernCallsManager.setCallsHash(concernCollections);
         return concernCallsManager.getDuplications(concernCollections);
+    }
+
+    public List<List<List<List<int[]>>>> getDuplicationsofConcernMetrics2(ConcernCallsManager concernCallsManager,
+            List<IMethodCalls> methodCalls) {
+        return concernCallsManager.getDuplications2(methodCalls);
     }
 
     private void getDuplicationsofAllFiles(String folder) throws Exception {
