@@ -31,14 +31,12 @@ import com.ampaiva.hlo.cm.IConcernMetric;
 import com.ampaiva.hlo.cm.IMethodCalls;
 import com.ampaiva.hlo.cm.IMetricsSource;
 import com.ampaiva.hlo.cm.MetricsColector;
-import com.ampaiva.metricsdatamanager.config.IConcernCallsConfig;
 import com.ampaiva.metricsdatamanager.controller.ConcernCallsManager;
 import com.ampaiva.metricsdatamanager.controller.DataManager;
 import com.ampaiva.metricsdatamanager.controller.EOcurrencyType;
 import com.ampaiva.metricsdatamanager.controller.IDataManager;
 import com.ampaiva.metricsdatamanager.controller.MetricsManager;
 import com.ampaiva.metricsdatamanager.model.Ocurrency;
-import com.ampaiva.metricsdatamanager.util.HashArray;
 import com.ampaiva.metricsdatamanager.util.ZipUtil;
 
 public class Main {
@@ -165,18 +163,6 @@ public class Main {
 
     }
 
-    public List<String> getDuplicationsofConcernMetrics() {
-        ConcernCallsManager concernCallsManager = new ConcernCallsManager(new IConcernCallsConfig() {
-
-            @Override
-            public int getMinSeq() {
-                return 5;
-            }
-        }, new HashArray());
-        concernCallsManager.setCallsHash(concernCollections);
-        return concernCallsManager.getDuplications(concernCollections);
-    }
-
     public List<List<List<List<int[]>>>> getDuplicationsofConcernMetrics2(ConcernCallsManager concernCallsManager,
             List<IMethodCalls> methodCalls) {
         return concernCallsManager.getDuplications2(methodCalls);
@@ -214,14 +200,5 @@ public class Main {
             }
         };
         main.getMetricsofAllFiles(metricsSource, folder, false);
-        //main.getDuplicationsofAllFiles(folder);
-        for (String string : main.getDuplicationsofConcernMetrics()) {
-            String[] dup = string.split(ConcernCallsManager.SEPARATOR);
-            for (String string2 : dup) {
-                System.out.println(string2);
-            }
-            System.out.println();
-        }
-        System.out.println(main.getDuplicationsofConcernMetrics().size());
     }
 }

@@ -5,17 +5,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
-import com.ampaiva.googledrive.DriveManager;
-import com.ampaiva.googledrive.DriveService;
 import com.ampaiva.hlo.cm.ConcernCollection;
 import com.ampaiva.hlo.cm.ICodeSource;
 import com.ampaiva.hlo.cm.IConcernMetric;
@@ -28,57 +22,8 @@ import com.ampaiva.metricsdatamanager.controller.ConcernClone;
 import com.ampaiva.metricsdatamanager.util.HashArray;
 import com.ampaiva.metricsdatamanager.util.IHashArray;
 import com.ampaiva.metricsdatamanager.util.ZipStreamUtil;
-import com.google.api.services.drive.Drive;
 
 public class MainTest {
-
-    @Test
-    public void testMain() throws Exception {
-        Main main = new Main();
-        IMetricsSource metricsSource = new IMetricsSource() {
-
-            @Override
-            public List<IConcernMetric> getConcernMetrics() {
-                return Arrays.asList((IConcernMetric) new ConcernCollection());
-            }
-        };
-        main.getMetricsofAllFiles(metricsSource, "src/test/resources/com/ampaiva/metricsdatamanager/util", false);
-        List<String> duplicationsofConcernMetrics = main.getDuplicationsofConcernMetrics();
-        for (String string : duplicationsofConcernMetrics) {
-            String[] dups = string.split(ConcernCallsManager.SEPARATOR);
-            for (String dup : dups) {
-                System.out.println(dup);
-            }
-            System.out.println();
-        }
-        System.out.println(duplicationsofConcernMetrics.size());
-    }
-
-    @Test
-    public void testDuplicationsofConcernMetrics() throws Exception {
-        Main main = new Main();
-        IMetricsSource metricsSource = new IMetricsSource() {
-
-            @Override
-            public List<IConcernMetric> getConcernMetrics() {
-                return Arrays.asList((IConcernMetric) new ConcernCollection());
-            }
-        };
-
-        ZipStreamUtil zipStreamUtil = new ZipStreamUtil(Helper.convertFile2InputStream(new File(
-                "src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest1.zip")));
-        List<ICodeSource> codeSources = Arrays.asList((ICodeSource) zipStreamUtil);
-        main.getConcernCollectionofAllFiles(metricsSource, codeSources);
-        List<String> duplicationsofConcernMetrics = main.getDuplicationsofConcernMetrics();
-        for (String string : duplicationsofConcernMetrics) {
-            String[] dups = string.split(ConcernCallsManager.SEPARATOR);
-            for (String dup : dups) {
-                System.out.println(dup);
-            }
-            System.out.println();
-        }
-        System.out.println(duplicationsofConcernMetrics.size());
-    }
 
     @Test
     public void testDuplicationsofConcernMetrics2() throws Exception {
@@ -92,7 +37,7 @@ public class MainTest {
         };
 
         ZipStreamUtil zipStreamUtil = new ZipStreamUtil(Helper.convertFile2InputStream(new File(
-                "src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest2.zip")));
+                "src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest3.zip")));
         List<ICodeSource> codeSources = Arrays.asList((ICodeSource) zipStreamUtil);
         List<IMethodCalls> allClasses = main.getConcernCollectionofAllFiles(metricsSource, codeSources);
         IConcernCallsConfig config = new IConcernCallsConfig() {
@@ -127,6 +72,7 @@ public class MainTest {
                     List<int[]> methodsB = methodsA.get(k);
                     assertNotNull(methodsB);
                     assertEquals(allClasses.get(j + i + 1).getMethodNames().size(), methodsB.size());
+                    assertEquals(methodsB.size(), allClasses.get(j + i + 1).getMethodSources().size());
                     for (int l = 0; l < methodsB.size(); l++) {
                         int[] dups = methodsB.get(l);
                         if (dups == null) {
@@ -141,51 +87,5 @@ public class MainTest {
                 }
             }
         }
-    }
-
-    @Ignore
-    public void testDuplicationsofConcernMetricsFromGoogleDrive() throws Exception {
-        Main main = new Main();
-        IMetricsSource metricsSource = new IMetricsSource() {
-
-            @Override
-            public List<IConcernMetric> getConcernMetrics() {
-                return Arrays.asList((IConcernMetric) new ConcernCollection());
-            }
-        };
-
-        DriveService driveService = new DriveService("ampaiva@gmail.com",
-                "177572291168-b24dvtscvk8dpivteq16c000rd77enm6@developer.gserviceaccount.com",
-                "../googledrive/src/main/resources/concernclone-f58a967ec27b.p12");
-        Drive service = driveService.getService();
-        DriveManager driveManager = new DriveManager(service);
-        com.google.api.services.drive.model.File folder = driveManager.getFileByTitle("ConcernClone");
-        assertNotNull(folder);
-        List<com.google.api.services.drive.model.File> zipFiles = driveManager.getFilesInFolder(folder.getId(),
-                "application/zip");
-        assertNotNull(zipFiles);
-        assertEquals(9, zipFiles.size());
-        List<ICodeSource> codeSources = new ArrayList<ICodeSource>();
-        for (com.google.api.services.drive.model.File zipFile : zipFiles) {
-            final Map<String, String> zipMap = driveManager.getFilesInZip(zipFile, ".java");
-            assertNotNull(zipMap);
-            codeSources.add(new ICodeSource() {
-                @Override
-                public Map<String, String> getCodeSource() throws IOException {
-                    return zipMap;
-                }
-            });
-        }
-
-        main.getConcernCollectionofAllFiles(metricsSource, codeSources);
-        List<String> duplicationsofConcernMetrics = main.getDuplicationsofConcernMetrics();
-        for (String string : duplicationsofConcernMetrics) {
-            String[] dups = string.split(ConcernCallsManager.SEPARATOR);
-            for (String dup : dups) {
-                System.out.println(dup);
-            }
-            System.out.println();
-        }
-        System.out.println(duplicationsofConcernMetrics.size());
     }
 }

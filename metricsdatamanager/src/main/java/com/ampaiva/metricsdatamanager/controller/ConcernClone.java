@@ -6,17 +6,16 @@ import java.util.List;
 public class ConcernClone implements Serializable {
     private static final long serialVersionUID = -7952526730265463604L;
 
-    String methodA;
-    String methodB;
-    String sourceA;
-    String sourceB;
-    List<String> sequencesA;
-    List<String> sequencesB;
+    public String methodA;
+    public String methodB;
+    public List<String> sources;
+    public List<List<String>> sequences;
+    public int[] duplications;
 
     @Override
     public String toString() {
-        return "ConcernClone [methodA=" + methodA + ", methodB=" + methodB + ", sourceA=" + sourceA + ", sourceB="
-                + sourceB + ", sequencesA=" + sequencesA + ", sequencesB=" + sequencesB + "]";
+        return "ConcernClone [methodA=" + methodA + ", methodB=" + methodB + ", sources=" + sources + ", sequences="
+                + sequences + "]";
     }
 
 }

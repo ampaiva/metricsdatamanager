@@ -5,7 +5,6 @@ import japa.parser.ParseException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -78,41 +77,6 @@ public class ConcernCallsManager {
             sequencesList.add(sequencesB);
         }
         return getAllSequencesDuplications(sequencesA, sequencesList);
-    }
-
-    private Collection<? extends String> getDuplications(IMethodCalls concernCollectionA, List<IMethodCalls> classesList) {
-        List<String> collection = new ArrayList<String>();
-        List<List<List<int[]>>> duplications = getAllDuplications(concernCollectionA, classesList);
-        // for duplications of class A
-        for (int i = 0; i < duplications.size(); i++) {
-            List<List<int[]>> methodsA = duplications.get(i);
-            // for methods of class A
-            for (int j = 0; j < methodsA.size(); j++) {
-                List<int[]> methodsB = methodsA.get(j);
-                // for methods of class B compared against methodsA[j]
-                for (int k = 0; k < methodsB.size(); k++) {
-                    int[] dups = methodsB.get(k);
-                    if (dups == null) {
-                        continue;
-                    }
-                    // Found a duplication methodsA[j] is duplicated with methodsB[k]. dups contains the duplications
-                    String str = convert(concernCollectionA, classesList.get(i), j, k, dups);
-                    collection.add(str);
-                }
-            }
-        }
-        return collection;
-    }
-
-    //TODO: Move to a new class
-    public List<String> getDuplications(List<IMethodCalls> concernCollections) {
-        List<String> duplications = new ArrayList<String>();
-        for (int i = 0; i < concernCollections.size() - 1; i++) {
-            IMethodCalls concernCollection = concernCollections.get(i);
-            List<IMethodCalls> subList = concernCollections.subList(i + 1, concernCollections.size());
-            duplications.addAll(getDuplications(concernCollection, subList));
-        }
-        return duplications;
     }
 
     public List<List<List<List<int[]>>>> getDuplications2(List<IMethodCalls> concernCollections) {
@@ -188,32 +152,26 @@ public class ConcernCallsManager {
         return clones;
     }
 
-    private String convert(IMethodCalls concernCollectionA, IMethodCalls concernCollectionB, int methodAIndex,
-            int methodBIndex, int[] indexes) {
-        List<List<Integer>> sequencesA = getCallsIndexes(concernCollectionA.getSequences());
-        StringBuilder sb = new StringBuilder();
-        int lastPrinted = 0;
+    private List<String> getSequences(ConcernClone clone, int sourceIndex) {
+        List<String> list = new ArrayList<String>();
+        int[] lastPrintedA = new int[2];
+        int[] indexes = clone.duplications;
+        List<List<String>> sequencesA = clone.sequences;
+        int dupNo = 1;
         for (int k = 0; k < indexes.length; k += 2) {
-            if (sb.length() > 0) {
-                sb.append(SEPARATOR);
+            int indexA = indexes[k + sourceIndex];
+            while (lastPrintedA[sourceIndex] < indexA) {
+                String seqAIndex = sequencesA.get(sourceIndex).get(lastPrintedA[sourceIndex]++);
+                String strA = ".. [**]" + ":" + seqAIndex;
+                list.add(strA);
             }
-            int index = indexes[k];
-            while (lastPrinted < index) {
-                int seqAIndex = sequencesA.get(methodAIndex).get(lastPrinted++);
-                String str = "**" + ":" + hashArray.getByIndex(seqAIndex) + SEPARATOR;
-                sb.append(str);
+            lastPrintedA[sourceIndex] = indexA + 1;
 
-            }
-            lastPrinted = index + 1;
-            int seqAIndex = sequencesA.get(methodAIndex).get(index);
-            String str = index + ":" + hashArray.getByIndex(seqAIndex);
-            sb.append(str);
+            String seqAIndex = sequencesA.get(sourceIndex).get(indexA);
+            String strA = dupNo++ + " :" + seqAIndex;
+            list.add(strA);
         }
-        String str = ((ConcernCollection) concernCollectionA).toString() + SEPARATOR
-                + concernCollectionA.getMethodNames().get(methodAIndex) + SEPARATOR
-                + ((ConcernCollection) concernCollectionB).toString() + SEPARATOR
-                + concernCollectionB.getMethodNames().get(methodBIndex) + SEPARATOR + sb.toString();
-        return str;
+        return list;
     }
 
     public ConcernClone convert2(IMethodCalls concernCollectionA, IMethodCalls concernCollectionB, int methodAIndex,
@@ -224,34 +182,74 @@ public class ConcernCallsManager {
         ConcernClone clone = new ConcernClone();
         clone.methodA = concernCollectionA.getMethodNames().get(methodAIndex);
         clone.methodB = concernCollectionB.getMethodNames().get(methodBIndex);
-        clone.sourceA = concernCollectionA.getMethodSources().get(methodAIndex);
-        clone.sourceB = concernCollectionB.getMethodSources().get(methodBIndex);
-        clone.sequencesA = new ArrayList<String>();
-        clone.sequencesB = new ArrayList<String>();
-        for (int k = 0; k < indexes.length; k += 2) {
-            int indexA = indexes[k];
-            int indexB = indexes[k + 1];
-            while (lastPrintedA < indexA) {
-                int seqAIndex = sequencesA.get(methodAIndex).get(lastPrintedA++);
-                String strA = "**" + ":" + hashArray.getByIndex(seqAIndex);
-                clone.sequencesA.add(strA);
-            }
-            lastPrintedA = indexA + 1;
-            while (lastPrintedB < indexB) {
-                int seqBIndex = sequencesB.get(methodBIndex).get(lastPrintedB++);
-                String strB = "**" + ":" + hashArray.getByIndex(seqBIndex);
-                clone.sequencesB.add(strB);
-            }
-            lastPrintedB = indexB + 1;
-            int seqAIndex = sequencesA.get(methodAIndex).get(indexA);
-            String strA = indexA + ":" + hashArray.getByIndex(seqAIndex);
-            clone.sequencesA.add(strA);
-
-            int seqBIndex = sequencesB.get(methodBIndex).get(indexB);
-            String strB = indexB + ":" + hashArray.getByIndex(seqBIndex);
-            clone.sequencesB.add(strB);
-        }
+        System.out.println(clone.methodA + " x " + clone.methodB);
+        clone.sources = Arrays.asList(concernCollectionA.getMethodSources().get(methodAIndex), concernCollectionB
+                .getMethodSources().get(methodBIndex));
+        clone.sequences = Arrays.asList(concernCollectionA.getSequences().get(methodAIndex), concernCollectionB
+                .getSequences().get(methodBIndex));
+        clone.duplications = indexes;
+        showSequences(clone);
+        //        for (int k = 0; k < indexes.length; k += 2) {
+        //            int indexA = indexes[k];
+        //            int indexB = indexes[k + 1];
+        //            while (lastPrintedA < indexA) {
+        //                int seqAIndex = sequencesA.get(methodAIndex).get(lastPrintedA++);
+        //                String strA = ".. [**]" + ":" + hashArray.getByIndex(seqAIndex);
+        //                clone.sequencesA.add(strA);
+        //            }
+        //            lastPrintedA = indexA + 1;
+        //            while (lastPrintedB < indexB) {
+        //                int seqBIndex = sequencesB.get(methodBIndex).get(lastPrintedB++);
+        //                String strB = ".. [**]" + ":" + hashArray.getByIndex(seqBIndex);
+        //                clone.sequencesB.add(strB);
+        //            }
+        //            lastPrintedB = indexB + 1;
+        //
+        //            int seqAIndex = sequencesA.get(methodAIndex).get(indexA);
+        //            String strA = k + " :" + hashArray.getByIndex(seqAIndex);
+        //            clone.sequencesA.add(strA);
+        //
+        //            int seqBIndex = sequencesB.get(methodBIndex).get(indexB);
+        //            String strB = k + " :" + hashArray.getByIndex(seqBIndex);
+        //            clone.sequencesB.add(strB);
+        //        }
         return clone;
+    }
+
+    private void showSequences(ConcernClone clone) {
+        System.out.println();
+        for (int i = 0; i < 2; i++) {
+            List<String> sequences = getSequences(clone, i);
+            for (String item : sequences) {
+                System.out.println(item);
+            }
+            System.out.println("===== " + i + " =====");
+            System.out.println(clone.sources.get(i));
+            System.out.println("===== " + i + " =====");
+            System.out.println();
+        }
+    }
+
+    private void _printConcernClone(ConcernClone clone) {
+        int[] lastPrintedA = new int[2];
+        int[] indexes = clone.duplications;
+        List<List<String>> sequencesA = clone.sequences;
+        for (int i = 0; i < 2; i++) {
+            int dupNo = 1;
+            for (int k = 0; k < indexes.length; k += 2) {
+                int indexA = indexes[k + i];
+                while (lastPrintedA[i] < indexA) {
+                    String seqAIndex = sequencesA.get(i).get(lastPrintedA[i]++);
+                    String strA = ".. [**]" + ":" + seqAIndex;
+                    System.out.println(strA);
+                }
+                lastPrintedA[i] = indexA + 1;
+
+                String seqAIndex = sequencesA.get(i).get(indexA);
+                String strA = dupNo++ + " :" + seqAIndex;
+                System.out.println(strA);
+            }
+        }
     }
 
     private List<List<Integer>> getCallsIndexes(List<List<String>> sequences) {
