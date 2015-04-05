@@ -80,7 +80,7 @@ public class MainTest {
                         }
                         // dups is odd
                         assertTrue((dups.length % 2) == 0);
-                        ConcernClone clone = concernCallsManager.convert2(allClasses.get(i), allClasses.get(j + i + 1),
+                        ConcernClone clone = concernCallsManager.getConcernClone(allClasses.get(i), allClasses.get(j + i + 1),
                                 k, l, dups);
                         assertNotNull(clone);
                     }

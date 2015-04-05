@@ -165,7 +165,7 @@ public class Main {
 
     public List<List<List<List<int[]>>>> getDuplicationsofConcernMetrics2(ConcernCallsManager concernCallsManager,
             List<IMethodCalls> methodCalls) {
-        return concernCallsManager.getDuplications2(methodCalls);
+        return concernCallsManager.getDuplications(methodCalls);
     }
 
     private void getDuplicationsofAllFiles(String folder) throws Exception {
