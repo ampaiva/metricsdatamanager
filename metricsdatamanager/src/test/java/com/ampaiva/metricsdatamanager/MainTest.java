@@ -44,6 +44,11 @@ public class MainTest {
 
             @Override
             public int getMinSeq() {
+                return 1;
+            }
+
+            @Override
+            public int getMaxDistance() {
                 return 5;
             }
         };
@@ -80,8 +85,8 @@ public class MainTest {
                         }
                         // dups is odd
                         assertTrue((dups.length % 2) == 0);
-                        ConcernClone clone = concernCallsManager.getConcernClone(allClasses.get(i), allClasses.get(j + i + 1),
-                                k, l, dups);
+                        ConcernClone clone = concernCallsManager.getConcernClone(allClasses.get(i),
+                                allClasses.get(j + i + 1), k, l, dups);
                         assertNotNull(clone);
                     }
                 }

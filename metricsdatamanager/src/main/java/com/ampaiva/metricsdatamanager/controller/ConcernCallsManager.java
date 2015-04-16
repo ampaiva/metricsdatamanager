@@ -17,25 +17,48 @@ import com.ampaiva.hlo.cm.IMetricsSource;
 import com.ampaiva.hlo.cm.MetricsColector;
 import com.ampaiva.metricsdatamanager.config.IConcernCallsConfig;
 import com.ampaiva.metricsdatamanager.util.IHashArray;
+import com.ampaiva.metricsdatamanager.util.IProgressUpdate;
 import com.ampaiva.metricsdatamanager.util.LCS;
+import com.ampaiva.metricsdatamanager.util.ProgressUpdate;
 
 public class ConcernCallsManager {
     public static final String SEPARATOR = "#";
     private final IHashArray hashArray;
     private final IConcernCallsConfig config;
+    private final IProgressUpdate progressUpdate;
 
-    public ConcernCallsManager(IConcernCallsConfig config, IHashArray hashArray) {
+    public ConcernCallsManager(IConcernCallsConfig config, IHashArray hashArray, IProgressUpdate progressUpdate) {
         this.config = config;
         this.hashArray = hashArray;
+        this.progressUpdate = progressUpdate;
+    }
+
+    public ConcernCallsManager(IConcernCallsConfig config, IHashArray hashArray) {
+        this(config, hashArray, new ProgressUpdate());
     }
 
     private int[] getDuplications(List<Integer> seqA, List<Integer> seqB) {
-        if (seqA.size() >= config.getMinSeq() && seqB.size() >= config.getMinSeq()) {
+        int minSeq = config.getMinSeq();
+        int maxDistance = config.getMaxDistance();
+        if (seqA.size() >= minSeq && seqB.size() >= minSeq) {
             Integer[] a = seqA.toArray(new Integer[seqA.size()]);
             Integer[] b = seqB.toArray(new Integer[seqB.size()]);
             int[] indexes = LCS.lcs(LCS.convert(a), LCS.convert(b));
-            if (indexes.length / 2 >= config.getMinSeq()) {
-                return indexes;
+            int duplications = indexes.length / 2;
+            if (duplications >= minSeq) {
+                int seqCount = 1;
+                for (int i = 2; i < indexes.length; i += 2) {
+                    int distance1 = indexes[i] - indexes[i - 2] - 1;
+                    int distance2 = indexes[i + 1] - indexes[i - 1] - 1;
+                    if (distance1 <= maxDistance && distance2 <= maxDistance) {
+                        seqCount++;
+                    } else {
+                        seqCount = 1;
+                    }
+                    if (seqCount >= minSeq) {
+                        return indexes;
+                    }
+                }
             }
         }
         return null;
@@ -82,7 +105,8 @@ public class ConcernCallsManager {
     public List<List<List<List<int[]>>>> getDuplications(List<IMethodCalls> concernCollections) {
         setCallsHash(concernCollections);
         List<List<List<List<int[]>>>> duplications = new ArrayList<List<List<List<int[]>>>>(concernCollections.size());
-        for (int i = 0; i < concernCollections.size() - 1; i++) {
+        progressUpdate.start(concernCollections.size() - 1);
+        for (int i = 0; i < progressUpdate.limit(); i++, progressUpdate.step()) {
             IMethodCalls concernCollection = concernCollections.get(i);
             List<IMethodCalls> subList = concernCollections.subList(i + 1, concernCollections.size());
             duplications.add(getAllDuplications(concernCollection, subList));
@@ -103,7 +127,7 @@ public class ConcernCallsManager {
     }
 
     private List<IMethodCalls> getConcernCollectionofAllFiles(IMetricsSource metricsSource,
-            List<ICodeSource> codeSources) throws Exception {
+            List<ICodeSource> codeSources) throws ParseException, IOException {
         final List<IMethodCalls> concernCollections = new ArrayList<IMethodCalls>();
         for (ICodeSource codeSource : codeSources) {
             MetricsColector metricsColector = new MetricsColector(metricsSource, codeSource);
@@ -113,7 +137,7 @@ public class ConcernCallsManager {
         return concernCollections;
     }
 
-    public List<ConcernClone> getConcernClones(List<ICodeSource> codeSources) throws Exception {
+    public List<ConcernClone> getConcernClones(List<ICodeSource> codeSources) throws IOException, ParseException {
         IMetricsSource metricsSource = new IMetricsSource() {
 
             @Override

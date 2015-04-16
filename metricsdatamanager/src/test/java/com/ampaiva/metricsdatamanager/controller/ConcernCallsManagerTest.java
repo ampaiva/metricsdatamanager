@@ -3,6 +3,7 @@ package com.ampaiva.metricsdatamanager.controller;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.File;
 import java.util.Arrays;
@@ -27,6 +28,7 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
     private static final String METHOD_CALL_0 = "FooA.foo";
     private static final String METHOD_CALL_1 = "FooB.foo";
     private static final String METHOD_CALL_2 = "FooC.foo";
+    private static final String METHOD_CALL_3 = "FooD.foo";
 
     // Class under test
     private ConcernCallsManager concernCallsManager;
@@ -65,6 +67,7 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         expect(hashArray.getByIndex(1)).andReturn(METHOD_CALL_1).anyTimes();
         expect(hashArray.getByIndex(2)).andReturn(METHOD_CALL_2).anyTimes();
         expect(config.getMinSeq()).andReturn(2).anyTimes();
+        expect(config.getMaxDistance()).andReturn(1).anyTimes();
 
         IMethodCalls methodCallsB = createMock(IMethodCalls.class);
         expect(methodCallsB.getSequences()).andReturn(Arrays.asList(Arrays.asList(METHOD_CALL_0, METHOD_CALL_2)));
@@ -82,8 +85,38 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
     }
 
     @Test
+    public void testGetDuplicationsAboveMaxDistance() {
+        IMethodCalls methodCallsA = createMock(IMethodCalls.class);
+        expect(methodCallsA.getSequences()).andReturn(
+                Arrays.asList(Arrays.asList(METHOD_CALL_0, METHOD_CALL_1, METHOD_CALL_2)));
+        expect(hashArray.getByKey(METHOD_CALL_0)).andReturn(0).anyTimes();
+        expect(hashArray.getByKey(METHOD_CALL_1)).andReturn(1).anyTimes();
+        expect(hashArray.getByKey(METHOD_CALL_2)).andReturn(2).anyTimes();
+        expect(hashArray.getByKey(METHOD_CALL_3)).andReturn(3).anyTimes();
+        expect(hashArray.getByIndex(0)).andReturn(METHOD_CALL_0).anyTimes();
+        expect(hashArray.getByIndex(1)).andReturn(METHOD_CALL_1).anyTimes();
+        expect(hashArray.getByIndex(2)).andReturn(METHOD_CALL_2).anyTimes();
+        expect(hashArray.getByIndex(3)).andReturn(METHOD_CALL_3).anyTimes();
+        expect(config.getMinSeq()).andReturn(2).anyTimes();
+        expect(config.getMaxDistance()).andReturn(0).anyTimes();
+
+        IMethodCalls methodCallsB = createMock(IMethodCalls.class);
+        expect(methodCallsB.getSequences()).andReturn(
+                Arrays.asList(Arrays.asList(METHOD_CALL_0, METHOD_CALL_3, METHOD_CALL_2)));
+
+        replayAll();
+        List<List<List<int[]>>> duplications = concernCallsManager.getAllDuplications(methodCallsA,
+                Arrays.asList(methodCallsB));
+        assertEquals(1, duplications.size());
+        assertEquals(1, duplications.get(0).size());
+        assertEquals(1, duplications.get(0).get(0).size());
+        assertNull(duplications.get(0).get(0).get(0));
+    }
+
+    @Test
     public void getConcernClones() throws Exception {
         expect(config.getMinSeq()).andReturn(5).anyTimes();
+        expect(config.getMaxDistance()).andReturn(5).anyTimes();
 
         replayAll();
 
@@ -93,12 +126,13 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         concernCallsManager = new ConcernCallsManager(config, new HashArray());
         List<ConcernClone> duplications = concernCallsManager.getConcernClones(codeSources);
         assertNotNull(duplications);
-        assertEquals(3, duplications.size());
+        assertEquals(2, duplications.size());
     }
 
     @Test
     public void getConcernClonesZipTest3() throws Exception {
         expect(config.getMinSeq()).andReturn(5).anyTimes();
+        expect(config.getMaxDistance()).andReturn(5).anyTimes();
 
         replayAll();
 
@@ -108,6 +142,6 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         concernCallsManager = new ConcernCallsManager(config, new HashArray());
         List<ConcernClone> duplications = concernCallsManager.getConcernClones(codeSources);
         assertNotNull(duplications);
-        assertEquals(7, duplications.size());
+        assertEquals(6, duplications.size());
     }
 }
