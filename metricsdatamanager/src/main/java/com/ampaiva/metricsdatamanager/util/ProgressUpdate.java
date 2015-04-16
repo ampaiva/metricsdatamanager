@@ -1,7 +1,7 @@
 package com.ampaiva.metricsdatamanager.util;
 
 public class ProgressUpdate implements IProgressUpdate {
-    private int progress;
+    private int current;
     private int limit;
 
     @Override
@@ -11,7 +11,7 @@ public class ProgressUpdate implements IProgressUpdate {
 
     @Override
     public void step(int value) {
-        progress += value;
+        current += value;
     }
 
     @Override
@@ -20,16 +20,26 @@ public class ProgressUpdate implements IProgressUpdate {
     }
 
     @Override
-    public int progress() {
+    public int percent() {
         if (limit == 0) {
             return 0;
         }
-        return progress * 100 / limit;
+        return current * 100 / limit;
     }
 
     @Override
     public int limit() {
         return limit;
+    }
+
+    @Override
+    public String toString() {
+        return "ProgressUpdate [current=" + current + ", limit=" + limit + "]";
+    }
+
+    @Override
+    public int current() {
+        return current;
     }
 
 }

@@ -8,8 +8,9 @@ public interface IProgressUpdate {
 
     public abstract void step();
 
-    public abstract int progress();
+    public abstract int percent();
+
+    public abstract int current();
 
     public abstract int limit();
-
 }
