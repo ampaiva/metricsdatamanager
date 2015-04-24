@@ -4,6 +4,7 @@ import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.Arrays;
@@ -126,13 +127,13 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         concernCallsManager = new ConcernCallsManager(config, new HashArray());
         List<ConcernClone> duplications = concernCallsManager.getConcernClones(codeSources);
         assertNotNull(duplications);
-        assertEquals(2, duplications.size());
+        assertTrue(duplications.size() > 0);
     }
 
     @Test
     public void getConcernClonesZipTest3() throws Exception {
         expect(config.getMinSeq()).andReturn(5).anyTimes();
-        expect(config.getMaxDistance()).andReturn(5).anyTimes();
+        expect(config.getMaxDistance()).andReturn(1).anyTimes();
 
         replayAll();
 
@@ -142,6 +143,6 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         concernCallsManager = new ConcernCallsManager(config, new HashArray());
         List<ConcernClone> duplications = concernCallsManager.getConcernClones(codeSources);
         assertNotNull(duplications);
-        assertEquals(6, duplications.size());
+        assertEquals(32, duplications.size());
     }
 }

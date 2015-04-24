@@ -19,7 +19,9 @@ import com.ampaiva.metricsdatamanager.config.IConcernCallsConfig;
 import com.ampaiva.metricsdatamanager.util.IHashArray;
 import com.ampaiva.metricsdatamanager.util.IProgressUpdate;
 import com.ampaiva.metricsdatamanager.util.LCS;
+import com.ampaiva.metricsdatamanager.util.MatchesData;
 import com.ampaiva.metricsdatamanager.util.ProgressUpdate;
+import com.ampaiva.metricsdatamanager.util.SequenceMatch;
 
 public class ConcernCallsManager {
     public static final String SEPARATOR = "#";
@@ -137,7 +139,7 @@ public class ConcernCallsManager {
         return concernCollections;
     }
 
-    public List<ConcernClone> getConcernClones(List<ICodeSource> codeSources) throws IOException, ParseException {
+    public List<ConcernClone> _getConcernClones(List<ICodeSource> codeSources) throws IOException, ParseException {
         IMetricsSource metricsSource = new IMetricsSource() {
 
             @Override
@@ -149,6 +151,45 @@ public class ConcernCallsManager {
         List<List<List<List<int[]>>>> dupAllClasses = getDuplications(allClasses);
 
         return getConcernClones(allClasses, dupAllClasses);
+    }
+
+    public List<ConcernClone> getConcernClones(List<ICodeSource> codeSources) throws IOException, ParseException {
+        IMetricsSource metricsSource = new IMetricsSource() {
+
+            @Override
+            public List<IConcernMetric> getConcernMetrics() {
+                return Arrays.asList((IConcernMetric) new ConcernCollection());
+            }
+        };
+        List<IMethodCalls> allMethodCalls = getConcernCollectionofAllFiles(metricsSource, codeSources);
+        setCallsHash(allMethodCalls);
+        List<String> methodNames = new ArrayList<String>();
+        List<String> methodSources = new ArrayList<String>();
+        List<List<String>> methodSequences = new ArrayList<List<String>>();
+        List<List<Integer>> sequences = new ArrayList<List<Integer>>();
+        for (IMethodCalls methodCall : allMethodCalls) {
+            methodNames.addAll(methodCall.getMethodNames());
+            methodSources.addAll(methodCall.getMethodSources());
+            methodSequences.addAll(methodCall.getSequences());
+            sequences.addAll(getCallsIndexes(methodCall.getSequences()));
+        }
+        SequenceMatch sequenceMatch = new SequenceMatch(sequences, config.getMinSeq(), config.getMaxDistance(),
+                progressUpdate);
+        List<ConcernClone> concernClones = new ArrayList<ConcernClone>();
+        for (MatchesData matchesData : sequenceMatch.getMatches()) {
+            for (int i = 0; i < matchesData.groupsMatched.size(); i++) {
+                int matchedIndex = matchesData.groupsMatched.get(i);
+                ConcernClone clone = new ConcernClone();
+                clone.methods = Arrays.asList(methodNames.get(matchesData.groupIndex), methodNames.get(matchedIndex));
+                clone.sources = Arrays.asList(methodSources.get(matchesData.groupIndex),
+                        methodSources.get(matchedIndex));
+                clone.sequences = Arrays.asList(methodSequences.get(matchesData.groupIndex),
+                        methodSequences.get(matchedIndex));
+                clone.duplications = matchesData.sequencesMatches.get(i);
+                concernClones.add(clone);
+            }
+        }
+        return concernClones;
     }
 
     private List<ConcernClone> getConcernClones(List<IMethodCalls> allClasses,
@@ -179,11 +220,11 @@ public class ConcernCallsManager {
     private List<String> getSequences(ConcernClone clone, int sourceIndex) {
         List<String> list = new ArrayList<String>();
         int[] lastPrintedA = new int[2];
-        int[] indexes = clone.duplications;
+        List<List<Integer>> indexes = clone.duplications;
         List<List<String>> sequencesA = clone.sequences;
         int dupNo = 1;
-        for (int k = 0; k < indexes.length; k += 2) {
-            int indexA = indexes[k + sourceIndex];
+        for (int k = 0; k < indexes.size(); k += 2) {
+            int indexA = 0; //indexes.get(k + sourceIndex);
             while (lastPrintedA[sourceIndex] < indexA) {
                 String seqAIndex = sequencesA.get(sourceIndex).get(lastPrintedA[sourceIndex]++);
                 String strA = ".. [**]" + ":" + seqAIndex;
@@ -201,13 +242,13 @@ public class ConcernCallsManager {
     public ConcernClone getConcernClone(IMethodCalls concernCollectionA, IMethodCalls concernCollectionB,
             int methodAIndex, int methodBIndex, int[] indexes) {
         ConcernClone clone = new ConcernClone();
-        clone.methodA = concernCollectionA.getMethodNames().get(methodAIndex);
-        clone.methodB = concernCollectionB.getMethodNames().get(methodBIndex);
+        clone.methods = Arrays.asList(concernCollectionA.getMethodNames().get(methodAIndex), concernCollectionB
+                .getMethodNames().get(methodBIndex));
         clone.sources = Arrays.asList(concernCollectionA.getMethodSources().get(methodAIndex), concernCollectionB
                 .getMethodSources().get(methodBIndex));
         clone.sequences = Arrays.asList(concernCollectionA.getSequences().get(methodAIndex), concernCollectionB
                 .getSequences().get(methodBIndex));
-        clone.duplications = indexes;
+        clone.duplications = null; //indexes;
         return clone;
     }
 

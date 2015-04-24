@@ -28,4 +28,9 @@ public class HashArray implements IHashArray {
     public int getByKey(String key) {
         return hash.get(key);
     }
+
+    @Override
+    public int size() {
+        return hash.size();
+    }
 }
