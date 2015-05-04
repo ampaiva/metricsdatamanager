@@ -34,11 +34,19 @@ public class ProgressUpdate implements IProgressUpdate {
         return current;
     }
 
+    private static LinkedList<ProgressUpdate> setLinkedList(LinkedList<ProgressUpdate> linkedList) {
+        return map.put(Thread.currentThread(), linkedList);
+    }
+
+    private static LinkedList<ProgressUpdate> removeLinkedList() {
+        return map.remove(Thread.currentThread());
+    }
+
     public static IProgressUpdate start(IProgressReport progressReport, String id, int size) {
         LinkedList<ProgressUpdate> linkedList = getLinkedList();
         if (linkedList == null) {
             linkedList = new LinkedList<ProgressUpdate>();
-            map.put(Thread.currentThread(), linkedList);
+            setLinkedList(linkedList);
         } else {
             if (LOG.isWarnEnabled()) {
                 LOG.warn("Progress report already registered");
@@ -56,11 +64,11 @@ public class ProgressUpdate implements IProgressUpdate {
         return new IProgressUpdate() {
 
             @Override
-            public void endIndex() {
+            public void endIndex(Object... info) {
             }
 
             @Override
-            public void beginIndex() {
+            public void beginIndex(Object... info) {
             }
         };
     }
@@ -74,20 +82,20 @@ public class ProgressUpdate implements IProgressUpdate {
     }
 
     @Override
-    public void beginIndex() {
+    public void beginIndex(Object... info) {
         finishChild();
         if (prevIndex == index) {
             endIndex();
         }
         prevIndex = index;
 
-        report(Phase.BEGIN_ITEM);
+        report(Phase.BEGIN_ITEM, info);
     }
 
     @Override
-    public void endIndex() {
+    public void endIndex(Object... info) {
         finishChild();
-        report(Phase.END_ITEM);
+        report(Phase.END_ITEM, info);
         prevIndex = index;
         index++;
         if (index == size) {
@@ -100,7 +108,7 @@ public class ProgressUpdate implements IProgressUpdate {
         LinkedList<ProgressUpdate> linkedList = getLinkedList();
         linkedList.remove(this);
         if (linkedList.size() == 0) {
-            map.remove(Thread.currentThread());
+            removeLinkedList();
         }
     }
 
@@ -115,7 +123,7 @@ public class ProgressUpdate implements IProgressUpdate {
         }
     }
 
-    private void report(Phase phase) {
-        progressReport.onChanged(phase, id, index, size, level);
+    private void report(Phase phase, Object... info) {
+        progressReport.onChanged(phase, id, index, size, level, info);
     }
 }

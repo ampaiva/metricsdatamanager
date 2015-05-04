@@ -5,5 +5,5 @@ public interface IProgressReport {
         STARTED, BEGIN_ITEM, END_ITEM, FINISHED
     }
 
-    void onChanged(Phase phase, String id, int index, int size, int level);
+    void onChanged(Phase phase, String id, int index, int size, int level, Object... info);
 }

@@ -187,7 +187,7 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
                 update2.beginIndex();
                 IProgressUpdate update3 = ProgressUpdate.start("Processing file", files.size());
                 for (File file : files) {
-                    update3.beginIndex();
+                    update3.beginIndex(file);
 
                     resetAll();
 

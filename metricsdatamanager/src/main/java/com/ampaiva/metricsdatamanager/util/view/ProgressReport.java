@@ -21,9 +21,18 @@ public class ProgressReport implements IProgressReport {
     }
 
     @Override
-    public void onChanged(Phase phase, String id, int index, int size, int level) {
+    public void onChanged(Phase phase, String id, int index, int size, int level, Object... info) {
         if (maxLevel == UNLIMITED || level <= maxLevel) {
-            print(getIdent(level) + phase + " " + id + " " + index + "/" + size);
+            StringBuilder sb = new StringBuilder();
+            sb.append(getIdent(level)).append(level).append(" ").append(id).append(" ").append(index).append("/")
+                    .append(size);
+            if (info != null) {
+                sb.append(" ");
+                for (Object obj : info) {
+                    sb.append(obj.toString());
+                }
+            }
+            print(sb.toString());
         }
     }
 
