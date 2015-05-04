@@ -17,26 +17,18 @@ import com.ampaiva.hlo.cm.IMetricsSource;
 import com.ampaiva.hlo.cm.MetricsColector;
 import com.ampaiva.metricsdatamanager.config.IConcernCallsConfig;
 import com.ampaiva.metricsdatamanager.util.IHashArray;
-import com.ampaiva.metricsdatamanager.util.IProgressUpdate;
 import com.ampaiva.metricsdatamanager.util.LCS;
 import com.ampaiva.metricsdatamanager.util.MatchesData;
-import com.ampaiva.metricsdatamanager.util.ProgressUpdate;
 import com.ampaiva.metricsdatamanager.util.SequenceMatch;
 
 public class ConcernCallsManager {
     public static final String SEPARATOR = "#";
     private final IHashArray hashArray;
     private final IConcernCallsConfig config;
-    private final IProgressUpdate progressUpdate;
-
-    public ConcernCallsManager(IConcernCallsConfig config, IHashArray hashArray, IProgressUpdate progressUpdate) {
-        this.config = config;
-        this.hashArray = hashArray;
-        this.progressUpdate = progressUpdate;
-    }
 
     public ConcernCallsManager(IConcernCallsConfig config, IHashArray hashArray) {
-        this(config, hashArray, new ProgressUpdate());
+        this.config = config;
+        this.hashArray = hashArray;
     }
 
     private int[] getDuplications(List<Integer> seqA, List<Integer> seqB) {
@@ -107,8 +99,7 @@ public class ConcernCallsManager {
     public List<List<List<List<int[]>>>> getDuplications(List<IMethodCalls> concernCollections) {
         setCallsHash(concernCollections);
         List<List<List<List<int[]>>>> duplications = new ArrayList<List<List<List<int[]>>>>(concernCollections.size());
-        progressUpdate.start(concernCollections.size() - 1);
-        for (int i = 0; i < progressUpdate.limit(); i++, progressUpdate.step()) {
+        for (int i = 0; i < concernCollections.size() - 1; i++) {
             IMethodCalls concernCollection = concernCollections.get(i);
             List<IMethodCalls> subList = concernCollections.subList(i + 1, concernCollections.size());
             duplications.add(getAllDuplications(concernCollection, subList));
@@ -173,8 +164,7 @@ public class ConcernCallsManager {
             methodSequences.addAll(methodCall.getSequences());
             sequences.addAll(getCallsIndexes(methodCall.getSequences()));
         }
-        SequenceMatch sequenceMatch = new SequenceMatch(sequences, config.getMinSeq(), config.getMaxDistance(),
-                progressUpdate);
+        SequenceMatch sequenceMatch = new SequenceMatch(sequences, config.getMinSeq(), config.getMaxDistance());
         List<ConcernClone> concernClones = new ArrayList<ConcernClone>();
         for (MatchesData matchesData : sequenceMatch.getMatches()) {
             for (int i = 0; i < matchesData.groupsMatched.size(); i++) {

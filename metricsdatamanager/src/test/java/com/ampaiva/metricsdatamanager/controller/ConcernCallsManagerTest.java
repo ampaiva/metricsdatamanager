@@ -10,10 +10,14 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ampaiva.hlo.cm.ICodeSource;
@@ -23,6 +27,10 @@ import com.ampaiva.metricsdatamanager.config.IConcernCallsConfig;
 import com.ampaiva.metricsdatamanager.util.HashArray;
 import com.ampaiva.metricsdatamanager.util.IHashArray;
 import com.ampaiva.metricsdatamanager.util.ZipStreamUtil;
+import com.ampaiva.metricsdatamanager.util.view.IProgressReport;
+import com.ampaiva.metricsdatamanager.util.view.IProgressUpdate;
+import com.ampaiva.metricsdatamanager.util.view.ProgressReport;
+import com.ampaiva.metricsdatamanager.util.view.ProgressUpdate;
 
 public class ConcernCallsManagerTest extends EasyMockSupport {
 
@@ -144,5 +152,64 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         List<ConcernClone> duplications = concernCallsManager.getConcernClones(codeSources);
         assertNotNull(duplications);
         assertEquals(32, duplications.size());
+    }
+
+    @Ignore
+    public void getConcernClonesMaven() throws Exception {
+        expect(config.getMinSeq()).andReturn(5).anyTimes();
+        expect(config.getMaxDistance()).andReturn(1).anyTimes();
+
+        replayAll();
+
+        ZipStreamUtil zipStreamUtil = new ZipStreamUtil(Helper.convertFile2InputStream(new File(
+                "src/test/resources/com/ampaiva/metricsdatamanager/util/maven-master.zip")));
+        List<ICodeSource> codeSources = Arrays.asList((ICodeSource) zipStreamUtil);
+        concernCallsManager = new ConcernCallsManager(config, new HashArray());
+        List<ConcernClone> duplications = concernCallsManager.getConcernClones(codeSources);
+        assertNotNull(duplications);
+        assertTrue(duplications.size() >= 32);
+    }
+
+    @Test
+    public void getConcernClonesAll() throws Exception {
+        BasicConfigurator.configure();
+        Logger.getRootLogger().setLevel(Level.INFO);
+        final int MIN_SEQ = 4;
+        final int MAX_SEQ = 5;
+        final int MAX_DISTANCE = 1;
+        List<File> files = Helper.getFilesRecursevely("src/test/resources/com/ampaiva/metricsdatamanager/util", ".zip");
+        IProgressReport report = new ProgressReport(2);
+        IProgressUpdate update = ProgressUpdate.start(report, "Processing sequence", MAX_SEQ - MIN_SEQ + 1);
+        for (int minSeq = MIN_SEQ; minSeq <= MAX_SEQ; minSeq++) {
+            update.beginIndex();
+            IProgressUpdate update2 = ProgressUpdate.start("Processing distance", MAX_DISTANCE);
+            for (int maxDistance = 0; maxDistance < MAX_DISTANCE; maxDistance++) {
+                update2.beginIndex();
+                IProgressUpdate update3 = ProgressUpdate.start("Processing file", files.size());
+                for (File file : files) {
+                    update3.beginIndex();
+
+                    resetAll();
+
+                    expect(config.getMinSeq()).andReturn(minSeq).anyTimes();
+                    expect(config.getMaxDistance()).andReturn(maxDistance).anyTimes();
+
+                    replayAll();
+
+                    concernCallsManager = new ConcernCallsManager(config, new HashArray());
+                    ZipStreamUtil zipStreamUtil = new ZipStreamUtil(Helper.convertFile2InputStream(new File(file
+                            .getAbsolutePath())));
+                    List<ICodeSource> codeSources = Arrays.asList((ICodeSource) zipStreamUtil);
+                    List<ConcernClone> duplications = concernCallsManager.getConcernClones(codeSources);
+                    assertNotNull(duplications);
+
+                    verifyAll();
+                }
+            }
+            update.endIndex();
+        }
+        resetAll();
+        replayAll();
+        BasicConfigurator.resetConfiguration();
     }
 }

@@ -1,5 +1,6 @@
 package com.ampaiva.metricsdatamanager.util;
 
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -10,19 +11,20 @@ import java.util.Map.Entry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.ampaiva.metricsdatamanager.util.view.IProgressUpdate;
+import com.ampaiva.metricsdatamanager.util.view.ProgressUpdate;
+
 public class SequenceMatch {
     private static final Log LOG = LogFactory.getLog(SequenceMatch.class);
 
     private final List<List<Integer>> sequences;
     private final int minSequence;
     private final int maxDistance;
-    private final IProgressUpdate update;
 
-    public SequenceMatch(List<List<Integer>> sequences, int minSequence, int maxDistance, IProgressUpdate update) {
+    public SequenceMatch(List<List<Integer>> sequences, int minSequence, int maxDistance) {
         this.sequences = sequences;
         this.minSequence = minSequence;
         this.maxDistance = maxDistance;
-        this.update = update;
         if (LOG.isDebugEnabled()) {
             LOG.debug(this);
         }
@@ -37,9 +39,10 @@ public class SequenceMatch {
 
         Map<Integer, MatchesData> mapMerge = new HashMap<Integer, MatchesData>();
         List<MatchesData> result = new ArrayList<MatchesData>();
-        update.start(map.entrySet().size());
+        printMemory();
+        IProgressUpdate update = ProgressUpdate.start("Processing map", map.entrySet().size());
         for (Entry<Integer, List<List<Integer>>> entry : map.entrySet()) {
-            update.step();
+            update.beginIndex();
             if (LOG.isDebugEnabled()) {
                 LOG.debug("getMatches() entry: " + entry);
             }
@@ -49,6 +52,7 @@ public class SequenceMatch {
                 List<List<Integer>> pastes = listMatches.subList(i, listMatches.size());
                 MatchesData matchesData = getMatches(copy, pastes);
                 if (matchesData != null) {
+                    printMemory();
                     MatchesData existingMatchesData = mapMerge.get(matchesData.groupIndex);
                     if (existingMatchesData == null) {
                         if (LOG.isDebugEnabled()) {
@@ -62,12 +66,31 @@ public class SequenceMatch {
                     mergeMatchedData(existingMatchesData, matchesData);
                 }
             }
+            update.endIndex();
         }
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("getMatches() return " + result);
         }
         return result;
+    }
+
+    private void printMemory() {
+        if (LOG.isDebugEnabled()) {
+            Runtime runtime = Runtime.getRuntime();
+            StringBuilder sb = new StringBuilder();
+            long maxMemory = runtime.maxMemory();
+            long allocatedMemory = runtime.totalMemory();
+            long freeMemory = runtime.freeMemory();
+
+            NumberFormat format = NumberFormat.getInstance();
+            sb.append("free memory: " + format.format(freeMemory / 1024) + " ");
+            sb.append("allocated memory: " + format.format(allocatedMemory / 1024) + " ");
+            sb.append("max memory: " + format.format(maxMemory / 1024) + " ");
+            sb.append("total free memory: " + format.format((freeMemory + (maxMemory - allocatedMemory)) / 1024) + " ");
+            LOG.debug(sb.toString());
+            System.out.println(sb.toString());
+        }
     }
 
     private Map<Integer, List<List<Integer>>> createCallMap() {
@@ -131,7 +154,7 @@ public class SequenceMatch {
         List<Integer> groupsMatched = new ArrayList<Integer>();
         List<List<List<Integer>>> sequencesMatches = new ArrayList<List<List<Integer>>>();
         for (List<Integer> paste : pastes) {
-            if (copy.get(0) == paste.get(0)) {
+            if (groupIndex == paste.get(0)) {
                 // Same group
                 continue;
             }
@@ -232,6 +255,6 @@ public class SequenceMatch {
     @Override
     public String toString() {
         return "SequenceMatch [sequences=" + sequences + ", minSequence=" + minSequence + ", maxDistance="
-                + maxDistance + ", update=" + update + "]";
+                + maxDistance + "]";
     }
 }
