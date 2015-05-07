@@ -1,6 +1,5 @@
 package com.ampaiva.metricsdatamanager.util;
 
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -11,8 +10,8 @@ import java.util.Map.Entry;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.ampaiva.metricsdatamanager.util.view.IProgressUpdate;
-import com.ampaiva.metricsdatamanager.util.view.ProgressUpdate;
+import com.ampaiva.hlo.util.view.IProgressUpdate;
+import com.ampaiva.hlo.util.view.ProgressUpdate;
 
 public class SequenceMatch {
     private static final Log LOG = LogFactory.getLog(SequenceMatch.class);
@@ -39,7 +38,6 @@ public class SequenceMatch {
 
         Map<Integer, MatchesData> mapMerge = new HashMap<Integer, MatchesData>();
         List<MatchesData> result = new ArrayList<MatchesData>();
-        printMemory();
         IProgressUpdate update = ProgressUpdate.start("Processing map", map.entrySet().size());
         for (Entry<Integer, List<List<Integer>>> entry : map.entrySet()) {
             update.beginIndex();
@@ -52,7 +50,6 @@ public class SequenceMatch {
                 List<List<Integer>> pastes = listMatches.subList(i, listMatches.size());
                 MatchesData matchesData = getMatches(copy, pastes);
                 if (matchesData != null) {
-                    printMemory();
                     MatchesData existingMatchesData = mapMerge.get(matchesData.groupIndex);
                     if (existingMatchesData == null) {
                         if (LOG.isDebugEnabled()) {
@@ -75,23 +72,23 @@ public class SequenceMatch {
         return result;
     }
 
-    private void printMemory() {
-        if (LOG.isDebugEnabled()) {
-            Runtime runtime = Runtime.getRuntime();
-            StringBuilder sb = new StringBuilder();
-            long maxMemory = runtime.maxMemory();
-            long allocatedMemory = runtime.totalMemory();
-            long freeMemory = runtime.freeMemory();
-
-            NumberFormat format = NumberFormat.getInstance();
-            sb.append("free memory: " + format.format(freeMemory / 1024) + " ");
-            sb.append("allocated memory: " + format.format(allocatedMemory / 1024) + " ");
-            sb.append("max memory: " + format.format(maxMemory / 1024) + " ");
-            sb.append("total free memory: " + format.format((freeMemory + (maxMemory - allocatedMemory)) / 1024) + " ");
-            LOG.debug(sb.toString());
-            System.out.println(sb.toString());
-        }
-    }
+    //    private void printMemory() {
+    //        if (LOG.isDebugEnabled()) {
+    //            Runtime runtime = Runtime.getRuntime();
+    //            StringBuilder sb = new StringBuilder();
+    //            long maxMemory = runtime.maxMemory();
+    //            long allocatedMemory = runtime.totalMemory();
+    //            long freeMemory = runtime.freeMemory();
+    //
+    //            NumberFormat format = NumberFormat.getInstance();
+    //            sb.append("free memory: " + format.format(freeMemory / 1024) + " ");
+    //            sb.append("allocated memory: " + format.format(allocatedMemory / 1024) + " ");
+    //            sb.append("max memory: " + format.format(maxMemory / 1024) + " ");
+    //            sb.append("total free memory: " + format.format((freeMemory + (maxMemory - allocatedMemory)) / 1024) + " ");
+    //            LOG.debug(sb.toString());
+    //            System.out.println(sb.toString());
+    //        }
+    //    }
 
     private Map<Integer, List<List<Integer>>> createCallMap() {
         Map<Integer, List<List<Integer>>> map = new HashMap<Integer, List<List<Integer>>>();

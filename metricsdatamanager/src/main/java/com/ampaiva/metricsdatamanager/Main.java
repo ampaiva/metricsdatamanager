@@ -31,7 +31,6 @@ import com.ampaiva.hlo.cm.IConcernMetric;
 import com.ampaiva.hlo.cm.IMethodCalls;
 import com.ampaiva.hlo.cm.IMetricsSource;
 import com.ampaiva.hlo.cm.MetricsColector;
-import com.ampaiva.metricsdatamanager.controller.ConcernCallsManager;
 import com.ampaiva.metricsdatamanager.controller.DataManager;
 import com.ampaiva.metricsdatamanager.controller.EOcurrencyType;
 import com.ampaiva.metricsdatamanager.controller.IDataManager;
@@ -107,7 +106,7 @@ public class Main {
         }
     }
 
-    private void persist(String projectKey, List<Duplications> duplicationsList) {
+    public void persist(String projectKey, List<Duplications> duplicationsList) {
         for (Duplications duplications : duplicationsList) {
             List<Block> blocks = duplications.getBlocks();
             for (Block block : blocks) {
@@ -145,7 +144,7 @@ public class Main {
         metricsManager.persist(copy, ocurrencies);
     }
 
-    private List<Duplications> getDuplicationsofProject(String projectName) throws Exception {
+    public List<Duplications> getDuplicationsofProject(String projectName) throws Exception {
         String url = "http://localhost:9000";
         String login = "admin";
         String password = "admin";
@@ -161,20 +160,6 @@ public class Main {
         prop.load(inputStream);
         return prop.getProperty("sonar.projectKey");
 
-    }
-
-    public List<List<List<List<int[]>>>> getDuplicationsofConcernMetrics2(ConcernCallsManager concernCallsManager,
-            List<IMethodCalls> methodCalls) {
-        return concernCallsManager.getDuplications(methodCalls);
-    }
-
-    private void getDuplicationsofAllFiles(String folder) throws Exception {
-        File[] files = getZipFilesFrom(folder);
-        for (File zipFile : files) {
-            String projectKey = getProjectKey(zipFile);
-            List<Duplications> duplicationsList = getDuplicationsofProject(projectKey);
-            persist(projectKey, duplicationsList);
-        }
     }
 
     public String getProjectKey(File zipFile) throws IOException {

@@ -9,4 +9,6 @@ public interface IHashArray {
     public int getByKey(String key);
 
     public int size();
+
+    public void clear();
 }

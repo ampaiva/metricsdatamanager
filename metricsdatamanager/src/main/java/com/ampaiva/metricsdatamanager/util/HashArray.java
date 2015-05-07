@@ -33,4 +33,10 @@ public class HashArray implements IHashArray {
     public int size() {
         return hash.size();
     }
+
+    @Override
+    public void clear() {
+        hash.clear();
+        list.clear();
+    }
 }

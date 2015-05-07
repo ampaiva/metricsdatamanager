@@ -11,10 +11,16 @@ import com.ampaiva.hlo.cm.ICodeSource;
 import com.ampaiva.hlo.util.Helper;
 
 public class ZipStreamUtil implements ICodeSource {
+    private final String id;
     private final InputStream in;
 
     public ZipStreamUtil(InputStream in) {
+        this(null, in);
+    }
+
+    public ZipStreamUtil(String id, InputStream in) {
         this.in = in;
+        this.id = id;
     }
 
     @Override
@@ -31,5 +37,10 @@ public class ZipStreamUtil implements ICodeSource {
         }
         zipFile.close();
         return sources;
+    }
+
+    @Override
+    public String toString() {
+        return "ZipStreamUtil [id=" + id + "]";
     }
 }
