@@ -110,11 +110,11 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         assertTrue(duplications.size() >= 32);
     }
 
-    @Ignore
+    @Test
     public void getConcernClonesAll() throws Exception {
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(Level.INFO);
-        final int MIN_SEQ = 4;
+        final int MIN_SEQ = 3;
         final int MAX_SEQ = 5;
         final int MAX_DISTANCE = 1;
         List<File> files = Helper.getFilesRecursevely("src/test/resources/com/ampaiva/metricsdatamanager/util", ".zip");
@@ -145,6 +145,9 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
                     concernCallsManager = new ConcernCallsManager(config, new HashArray());
                     List<ConcernClone> duplications = concernCallsManager.getConcernClones(methodCodes);
                     assertNotNull(duplications);
+                    if (duplications.size() > 0) {
+                        System.out.println(duplications.get(0));
+                    }
 
                     verifyAll();
                 }

@@ -224,23 +224,32 @@ public class SequenceMatch {
         int distance_i = 0;
         int indexCopy = copy.get(1) + 1;
         int indexPaste = paste.get(1) + 1;
-        for (int i = indexCopy; i < sequenceCopy.size() && distance_i <= maxDistance; i++) {
+        for (int i = indexCopy; i < sequenceCopy.size(); i++) {
             int distance_j = 0;
-            for (int j = indexPaste; j < sequencePaste.size() && distance_j <= maxDistance; j++) {
+            boolean found = false;
+            for (int j = indexPaste; j < sequencePaste.size(); j++) {
                 if (sequenceCopy.get(i) == sequencePaste.get(j)) {
                     sequenceMatches.add(Arrays.asList(i, j));
                     indexPaste = j + 1;
-                    distance_i = 0;
+                    found = true;
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("getSequenceMatches: add" + sequenceMatches);
                     }
                     break;
                 } else {
                     distance_j++;
+                    if (distance_j > maxDistance) {
+                        break;
+                    }
                 }
             }
-            if (distance_j == maxDistance) {
+            if (!found) {
                 distance_i++;
+                if (distance_i > maxDistance) {
+                    break;
+                }
+            } else {
+                distance_i = 0;
             }
         }
         if (LOG.isDebugEnabled()) {

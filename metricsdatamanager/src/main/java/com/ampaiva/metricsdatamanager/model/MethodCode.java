@@ -12,4 +12,10 @@ public class MethodCode {
         this.methodSource = methodSource;
         this.methodSequences = methodSequences;
     }
+
+    @Override
+    public String toString() {
+        return "MethodCode [methodName=" + methodName + "]";
+    }
+
 }
