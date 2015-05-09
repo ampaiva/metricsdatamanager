@@ -18,19 +18,17 @@ import com.ampaiva.hlo.cm.MetricsColector;
 import com.ampaiva.hlo.util.view.IProgressUpdate;
 import com.ampaiva.hlo.util.view.ProgressUpdate;
 import com.ampaiva.metricsdatamanager.config.IConcernCallsConfig;
-import com.ampaiva.metricsdatamanager.model.MethodCode;
+import com.ampaiva.metricsdatamanager.model.Call;
+import com.ampaiva.metricsdatamanager.model.Method;
+import com.ampaiva.metricsdatamanager.model.Sequence;
 import com.ampaiva.metricsdatamanager.util.IHashArray;
 import com.ampaiva.metricsdatamanager.util.MatchesData;
 import com.ampaiva.metricsdatamanager.util.SequenceMatch;
 
 public class ConcernCallsManager {
     public static final String SEPARATOR = "#";
-    private final IHashArray hashArray;
-    private final IConcernCallsConfig config;
 
-    public ConcernCallsManager(IConcernCallsConfig config, IHashArray hashArray) {
-        this.config = config;
-        this.hashArray = hashArray;
+    public ConcernCallsManager() {
     }
 
     private void persistConcernCollection(MetricsColector metricsColector, List<IMethodCalls> concernCollections)
@@ -58,7 +56,8 @@ public class ConcernCallsManager {
         return concernCollections;
     }
 
-    public List<MethodCode> getMethodCodes(List<ICodeSource> codeSources) throws IOException, ParseException {
+    public List<Method> getMethodCodes(List<Sequence> sequences, IHashArray hashArray, List<ICodeSource> codeSources)
+            throws IOException, ParseException {
         IMetricsSource metricsSource = new IMetricsSource() {
 
             @Override
@@ -67,44 +66,82 @@ public class ConcernCallsManager {
             }
         };
         List<IMethodCalls> allMethodCalls = getConcernCollectionofAllFiles(metricsSource, codeSources);
-        List<MethodCode> methodCodes = new ArrayList<MethodCode>();
+        List<Method> methodCodes = new ArrayList<Method>();
         for (IMethodCalls methodCall : allMethodCalls) {
             for (int i = 0; i < methodCall.getMethodNames().size(); i++) {
-                methodCodes.add(new MethodCode(methodCall.getMethodNames().get(i),
-                        methodCall.getMethodSources().get(i), methodCall.getSequences().get(i)));
+                Method method = new Method(methodCall.getMethodNames().get(i), methodCall.getMethodSources().get(i));
+                List<Call> calls = new ArrayList<Call>();
+                for (int j = 0; j < methodCall.getSequences().size(); j++) {
+                    List<String> seq = methodCall.getSequences().get(j);
+                    for (String string : seq) {
+                        Call call = new Call();
+                        call.setName(string);
+                        call.setMethodBean(method);
+                        calls.add(call);
+                    }
+                }
+                method.setCalls(calls);
+                methodCodes.add(method);
             }
         }
         return methodCodes;
     }
 
-    private List<List<Integer>> initHashWithSequences(List<MethodCode> methodCodes) {
-        List<List<Integer>> sequencesInt = new ArrayList<List<Integer>>();
-        List<List<String>> sequencesStr = new ArrayList<List<String>>();
-        hashArray.clear();
-        for (MethodCode methodCode : methodCodes) {
-            sequencesStr.add(methodCode.methodSequences);
-            for (String sequence : methodCode.methodSequences) {
-                hashArray.put(sequence);
+    public static IHashArray getHashArray(IHashArray hashArray, List<Method> methodCodes) {
+        for (Method methodCode : methodCodes) {
+            for (Call call : methodCode.getCalls()) {
+                hashArray.put(call.getName());
             }
         }
-        sequencesInt.addAll(getCallsIndexes(sequencesStr));
+        return hashArray;
+    }
+
+    private List<List<String>> getSequences(List<Method> methodCodes) {
+        List<List<String>> sequencesStr = new ArrayList<List<String>>();
+        for (Method methodCode : methodCodes) {
+            List<String> callNames = callsToStringList(methodCode.getCalls());
+            sequencesStr.add(callNames);
+        }
+        return sequencesStr;
+    }
+
+    private List<String> callsToStringList(List<Call> calls) {
+
+        List<String> callNames = new ArrayList<String>();
+        for (Call call : calls) {
+            callNames.add(call.getName());
+        }
+        return callNames;
+    }
+
+    private List<List<Integer>> getSequencesInt(IHashArray hashArray, List<Method> methodCodes) {
+        List<List<String>> sequencesStr = getSequences(methodCodes);
+        getHashArray(hashArray, methodCodes);
+
+        List<List<Integer>> sequencesInt = new ArrayList<List<Integer>>();
+        sequencesInt.addAll(getCallsIndexes(hashArray, sequencesStr));
         return sequencesInt;
     }
 
-    public List<ConcernClone> getConcernClones(List<MethodCode> methodCodes) {
-        List<List<Integer>> sequences = initHashWithSequences(methodCodes);
+    public List<MatchesData> getSequenceMatches(IHashArray hashArray, List<Method> methodCodes,
+            IConcernCallsConfig config) {
+        List<List<Integer>> sequences = getSequencesInt(hashArray, methodCodes);
         SequenceMatch sequenceMatch = new SequenceMatch(sequences, config.getMinSeq(), config.getMaxDistance());
+        return sequenceMatch.getMatches();
+    }
+
+    public List<ConcernClone> getConcernClones(List<MatchesData> sequenceMatches, List<Method> methodCodes) {
         List<ConcernClone> concernClones = new ArrayList<ConcernClone>();
-        for (MatchesData matchesData : sequenceMatch.getMatches()) {
+        for (MatchesData matchesData : sequenceMatches) {
             for (int i = 0; i < matchesData.groupsMatched.size(); i++) {
                 int matchedIndex = matchesData.groupsMatched.get(i);
                 ConcernClone clone = new ConcernClone();
-                clone.methods = Arrays.asList(methodCodes.get(matchesData.groupIndex).methodName,
-                        methodCodes.get(matchedIndex).methodName);
-                clone.sources = Arrays.asList(methodCodes.get(matchesData.groupIndex).methodSource,
-                        methodCodes.get(matchedIndex).methodSource);
-                clone.sequences = Arrays.asList(methodCodes.get(matchesData.groupIndex).methodSequences,
-                        methodCodes.get(matchedIndex).methodSequences);
+                clone.methods = Arrays.asList(methodCodes.get(matchesData.groupIndex).getName(),
+                        methodCodes.get(matchedIndex).getName());
+                clone.sources = Arrays.asList(methodCodes.get(matchesData.groupIndex).getSource(),
+                        methodCodes.get(matchedIndex).getSource());
+                clone.sequences = Arrays.asList(callsToStringList(methodCodes.get(matchesData.groupIndex).getCalls()),
+                        callsToStringList(methodCodes.get(matchedIndex).getCalls()));
                 clone.duplications = matchesData.sequencesMatches.get(i);
                 concernClones.add(clone);
             }
@@ -125,7 +162,7 @@ public class ConcernCallsManager {
         return clone;
     }
 
-    private List<List<Integer>> getCallsIndexes(List<List<String>> sequences) {
+    private List<List<Integer>> getCallsIndexes(IHashArray hashArray, List<List<String>> sequences) {
         List<List<Integer>> list = new ArrayList<List<Integer>>();
         for (List<String> sequence : sequences) {
             List<Integer> integers = new ArrayList<Integer>();
@@ -136,19 +173,5 @@ public class ConcernCallsManager {
         }
 
         return list;
-    }
-
-    public void setCallsHash(List<IMethodCalls> methodCalls) {
-        for (IMethodCalls methodCall : methodCalls) {
-            setCallsHash2(methodCall.getSequences());
-        }
-    }
-
-    private void setCallsHash2(List<List<String>> sequences) {
-        for (List<String> sequencesList : sequences) {
-            for (String sequence : sequencesList) {
-                hashArray.put(sequence);
-            }
-        }
     }
 }
