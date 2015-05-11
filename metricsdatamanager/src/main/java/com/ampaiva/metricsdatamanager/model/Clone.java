@@ -16,6 +16,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.eclipse.persistence.annotations.CascadeOnDelete;
+
 /**
  * The persistent class for the repositories database table.
  * 
@@ -44,7 +46,8 @@ public class Clone implements Serializable {
     @Column(unique = true, nullable = false)
     private int id;
 
-    @OneToMany(mappedBy = "clone", cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "clone", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
+    @CascadeOnDelete
     private List<CloneCall> calls;
 
     public Clone() {

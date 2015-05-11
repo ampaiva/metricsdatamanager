@@ -16,6 +16,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.eclipse.persistence.annotations.CascadeOnDelete;
+
 /**
  * The persistent class for the sources database table.
  * 
@@ -42,13 +44,16 @@ public class Method implements Serializable {
     @Lob
     private String source;
 
-    @OneToMany(mappedBy = "methodBean", cascade = { CascadeType.ALL })
+    @OneToMany(mappedBy = "methodBean", orphanRemoval = true, cascade = { CascadeType.ALL })
+    @CascadeOnDelete
     private List<Call> calls;
 
-    @OneToMany(mappedBy = "copy", cascade = { CascadeType.ALL })
+    @OneToMany(mappedBy = "copy", orphanRemoval = true, cascade = { CascadeType.ALL })
+    @CascadeOnDelete
     private List<Clone> copies;
 
-    @OneToMany(mappedBy = "paste", cascade = { CascadeType.ALL })
+    @OneToMany(mappedBy = "paste", orphanRemoval = true, cascade = { CascadeType.ALL })
+    @CascadeOnDelete
     private List<Clone> pastes;
 
     public Method() {

@@ -73,9 +73,22 @@ public class ConcernCallsManager {
                 List<Call> calls = new ArrayList<Call>();
                 for (int j = 0; j < methodCall.getSequences().size(); j++) {
                     List<String> seq = methodCall.getSequences().get(j);
-                    for (String string : seq) {
+                    for (final String sequenceName : seq) {
                         Call call = new Call();
-                        call.setName(string);
+
+                        Sequence sequence = null;
+                        for (Sequence sequenceT : sequences) {
+                            if (sequenceT.getName().equals(sequenceName)) {
+                                sequence = sequenceT;
+                                break;
+                            }
+
+                        }
+                        if (sequence == null) {
+                            sequence = new Sequence(sequenceName);
+                            sequences.add(sequence);
+                        }
+                        call.setSequence(sequence);
                         call.setMethodBean(method);
                         calls.add(call);
                     }
@@ -85,15 +98,6 @@ public class ConcernCallsManager {
             }
         }
         return methodCodes;
-    }
-
-    public static IHashArray syncHashArray(IHashArray hashArray, List<Method> methodCodes) {
-        for (Method methodCode : methodCodes) {
-            for (Call call : methodCode.getCalls()) {
-                hashArray.put(call.getName());
-            }
-        }
-        return hashArray;
     }
 
     private List<List<String>> getSequences(List<Method> methodCodes) {
@@ -109,14 +113,14 @@ public class ConcernCallsManager {
 
         List<String> callNames = new ArrayList<String>();
         for (Call call : calls) {
-            callNames.add(call.getName());
+            callNames.add(call.getSequence().getName());
         }
         return callNames;
     }
 
     private List<List<Integer>> getSequencesInt(IHashArray hashArray, List<Method> methodCodes) {
         List<List<String>> sequencesStr = getSequences(methodCodes);
-        syncHashArray(hashArray, methodCodes);
+        //        syncHashArray(hashArray, methodCodes);
 
         List<List<Integer>> sequencesInt = new ArrayList<List<Integer>>();
         sequencesInt.addAll(getCallsIndexes(hashArray, sequencesStr));

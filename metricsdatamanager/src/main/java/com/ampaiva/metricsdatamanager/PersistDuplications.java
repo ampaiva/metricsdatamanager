@@ -47,7 +47,7 @@ public class PersistDuplications {
         MAX_DISTANCE = mAX_DISTANCE;
     }
 
-    private List<Repository> createRepositories(List<File> files, List<Sequence> sequences, IHashArray hashArray)
+    private List<Repository> createRepositories(List<File> files, List<Sequence> sequences)
             throws FileNotFoundException, IOException, ParseException {
         IProgressUpdate update = ProgressUpdate.start("Processing file", files.size());
         List<Repository> repositories = new ArrayList<Repository>();
@@ -100,8 +100,13 @@ public class PersistDuplications {
         return repository;
     }
 
-    private void processAnalysis(IHashArray hashArray, int repositoryId) {
+    private void processAnalysis(int repositoryId) {
         IProgressUpdate update = ProgressUpdate.start("Processing sequence", MAX_SEQ - MIN_SEQ + 1);
+        List<Sequence> sequences = getSequences(dataManager);
+        IHashArray hashArray = new HashArray();
+        for (int i = 0; i < sequences.size(); i++) {
+            hashArray.put(sequences.get(i).getName());
+        }
         for (int minSeq = MIN_SEQ; minSeq <= MAX_SEQ; minSeq++) {
             update.beginIndex();
             IProgressUpdate update2 = ProgressUpdate.start("Processing distance", MAX_DISTANCE);
@@ -182,23 +187,11 @@ public class PersistDuplications {
         IProgressReport report = new ProgressReport();
         IProgressUpdate update = ProgressUpdate.start(report, "Run over " + folder, 1);
         List<Sequence> sequences = getSequences(dataManager);
-        int sequencesSize = sequences.size();
-        IHashArray hashArray = new HashArray();
-        for (int i = 0; i < sequences.size(); i++) {
-            hashArray.put(sequences.get(i).getName());
-        }
-        List<Repository> repositories = createRepositories(files, sequences, hashArray);
+        List<Repository> repositories = createRepositories(files, sequences);
         for (Repository repository : repositories) {
-            ConcernCallsManager.syncHashArray(hashArray, repository.getMethods());
-            processAnalysis(hashArray, repository.getId());
-        }
-        for (int i = sequencesSize; i < hashArray.size(); i++) {
-            Sequence sequence = new Sequence();
-            sequence.setName(hashArray.getByIndex(i));
-            sequences.add(sequence);
+            processAnalysis(repository.getId());
         }
 
-        persist(sequences.subList(sequencesSize, sequences.size()));
         update.endIndex();
         BasicConfigurator.resetConfiguration();
     }
@@ -217,18 +210,6 @@ public class PersistDuplications {
         dataManager.persist(entity);
         dataManager.close();
         update.endIndex(entity);
-    }
-
-    private void persist(List<Sequence> sequences) {
-        IProgressUpdate update = ProgressUpdate.start("Persisting data", 2);
-        dataManager.open();
-        update.beginIndex("Persisting sequences", sequences.size());
-        for (Sequence sequence : sequences) {
-            dataManager.persist(sequence);
-        }
-        update.beginIndex("Commit");
-        dataManager.close();
-        update.endIndex("Commit");
     }
 
     public static void main(String[] args) throws IOException, ParseException {

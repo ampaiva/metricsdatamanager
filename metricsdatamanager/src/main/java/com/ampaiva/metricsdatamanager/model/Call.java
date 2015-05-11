@@ -15,6 +15,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.eclipse.persistence.annotations.CascadeOnDelete;
+
 /**
  * The persistent class for the sources database table.
  * 
@@ -35,20 +37,19 @@ public class Call implements Serializable {
     @Column(unique = true, nullable = false)
     private int id;
 
-    @Column(nullable = false)
-    private String name;
+    @ManyToOne(cascade = { CascadeType.ALL })
+    @JoinColumn(name = "sequence", nullable = false)
+    private Sequence sequence;
 
-    @OneToMany(mappedBy = "copy", cascade = { CascadeType.ALL })
+    @OneToMany(mappedBy = "copy", orphanRemoval = true, cascade = { CascadeType.ALL })
+    @CascadeOnDelete
     private List<CloneCall> copies;
 
-    @OneToMany(mappedBy = "paste", cascade = { CascadeType.ALL })
+    @OneToMany(mappedBy = "paste", orphanRemoval = true, cascade = { CascadeType.ALL })
+    @CascadeOnDelete
     private List<CloneCall> pastes;
 
     public Call() {
-    }
-
-    public Call(String name) {
-        this.name = name;
     }
 
     public int getId() {
@@ -67,16 +68,16 @@ public class Call implements Serializable {
         this.methodBean = methodBean;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public List<CloneCall> getCopies() {
         return copies;
+    }
+
+    public Sequence getSequence() {
+        return sequence;
+    }
+
+    public void setSequence(Sequence sequence) {
+        this.sequence = sequence;
     }
 
     public void setCopies(List<CloneCall> copies) {

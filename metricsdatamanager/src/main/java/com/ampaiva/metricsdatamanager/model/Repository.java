@@ -15,6 +15,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.eclipse.persistence.annotations.CascadeOnDelete;
+
 /**
  * The persistent class for the repositories database table.
  * 
@@ -36,11 +38,13 @@ public class Repository implements Serializable {
     private String location;
 
     //bi-directional many-to-one association to Method
-    @OneToMany(mappedBy = "repositoryBean", cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "repositoryBean", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
+    @CascadeOnDelete
     private List<Method> methods;
 
     //bi-directional many-to-one association to Analyse
-    @OneToMany(mappedBy = "repositoryBean", cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "repositoryBean", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
+    @CascadeOnDelete
     private List<Analyse> analysis;
 
     public Repository() {

@@ -17,6 +17,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import org.eclipse.persistence.annotations.CascadeOnDelete;
+
 /**
  * The persistent class for the sources database table.
  * 
@@ -43,7 +45,8 @@ public class Analyse implements Serializable {
     @Column(nullable = false)
     private Integer maxDist;
 
-    @OneToMany(mappedBy = "analyseBean", cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "analyseBean", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
+    @CascadeOnDelete
     private List<Clone> clones;
 
     public List<Clone> getClones() {
