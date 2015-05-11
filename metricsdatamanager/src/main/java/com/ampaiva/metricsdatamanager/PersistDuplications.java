@@ -21,7 +21,6 @@ import com.ampaiva.hlo.util.view.ProgressReport;
 import com.ampaiva.hlo.util.view.ProgressUpdate;
 import com.ampaiva.metricsdatamanager.config.IConcernCallsConfig;
 import com.ampaiva.metricsdatamanager.controller.ConcernCallsManager;
-import com.ampaiva.metricsdatamanager.controller.ConcernClone;
 import com.ampaiva.metricsdatamanager.controller.DataManager;
 import com.ampaiva.metricsdatamanager.controller.IDataManager;
 import com.ampaiva.metricsdatamanager.model.Analyse;
@@ -40,6 +39,7 @@ public class PersistDuplications {
     final int MIN_SEQ;
     final int MAX_SEQ;
     final int MAX_DISTANCE;
+    final IDataManager dataManager = new DataManager("metricsdatamanager");
 
     public PersistDuplications(int mIN_SEQ, int mAX_SEQ, int mAX_DISTANCE) {
         MIN_SEQ = mIN_SEQ;
@@ -47,44 +47,78 @@ public class PersistDuplications {
         MAX_DISTANCE = mAX_DISTANCE;
     }
 
-    private List<Repository> processFiles(List<File> files, List<Sequence> sequences, IHashArray hashArray,
-            List<Clone> clones) throws FileNotFoundException, IOException, ParseException {
+    private List<Repository> createRepositories(List<File> files, List<Sequence> sequences, IHashArray hashArray)
+            throws FileNotFoundException, IOException, ParseException {
         IProgressUpdate update = ProgressUpdate.start("Processing file", files.size());
         List<Repository> repositories = new ArrayList<Repository>();
         for (File file : files) {
             update.beginIndex(file);
-            Repository repository = processFile(file, sequences, hashArray, clones);
+            Repository repository = processFile(file, sequences);
             repositories.add(repository);
         }
         return repositories;
     }
 
-    private Repository processFile(File file, List<Sequence> sequences, IHashArray hashArray, List<Clone> clones2)
-            throws FileNotFoundException, IOException, ParseException {
-        Repository repository = new Repository();
+    private Repository getRepositoryByLocation(String location) {
+        dataManager.open();
+        Repository repository = dataManager.getSingleResult(Repository.class, "Repository.findByLocation", location);
+        dataManager.close();
+        return repository;
+    }
+
+    private Analyse getAnalysisByRepoAndConfig(Repository repository, int minSeq, int maxDist) {
+        //TODO: create a query
+        for (Analyse analyse : repository.getAnalysis()) {
+            if (analyse.getMinSeq() == minSeq && analyse.getMaxDist() == maxDist) {
+                return analyse;
+            }
+        }
+        return null;
+    }
+
+    private Repository processFile(File file, List<Sequence> sequences) throws FileNotFoundException, IOException,
+            ParseException {
+        String location = file.getName();
+        Repository repository = getRepositoryByLocation(location);
+        if (repository == null) {
+            repository = createRepository(file, sequences);
+            commit(repository);
+        }
+        return repository;
+    }
+
+    private Repository createRepository(File file, List<Sequence> sequences) throws FileNotFoundException, IOException,
+            ParseException {
+        Repository repository;
+        repository = new Repository();
         repository.setLocation(file.getName());
-        List<Method> methods = getMethodCodes(sequences, hashArray, file);
+        List<Method> methods = getMethodCodes(sequences, file);
         for (Method method : methods) {
             method.setRepositoryBean(repository);
         }
         repository.setMethods(methods);
-        repository.setAnalysis(new ArrayList<Analyse>());
-
-        processAnalysis(hashArray, repository, methods);
         return repository;
     }
 
-    private void processAnalysis(IHashArray hashArray, Repository repository, List<Method> methods) {
+    private void processAnalysis(IHashArray hashArray, int repositoryId) {
         IProgressUpdate update = ProgressUpdate.start("Processing sequence", MAX_SEQ - MIN_SEQ + 1);
         for (int minSeq = MIN_SEQ; minSeq <= MAX_SEQ; minSeq++) {
             update.beginIndex();
             IProgressUpdate update2 = ProgressUpdate.start("Processing distance", MAX_DISTANCE);
             for (int maxDist = 0; maxDist < MAX_DISTANCE; maxDist++) {
                 update2.beginIndex();
-                Analyse analyse = new Analyse(minSeq, maxDist);
-                analyse.setRepositoryBean(repository);
+                dataManager.open();
+                Repository repository = dataManager.getSingleResult(Repository.class, "Repository.findById",
+                        repositoryId);
+                Analyse analyse = getAnalysisByRepoAndConfig(repository, minSeq, maxDist);
+                if (analyse != null) {
+                    continue;
+                }
+                analyse = new Analyse(minSeq, maxDist);
                 analyse.setClones(new ArrayList<Clone>());
-                repository.addAnalyse(analyse);
+                analyse.setRepositoryBean(repository);
+                repository.getAnalysis().add(analyse);
+                List<Method> methods = repository.getMethods();
                 List<MatchesData> sequenceMatches = getSequenceMatches(hashArray, methods, minSeq, maxDist);
                 for (MatchesData matchesData : sequenceMatches) {
                     for (int i = 0; i < matchesData.groupsMatched.size(); i++) {
@@ -92,20 +126,22 @@ public class PersistDuplications {
                         Clone clone = new Clone();
                         clone.setCopy(methods.get(matchesData.groupIndex));
                         clone.setPaste(methods.get(groupMatched));
-                        clone.setCalls(new ArrayList<CloneCall>());
                         clone.setAnalyseBean(analyse);
+                        clone.setCalls(new ArrayList<CloneCall>());
                         analyse.getClones().add(clone);
 
                         List<List<Integer>> duplications = matchesData.sequencesMatches.get(i);
                         for (List<Integer> duplication : duplications) {
                             CloneCall cloneCall = new CloneCall();
                             cloneCall.setCopy(clone.getCopy().getCalls().get(duplication.get(0)));
-                            cloneCall.setPaste(clone.getCopy().getCalls().get(duplication.get(1)));
+                            cloneCall.setPaste(clone.getPaste().getCalls().get(duplication.get(1)));
                             cloneCall.setClone(clone);
                             clone.getCalls().add(cloneCall);
                         }
                     }
                 }
+                dataManager.persist(analyse);
+                dataManager.close();
             }
         }
     }
@@ -129,44 +165,40 @@ public class PersistDuplications {
         return sequenceMatches;
     }
 
-    public List<ConcernClone> getConcernClones(List<MatchesData> sequenceMatches, List<Method> methodCodes) {
-        ConcernCallsManager concernCallsManager = new ConcernCallsManager();
-        List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, methodCodes);
-        return duplications;
-    }
-
-    private List<Method> getMethodCodes(List<Sequence> sequences, IHashArray hashArray, File file)
-            throws FileNotFoundException, IOException, ParseException {
+    private List<Method> getMethodCodes(List<Sequence> sequences, File file) throws FileNotFoundException, IOException,
+            ParseException {
         ZipStreamUtil zipStreamUtil = new ZipStreamUtil(file.toString(), Helper.convertFile2InputStream(new File(file
                 .getAbsolutePath())));
         List<ICodeSource> codeSources = Arrays.asList((ICodeSource) zipStreamUtil);
         ConcernCallsManager concernCallsManager = new ConcernCallsManager();
-        List<Method> methodCodes = concernCallsManager.getMethodCodes(sequences, hashArray, codeSources);
-        ConcernCallsManager.getHashArray(hashArray, methodCodes);
+        List<Method> methodCodes = concernCallsManager.getMethodCodes(sequences, codeSources);
         return methodCodes;
     }
 
-    public void run(String folder) throws IOException, ParseException {
+    private void run(String folder) throws IOException, ParseException {
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(Level.INFO);
         List<File> files = Helper.getFilesRecursevely(folder, ".zip");
         IProgressReport report = new ProgressReport();
         IProgressUpdate update = ProgressUpdate.start(report, "Run over " + folder, 1);
-        final IDataManager dataManager = new DataManager("metricsdatamanager");
         List<Sequence> sequences = getSequences(dataManager);
         int sequencesSize = sequences.size();
         IHashArray hashArray = new HashArray();
         for (int i = 0; i < sequences.size(); i++) {
             hashArray.put(sequences.get(i).getName());
         }
-        List<Clone> clones = new ArrayList<Clone>();
-        List<Repository> repositories = processFiles(files, sequences, hashArray, clones);
+        List<Repository> repositories = createRepositories(files, sequences, hashArray);
+        for (Repository repository : repositories) {
+            ConcernCallsManager.syncHashArray(hashArray, repository.getMethods());
+            processAnalysis(hashArray, repository.getId());
+        }
         for (int i = sequencesSize; i < hashArray.size(); i++) {
             Sequence sequence = new Sequence();
             sequence.setName(hashArray.getByIndex(i));
             sequences.add(sequence);
         }
-        persist(dataManager, sequences.subList(sequencesSize, sequences.size()), repositories);
+
+        persist(sequences.subList(sequencesSize, sequences.size()));
         update.endIndex();
         BasicConfigurator.resetConfiguration();
     }
@@ -178,24 +210,21 @@ public class PersistDuplications {
         return sequences;
     }
 
-    private void deleteAllData(IDataManager dataManager) {
+    private void commit(Object entity) {
+        IProgressUpdate update = ProgressUpdate.start("Persisting entity", 1);
+        update.beginIndex(entity);
         dataManager.open();
-        dataManager.removeAll(Repository.class);
+        dataManager.persist(entity);
         dataManager.close();
+        update.endIndex(entity);
     }
 
-    private void persist(IDataManager dataManager, List<Sequence> sequences, List<Repository> repositories) {
-        IProgressUpdate update = ProgressUpdate.start("Persisting data", 4);
-        update.beginIndex("Delete");
-        deleteAllData(dataManager);
+    private void persist(List<Sequence> sequences) {
+        IProgressUpdate update = ProgressUpdate.start("Persisting data", 2);
         dataManager.open();
         update.beginIndex("Persisting sequences", sequences.size());
         for (Sequence sequence : sequences) {
             dataManager.persist(sequence);
-        }
-        update.beginIndex("Persisting repositories", repositories.size());
-        for (Repository repository : repositories) {
-            dataManager.persist(repository);
         }
         update.beginIndex("Commit");
         dataManager.close();

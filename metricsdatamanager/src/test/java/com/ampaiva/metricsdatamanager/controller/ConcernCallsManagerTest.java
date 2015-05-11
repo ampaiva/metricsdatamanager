@@ -70,8 +70,7 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
                 "src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest2.zip")));
         List<ICodeSource> codeSources = Arrays.asList((ICodeSource) zipStreamUtil);
         concernCallsManager = new ConcernCallsManager();
-        List<Method> methodCodes = concernCallsManager
-                .getMethodCodes(new ArrayList<Sequence>(), hashArray, codeSources);
+        List<Method> methodCodes = concernCallsManager.getMethodCodes(new ArrayList<Sequence>(), codeSources);
         assertNotNull(methodCodes);
         List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(hashArray, methodCodes, config);
         List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, methodCodes);
@@ -90,8 +89,7 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
                 "src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest3.zip")));
         List<ICodeSource> codeSources = Arrays.asList((ICodeSource) zipStreamUtil);
         concernCallsManager = new ConcernCallsManager();
-        List<Method> methodCodes = concernCallsManager
-                .getMethodCodes(new ArrayList<Sequence>(), hashArray, codeSources);
+        List<Method> methodCodes = concernCallsManager.getMethodCodes(new ArrayList<Sequence>(), codeSources);
         assertNotNull(methodCodes);
         List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(hashArray, methodCodes, config);
         List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, methodCodes);
@@ -110,8 +108,7 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
                 "src/test/resources/com/ampaiva/metricsdatamanager/util/maven-master.zip")));
         List<ICodeSource> codeSources = Arrays.asList((ICodeSource) zipStreamUtil);
         concernCallsManager = new ConcernCallsManager();
-        List<Method> methodCodes = concernCallsManager
-                .getMethodCodes(new ArrayList<Sequence>(), hashArray, codeSources);
+        List<Method> methodCodes = concernCallsManager.getMethodCodes(new ArrayList<Sequence>(), codeSources);
         assertNotNull(methodCodes);
         List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(hashArray, methodCodes, config);
         List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, methodCodes);
@@ -131,8 +128,7 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
             ZipStreamUtil zipStreamUtil = new ZipStreamUtil(file.toString(), Helper.convertFile2InputStream(new File(
                     file.getAbsolutePath())));
             List<ICodeSource> codeSources = Arrays.asList((ICodeSource) zipStreamUtil);
-            List<Method> methodCodes = concernCallsManager.getMethodCodes(new ArrayList<Sequence>(), hashArray,
-                    codeSources);
+            List<Method> methodCodes = concernCallsManager.getMethodCodes(new ArrayList<Sequence>(), codeSources);
             assertNotNull(methodCodes);
 
             final int MIN_SEQ = 5;

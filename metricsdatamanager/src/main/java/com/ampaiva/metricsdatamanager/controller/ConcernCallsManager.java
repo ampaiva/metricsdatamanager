@@ -56,8 +56,8 @@ public class ConcernCallsManager {
         return concernCollections;
     }
 
-    public List<Method> getMethodCodes(List<Sequence> sequences, IHashArray hashArray, List<ICodeSource> codeSources)
-            throws IOException, ParseException {
+    public List<Method> getMethodCodes(List<Sequence> sequences, List<ICodeSource> codeSources) throws IOException,
+            ParseException {
         IMetricsSource metricsSource = new IMetricsSource() {
 
             @Override
@@ -87,7 +87,7 @@ public class ConcernCallsManager {
         return methodCodes;
     }
 
-    public static IHashArray getHashArray(IHashArray hashArray, List<Method> methodCodes) {
+    public static IHashArray syncHashArray(IHashArray hashArray, List<Method> methodCodes) {
         for (Method methodCode : methodCodes) {
             for (Call call : methodCode.getCalls()) {
                 hashArray.put(call.getName());
@@ -116,7 +116,7 @@ public class ConcernCallsManager {
 
     private List<List<Integer>> getSequencesInt(IHashArray hashArray, List<Method> methodCodes) {
         List<List<String>> sequencesStr = getSequences(methodCodes);
-        getHashArray(hashArray, methodCodes);
+        syncHashArray(hashArray, methodCodes);
 
         List<List<Integer>> sequencesInt = new ArrayList<List<Integer>>();
         sequencesInt.addAll(getCallsIndexes(hashArray, sequencesStr));

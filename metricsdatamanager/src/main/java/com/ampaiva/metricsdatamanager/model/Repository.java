@@ -6,9 +6,11 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -19,7 +21,9 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "repositories")
-@NamedQuery(name = "Repository.findAll", query = "SELECT r FROM Repository r")
+@NamedQueries({ @NamedQuery(name = "Repository.findAll", query = "SELECT r FROM Repository r"),
+        @NamedQuery(name = "Repository.findByLocation", query = "SELECT r FROM Repository r WHERE r.location=?1"),
+        @NamedQuery(name = "Repository.findById", query = "SELECT r FROM Repository r WHERE r.id=?1") })
 public class Repository implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -32,11 +36,11 @@ public class Repository implements Serializable {
     private String location;
 
     //bi-directional many-to-one association to Method
-    @OneToMany(mappedBy = "repositoryBean", cascade = { CascadeType.ALL })
+    @OneToMany(mappedBy = "repositoryBean", cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
     private List<Method> methods;
 
     //bi-directional many-to-one association to Analyse
-    @OneToMany(mappedBy = "repositoryBean", cascade = { CascadeType.ALL })
+    @OneToMany(mappedBy = "repositoryBean", cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
     private List<Analyse> analysis;
 
     public Repository() {
@@ -100,6 +104,11 @@ public class Repository implements Serializable {
         analyse.setRepositoryBean(null);
 
         return analyse;
+    }
+
+    @Override
+    public String toString() {
+        return "Repository [id=" + id + ", location=" + location + "]";
     }
 
 }

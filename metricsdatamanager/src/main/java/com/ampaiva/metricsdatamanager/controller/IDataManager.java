@@ -1,6 +1,7 @@
 package com.ampaiva.metricsdatamanager.controller;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.ampaiva.metricsdatamanager.model.Resource;
 
@@ -10,11 +11,17 @@ public interface IDataManager {
 
     <G> void persist(G entity);
 
-    void close();
+    <T> void refresh(T entity);
 
     <H> void removeAll(Class<H> _class);
 
+    void close();
+
     <U> Collection<U> findAll(Class<U> clazz);
+
+    <U> List<U> getResultList(Class<U> clazz, String namedQuery, Object... params);
+
+    <U> U getSingleResult(Class<U> clazz, String namedQuery, Object... params);
 
     Resource getResourceByName(String projectName, String resourceName);
 }

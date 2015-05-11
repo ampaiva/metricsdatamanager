@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+//TODO: Make it template and delete IHashArray
 public class HashArray implements IHashArray {
     private final HashMap<String, Integer> hash = new HashMap<String, Integer>();
     private final List<String> list = new ArrayList<String>();

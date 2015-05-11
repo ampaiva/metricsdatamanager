@@ -6,9 +6,11 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
@@ -20,7 +22,7 @@ import javax.persistence.Table;
  * 
  */
 @Entity
-@Table(name = "analisys")
+@Table(name = "analisys", indexes = { @Index(name = "repository_params_idx", columnList = "repository,minseq,maxdist", unique = true) })
 @NamedQuery(name = "Analyse.findAll", query = "SELECT a FROM Analyse a")
 public class Analyse implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -35,13 +37,13 @@ public class Analyse implements Serializable {
     @Column(unique = true, nullable = false)
     private int id;
 
-    @Column
+    @Column(nullable = false)
     private Integer minSeq;
 
-    @Column
+    @Column(nullable = false)
     private Integer maxDist;
 
-    @OneToMany(mappedBy = "analyseBean", cascade = { CascadeType.ALL })
+    @OneToMany(mappedBy = "analyseBean", cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
     private List<Clone> clones;
 
     public List<Clone> getClones() {
@@ -94,8 +96,8 @@ public class Analyse implements Serializable {
 
     @Override
     public String toString() {
-        return "Analyse [id=" + id + ", minSeq=" + minSeq + ", maxDist=" + maxDist + ", repositoryBean="
-                + repositoryBean + "]";
+        return "Analyse [id=" + id + ", minSeq=" + minSeq + ", maxDist=" + maxDist + ", repository=" + repositoryBean
+                + "]";
     }
 
 }

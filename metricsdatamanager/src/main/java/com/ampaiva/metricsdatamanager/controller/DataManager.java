@@ -1,9 +1,11 @@
 package com.ampaiva.metricsdatamanager.controller;
 
 import java.util.Collection;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.NoResultException;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
@@ -61,6 +63,11 @@ public class DataManager implements IDataManager {
         entityManager.persist(entity);
     }
 
+    @Override
+    public <T> void refresh(T entity) {
+        entityManager.refresh(entity);
+    }
+
     public <T> void remove(T entity) {
         entityManager.remove(entity);
     }
@@ -71,10 +78,38 @@ public class DataManager implements IDataManager {
         return obj;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public <U> Collection<U> findAll(Class<U> clazz) {
         Query query = entityManager.createQuery("SELECT e FROM " + clazz.getSimpleName() + " e");
         return query.getResultList();
+    }
+
+    @Override
+    public <U> List<U> getResultList(Class<U> clazz, String namedQuery, Object... params) {
+        TypedQuery<U> query = entityManager.createNamedQuery(namedQuery, clazz);
+        if (params != null) {
+            for (int i = 1; i <= params.length; i++) {
+                query.setParameter(String.valueOf(i), params[i]);
+            }
+        }
+        List<U> results = query.getResultList();
+        return results;
+    }
+
+    @Override
+    public <U> U getSingleResult(Class<U> clazz, String namedQuery, Object... params) {
+        TypedQuery<U> query = entityManager.createNamedQuery(namedQuery, clazz);
+        if (params != null) {
+            for (int i = 0; i < params.length; i++) {
+                query.setParameter(String.valueOf(i + 1), params[i]);
+            }
+        }
+        try {
+            return query.getSingleResult();
+        } catch (NoResultException ex) {
+            return null;
+        }
     }
 
     @Override
