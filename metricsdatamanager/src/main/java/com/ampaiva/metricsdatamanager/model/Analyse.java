@@ -24,7 +24,7 @@ import org.eclipse.persistence.annotations.CascadeOnDelete;
  * 
  */
 @Entity
-@Table(name = "analisys", indexes = { @Index(name = "repository_params_idx", columnList = "repository,minseq,maxdist", unique = true) })
+@Table(name = "analysis", indexes = { @Index(name = "repository_params_idx", columnList = "repository,minseq,maxdist", unique = true) })
 @NamedQuery(name = "Analyse.findAll", query = "SELECT a FROM Analyse a")
 public class Analyse implements Serializable {
     private static final long serialVersionUID = 1L;

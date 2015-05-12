@@ -6,14 +6,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import com.ampaiva.hlo.cm.ICodeSource;
 import com.ampaiva.hlo.util.Helper;
 import com.ampaiva.hlo.util.view.IProgressReport;
 import com.ampaiva.hlo.util.view.IProgressUpdate;
@@ -29,10 +27,7 @@ import com.ampaiva.metricsdatamanager.model.CloneCall;
 import com.ampaiva.metricsdatamanager.model.Method;
 import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.model.Sequence;
-import com.ampaiva.metricsdatamanager.util.HashArray;
-import com.ampaiva.metricsdatamanager.util.IHashArray;
 import com.ampaiva.metricsdatamanager.util.MatchesData;
-import com.ampaiva.metricsdatamanager.util.ZipStreamUtil;
 
 public class PersistDuplications {
 
@@ -41,7 +36,7 @@ public class PersistDuplications {
     final int MAX_DISTANCE;
     final IDataManager dataManager = new DataManager("metricsdatamanager");
 
-    public PersistDuplications(int mIN_SEQ, int mAX_SEQ, int mAX_DISTANCE) {
+    private PersistDuplications(int mIN_SEQ, int mAX_SEQ, int mAX_DISTANCE) {
         MIN_SEQ = mIN_SEQ;
         MAX_SEQ = mAX_SEQ;
         MAX_DISTANCE = mAX_DISTANCE;
@@ -57,6 +52,18 @@ public class PersistDuplications {
             repositories.add(repository);
         }
         return repositories;
+    }
+
+    private Repository processFile(File file, List<Sequence> sequences) throws FileNotFoundException, IOException,
+            ParseException {
+        String location = file.getName();
+        Repository repository = getRepositoryByLocation(location);
+        if (repository == null) {
+            ConcernCallsManager concernCallsManager = new ConcernCallsManager();
+            repository = concernCallsManager.createRepository(file, sequences);
+            commit(repository);
+        }
+        return repository;
     }
 
     private Repository getRepositoryByLocation(String location) {
@@ -76,39 +83,11 @@ public class PersistDuplications {
         return null;
     }
 
-    private Repository processFile(File file, List<Sequence> sequences) throws FileNotFoundException, IOException,
-            ParseException {
-        String location = file.getName();
-        Repository repository = getRepositoryByLocation(location);
-        if (repository == null) {
-            repository = createRepository(file, sequences);
-            commit(repository);
-        }
-        return repository;
-    }
-
-    private Repository createRepository(File file, List<Sequence> sequences) throws FileNotFoundException, IOException,
-            ParseException {
-        Repository repository;
-        repository = new Repository();
-        repository.setLocation(file.getName());
-        List<Method> methods = getMethodCodes(sequences, file);
-        for (Method method : methods) {
-            method.setRepositoryBean(repository);
-        }
-        repository.setMethods(methods);
-        return repository;
-    }
-
     private void processAnalysis(int repositoryId) {
         IProgressUpdate update = ProgressUpdate.start("Processing sequence", MAX_SEQ - MIN_SEQ + 1);
         List<Sequence> sequences = getSequences(dataManager);
-        IHashArray hashArray = new HashArray();
-        for (int i = 0; i < sequences.size(); i++) {
-            hashArray.put(sequences.get(i).getName());
-        }
         for (int minSeq = MIN_SEQ; minSeq <= MAX_SEQ; minSeq++) {
-            update.beginIndex();
+            update.beginIndex("minSeq=" + minSeq);
             IProgressUpdate update2 = ProgressUpdate.start("Processing distance", MAX_DISTANCE);
             for (int maxDist = 0; maxDist < MAX_DISTANCE; maxDist++) {
                 update2.beginIndex();
@@ -124,7 +103,7 @@ public class PersistDuplications {
                 analyse.setRepositoryBean(repository);
                 repository.getAnalysis().add(analyse);
                 List<Method> methods = repository.getMethods();
-                List<MatchesData> sequenceMatches = getSequenceMatches(hashArray, methods, minSeq, maxDist);
+                List<MatchesData> sequenceMatches = getSequenceMatches(sequences, methods, minSeq, maxDist);
                 for (MatchesData matchesData : sequenceMatches) {
                     for (int i = 0; i < matchesData.groupsMatched.size(); i++) {
                         int groupMatched = matchesData.groupsMatched.get(i);
@@ -151,7 +130,7 @@ public class PersistDuplications {
         }
     }
 
-    private List<MatchesData> getSequenceMatches(IHashArray hashArray, List<Method> methodCodes, final int minSeq,
+    private List<MatchesData> getSequenceMatches(List<Sequence> sequences, List<Method> methods, final int minSeq,
             final int maxDistance) {
         ConcernCallsManager concernCallsManager = new ConcernCallsManager();
         IConcernCallsConfig config = new IConcernCallsConfig() {
@@ -166,18 +145,8 @@ public class PersistDuplications {
                 return maxDistance;
             }
         };
-        List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(hashArray, methodCodes, config);
+        List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(sequences, methods, config);
         return sequenceMatches;
-    }
-
-    private List<Method> getMethodCodes(List<Sequence> sequences, File file) throws FileNotFoundException, IOException,
-            ParseException {
-        ZipStreamUtil zipStreamUtil = new ZipStreamUtil(file.toString(), Helper.convertFile2InputStream(new File(file
-                .getAbsolutePath())));
-        List<ICodeSource> codeSources = Arrays.asList((ICodeSource) zipStreamUtil);
-        ConcernCallsManager concernCallsManager = new ConcernCallsManager();
-        List<Method> methodCodes = concernCallsManager.getMethodCodes(sequences, codeSources);
-        return methodCodes;
     }
 
     private void run(String folder) throws IOException, ParseException {
@@ -213,8 +182,9 @@ public class PersistDuplications {
     }
 
     public static void main(String[] args) throws IOException, ParseException {
+        BasicConfigurator.configure();
         String folder = "/temp";
-        PersistDuplications persistDuplications = new PersistDuplications(4, 10, 2);
+        PersistDuplications persistDuplications = new PersistDuplications(375, 375, 1);
         persistDuplications.run(folder);
     }
 

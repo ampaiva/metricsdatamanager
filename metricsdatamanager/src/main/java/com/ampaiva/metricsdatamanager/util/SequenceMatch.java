@@ -40,7 +40,7 @@ public class SequenceMatch {
         List<MatchesData> result = new ArrayList<MatchesData>();
         IProgressUpdate update = ProgressUpdate.start("Processing map", map.entrySet().size());
         for (Entry<Integer, List<List<Integer>>> entry : map.entrySet()) {
-            update.beginIndex();
+            update.beginIndex(entry);
             if (LOG.isDebugEnabled()) {
                 LOG.debug("getMatches() entry: " + entry);
             }
@@ -63,7 +63,7 @@ public class SequenceMatch {
                     mergeMatchedData(existingMatchesData, matchesData);
                 }
             }
-            update.endIndex();
+            update.endIndex(entry);
         }
 
         if (LOG.isDebugEnabled()) {
@@ -182,10 +182,10 @@ public class SequenceMatch {
         List<Integer> sequencePaste = sequences.get(paste.get(0));
         boolean result = false;
         int distance_i = 0;
-        for (int i = copy.get(1) - 1; i >= 0 && distance_i <= maxDistance; i--) {
+        for (int i = copy.get(1) - 1; i >= 0; i--) {
             int distance_j = 0;
-            for (int j = paste.get(1) - 1; j >= 0 && distance_j <= maxDistance; j--) {
-                if (sequenceCopy.get(i) == sequencePaste.get(j)) {
+            for (int j = paste.get(1) - 1; j >= 0; j--) {
+                if (sequenceCopy.get(i).intValue() == sequencePaste.get(j).intValue()) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("sequenceCopy[" + i + "]==sequencePaste[" + j + "]");
                     }
@@ -193,12 +193,19 @@ public class SequenceMatch {
                     break;
                 } else {
                     distance_j++;
+                    if (distance_j > maxDistance) {
+                        break;
+                    }
                 }
             }
-            if (result == true) {
+            if (!result) {
+                distance_i++;
+                if (distance_i > maxDistance) {
+                    break;
+                }
+            } else {
                 break;
             }
-            distance_i++;
         }
         if (LOG.isDebugEnabled()) {
             LOG.debug("hasMatchesAbove(" + copy + ", " + paste + ") return " + result);
@@ -228,7 +235,7 @@ public class SequenceMatch {
             int distance_j = 0;
             boolean found = false;
             for (int j = indexPaste; j < sequencePaste.size(); j++) {
-                if (sequenceCopy.get(i) == sequencePaste.get(j)) {
+                if (sequenceCopy.get(i).intValue() == sequencePaste.get(j).intValue()) {
                     sequenceMatches.add(Arrays.asList(i, j));
                     indexPaste = j + 1;
                     found = true;

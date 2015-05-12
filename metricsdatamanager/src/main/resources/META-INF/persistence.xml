@@ -21,7 +21,7 @@
 			<property name="javax.persistence.jdbc.user" value="cm" />
 			<property name="javax.persistence.jdbc.password" value="cm" />
 			<property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />
-			<property name="eclipselink.ddl-generation" value="create-or-extend-tables" />
+			<property name="eclipselink.ddl-generation" value="drop-and-create-tables" />
 			<property name="eclipselink.logging.level" value="INFO" />
 		</properties>
 	</persistence-unit>
@@ -38,8 +38,7 @@
 		<class>com.ampaiva.metricsdatamanager.model.Call</class>
 		<class>com.ampaiva.metricsdatamanager.model.Analyse</class>
 		<class>com.ampaiva.metricsdatamanager.model.Clone</class>
-		<class>com.ampaiva.metricsdatamanager.model.CloneMethod</class>
-		<class>com.ampaiva.metricsdatamanager.model.CloneSequence</class>
+		<class>com.ampaiva.metricsdatamanager.model.CloneCall</class>
 		<properties>
 			<property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/test" />
 			<property name="javax.persistence.jdbc.user" value="cm" />

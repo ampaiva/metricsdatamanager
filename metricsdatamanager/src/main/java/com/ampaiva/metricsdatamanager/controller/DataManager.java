@@ -81,7 +81,7 @@ public class DataManager implements IDataManager {
     @Override
     @SuppressWarnings("unchecked")
     public <U> Collection<U> findAll(Class<U> clazz) {
-        Query query = entityManager.createQuery("SELECT e FROM " + clazz.getSimpleName() + " e");
+        Query query = entityManager.createQuery("SELECT e FROM " + clazz.getSimpleName() + " e order by e.id");
         return query.getResultList();
     }
 

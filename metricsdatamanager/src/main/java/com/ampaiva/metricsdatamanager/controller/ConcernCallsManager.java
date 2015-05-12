@@ -2,6 +2,8 @@ package com.ampaiva.metricsdatamanager.controller;
 
 import japa.parser.ParseException;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,15 +17,19 @@ import com.ampaiva.hlo.cm.IConcernMetric;
 import com.ampaiva.hlo.cm.IMethodCalls;
 import com.ampaiva.hlo.cm.IMetricsSource;
 import com.ampaiva.hlo.cm.MetricsColector;
+import com.ampaiva.hlo.util.Helper;
 import com.ampaiva.hlo.util.view.IProgressUpdate;
 import com.ampaiva.hlo.util.view.ProgressUpdate;
 import com.ampaiva.metricsdatamanager.config.IConcernCallsConfig;
 import com.ampaiva.metricsdatamanager.model.Call;
 import com.ampaiva.metricsdatamanager.model.Method;
+import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.model.Sequence;
+import com.ampaiva.metricsdatamanager.util.HashArray;
 import com.ampaiva.metricsdatamanager.util.IHashArray;
 import com.ampaiva.metricsdatamanager.util.MatchesData;
 import com.ampaiva.metricsdatamanager.util.SequenceMatch;
+import com.ampaiva.metricsdatamanager.util.ZipStreamUtil;
 
 public class ConcernCallsManager {
     public static final String SEPARATOR = "#";
@@ -56,6 +62,27 @@ public class ConcernCallsManager {
         return concernCollections;
     }
 
+    public Repository createRepository(File file, List<Sequence> sequences) throws FileNotFoundException, IOException,
+            ParseException {
+        Repository repository = new Repository();
+        repository.setLocation(file.getName());
+        List<Method> methods = getMethodCodes(sequences, file);
+        for (Method method : methods) {
+            method.setRepositoryBean(repository);
+        }
+        repository.setMethods(methods);
+        return repository;
+    }
+
+    private List<Method> getMethodCodes(List<Sequence> sequences, File file) throws FileNotFoundException, IOException,
+            ParseException {
+        ZipStreamUtil zipStreamUtil = new ZipStreamUtil(file.toString(), Helper.convertFile2InputStream(new File(file
+                .getAbsolutePath())));
+        List<ICodeSource> codeSources = Arrays.asList((ICodeSource) zipStreamUtil);
+        List<Method> methodCodes = getMethodCodes(sequences, codeSources);
+        return methodCodes;
+    }
+
     public List<Method> getMethodCodes(List<Sequence> sequences, List<ICodeSource> codeSources) throws IOException,
             ParseException {
         IMetricsSource metricsSource = new IMetricsSource() {
@@ -70,40 +97,37 @@ public class ConcernCallsManager {
         for (IMethodCalls methodCall : allMethodCalls) {
             for (int i = 0; i < methodCall.getMethodNames().size(); i++) {
                 Method method = new Method(methodCall.getMethodNames().get(i), methodCall.getMethodSources().get(i));
-                List<Call> calls = new ArrayList<Call>();
-                for (int j = 0; j < methodCall.getSequences().size(); j++) {
-                    List<String> seq = methodCall.getSequences().get(j);
-                    for (final String sequenceName : seq) {
-                        Call call = new Call();
+                method.setCalls(new ArrayList<Call>());
+                List<String> seq = methodCall.getSequences().get(i);
+                for (final String sequenceName : seq) {
+                    Call call = new Call();
 
-                        Sequence sequence = null;
-                        for (Sequence sequenceT : sequences) {
-                            if (sequenceT.getName().equals(sequenceName)) {
-                                sequence = sequenceT;
-                                break;
-                            }
+                    Sequence sequence = null;
+                    for (Sequence sequenceT : sequences) {
+                        if (sequenceT.getName().equals(sequenceName)) {
+                            sequence = sequenceT;
+                            break;
+                        }
 
-                        }
-                        if (sequence == null) {
-                            sequence = new Sequence(sequenceName);
-                            sequences.add(sequence);
-                        }
-                        call.setSequence(sequence);
-                        call.setMethodBean(method);
-                        calls.add(call);
                     }
+                    if (sequence == null) {
+                        sequence = new Sequence(sequenceName);
+                        sequences.add(sequence);
+                    }
+                    call.setSequence(sequence);
+                    call.setMethodBean(method);
+                    method.getCalls().add(call);
                 }
-                method.setCalls(calls);
                 methodCodes.add(method);
             }
         }
         return methodCodes;
     }
 
-    private List<List<String>> getSequences(List<Method> methodCodes) {
+    private List<List<String>> getSequences(List<Method> methods) {
         List<List<String>> sequencesStr = new ArrayList<List<String>>();
-        for (Method methodCode : methodCodes) {
-            List<String> callNames = callsToStringList(methodCode.getCalls());
+        for (Method method : methods) {
+            List<String> callNames = callsToStringList(method.getCalls());
             sequencesStr.add(callNames);
         }
         return sequencesStr;
@@ -118,19 +142,22 @@ public class ConcernCallsManager {
         return callNames;
     }
 
-    private List<List<Integer>> getSequencesInt(IHashArray hashArray, List<Method> methodCodes) {
-        List<List<String>> sequencesStr = getSequences(methodCodes);
+    private List<List<Integer>> getSequencesInt(IHashArray hashArray, List<Method> methods) {
+        List<List<String>> sequencesStr = getSequences(methods);
         //        syncHashArray(hashArray, methodCodes);
 
-        List<List<Integer>> sequencesInt = new ArrayList<List<Integer>>();
-        sequencesInt.addAll(getCallsIndexes(hashArray, sequencesStr));
+        List<List<Integer>> sequencesInt = getCallsIndexes(hashArray, sequencesStr);
         return sequencesInt;
     }
 
-    public List<MatchesData> getSequenceMatches(IHashArray hashArray, List<Method> methodCodes,
+    public List<MatchesData> getSequenceMatches(List<Sequence> sequences, List<Method> methods,
             IConcernCallsConfig config) {
-        List<List<Integer>> sequences = getSequencesInt(hashArray, methodCodes);
-        SequenceMatch sequenceMatch = new SequenceMatch(sequences, config.getMinSeq(), config.getMaxDistance());
+        IHashArray hashArray = new HashArray();
+        for (int i = 0; i < sequences.size(); i++) {
+            hashArray.put(sequences.get(i).getName());
+        }
+        List<List<Integer>> sequencesInt = getSequencesInt(hashArray, methods);
+        SequenceMatch sequenceMatch = new SequenceMatch(sequencesInt, config.getMinSeq(), config.getMaxDistance());
         return sequenceMatch.getMatches();
     }
 
