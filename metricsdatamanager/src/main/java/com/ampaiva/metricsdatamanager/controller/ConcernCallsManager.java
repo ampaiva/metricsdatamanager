@@ -99,9 +99,10 @@ public class ConcernCallsManager {
                 Method method = new Method(methodCall.getMethodNames().get(i), methodCall.getMethodSources().get(i));
                 method.setCalls(new ArrayList<Call>());
                 List<String> seq = methodCall.getSequences().get(i);
-                for (final String sequenceName : seq) {
+                for (int order = 0; order < seq.size(); order++) {
+                    String sequenceName = seq.get(order);
                     Call call = new Call();
-
+                    call.setPosition(order);
                     Sequence sequence = null;
                     for (Sequence sequenceT : sequences) {
                         if (sequenceT.getName().equals(sequenceName)) {

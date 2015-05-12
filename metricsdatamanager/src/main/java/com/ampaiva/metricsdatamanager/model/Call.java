@@ -41,6 +41,9 @@ public class Call implements Serializable {
     @JoinColumn(name = "sequence", nullable = false)
     private Sequence sequence;
 
+    @Column(name = "position", nullable = false)
+    private int position;
+
     @OneToMany(mappedBy = "copy", orphanRemoval = true, cascade = { CascadeType.ALL })
     @CascadeOnDelete
     private List<CloneCall> copies;
@@ -68,16 +71,24 @@ public class Call implements Serializable {
         this.methodBean = methodBean;
     }
 
-    public List<CloneCall> getCopies() {
-        return copies;
-    }
-
     public Sequence getSequence() {
         return sequence;
     }
 
     public void setSequence(Sequence sequence) {
         this.sequence = sequence;
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
+    public List<CloneCall> getCopies() {
+        return copies;
     }
 
     public void setCopies(List<CloneCall> copies) {
@@ -90,5 +101,11 @@ public class Call implements Serializable {
 
     public void setPastes(List<CloneCall> pastes) {
         this.pastes = pastes;
+    }
+
+    @Override
+    public String toString() {
+        return "Call [id=" + id + ", position=" + position + ", sequence=" + sequence + ", methodBean=" + methodBean
+                + "]";
     }
 }
