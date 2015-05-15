@@ -66,10 +66,46 @@ public class SequenceMatchTest extends EasyMockSupport {
     }
 
     @Test
+    public void testGetMatchesCase2_1() {
+        List<List<Integer>> sequences = Arrays.asList(//
+                /* [0] */Arrays.asList(10), //
+                /* [1] */Arrays.asList(10, 10)); //
+        // [0] [1] [[[0, 0]]]
+        List<MatchesData> expected = Arrays.asList(//
+                new MatchesData(0, //
+                        Arrays.asList(1), //
+                        Arrays.asList( //
+                        /* 1 */Arrays.asList( //
+                                Arrays.asList(0, 0)))));
+        sequenceMatch = new SequenceMatch(sequences, 1, 0);
+        List<MatchesData> result = sequenceMatch.getMatches();
+        assertNotNull(result);
+        assertEquals(expected, result);
+    }
+
+    @Test
+    public void testGetMatchesCase2_2() {
+        List<List<Integer>> sequences = Arrays.asList(//
+                /* [0] */Arrays.asList(10, 10), //
+                /* [1] */Arrays.asList(10)); //
+        // [0] [1] [[[0, 0]]]
+        List<MatchesData> expected = Arrays.asList(//
+                new MatchesData(0, //
+                        Arrays.asList(1), //
+                        Arrays.asList( //
+                        /* 1 */Arrays.asList( //
+                                Arrays.asList(0, 0)))));
+        sequenceMatch = new SequenceMatch(sequences, 1, 0);
+        List<MatchesData> result = sequenceMatch.getMatches();
+        assertNotNull(result);
+        assertEquals(expected, result);
+    }
+
+    @Test
     public void testGetMatchesCase3() {
         List<List<Integer>> sequences = Arrays.asList(//
-                /* [0] */Arrays.asList(new Integer(10), 20, 30, 40), //
-                /* [1] */Arrays.asList(40, 20, 30, new Integer(10))); //
+                /* [0] */Arrays.asList(10, 20, 30, 40), //
+                /* [1] */Arrays.asList(40, 20, 30, 10)); //
         // [0] [1] [[[1, 1], [2, 2]]]
         List<MatchesData> expected = Arrays.asList(//
                 new MatchesData(0, //
@@ -130,7 +166,7 @@ public class SequenceMatchTest extends EasyMockSupport {
         List<List<Integer>> sequences = Arrays.asList(//
                 /******************** ..0 ..1 ..2 ..3 ..4 ..5 ..6 ..7 */
                 /* [0] */Arrays.asList(10, 20, 30, 40), //
-                /* [1] */Arrays.asList(10, 20, 80, 40));
+                /* [1] */Arrays.asList(10, 20, 80, 40, 10, 20, 80, 40));
         // [0] [1] [[[0, 0], [1, 1], [3, 3]]]
         List<MatchesData> expected = Arrays.asList(//
                 new MatchesData(0, //
@@ -139,8 +175,9 @@ public class SequenceMatchTest extends EasyMockSupport {
                         /* 1 */Arrays.asList( //
                                 Arrays.asList(0, 0), //
                                 Arrays.asList(1, 1), //
-                                Arrays.asList(3, 3)))));
-        sequenceMatch = new SequenceMatch(sequences, 2, 1);
+                                Arrays.asList(0, 4), //
+                                Arrays.asList(1, 5)))));
+        sequenceMatch = new SequenceMatch(sequences, 2, 0);
         List<MatchesData> result = sequenceMatch.getMatches();
         assertNotNull(result);
         assertEquals(expected, result);
@@ -160,10 +197,9 @@ public class SequenceMatchTest extends EasyMockSupport {
                         /* 1 */Arrays.asList( //
                                 Arrays.asList(0, 0), //
                                 Arrays.asList(1, 1), //
-                                Arrays.asList(3, 3), //
                                 Arrays.asList(5, 6), //
                                 Arrays.asList(6, 7)))));
-        sequenceMatch = new SequenceMatch(sequences, 2, 1);
+        sequenceMatch = new SequenceMatch(sequences, 2, 0);
         List<MatchesData> result = sequenceMatch.getMatches();
         assertNotNull(result);
         assertEquals(expected, result);
@@ -236,13 +272,11 @@ public class SequenceMatchTest extends EasyMockSupport {
                                 /* 1 */Arrays.asList( //
                                         Arrays.asList(0, 0), //
                                         Arrays.asList(1, 1), //
-                                        Arrays.asList(3, 3), //
                                         Arrays.asList(5, 6), //
                                         Arrays.asList(6, 7)), //
                                 /* 3 */Arrays.asList( //
                                         Arrays.asList(1, 0), //
                                         Arrays.asList(2, 1), //
-                                        Arrays.asList(3, 3), //
                                         Arrays.asList(7, 6), //
                                         Arrays.asList(8, 7)))), //
                 new MatchesData(1, //
@@ -251,7 +285,7 @@ public class SequenceMatchTest extends EasyMockSupport {
                         /* 2 */Arrays.asList( //
                                 Arrays.asList(4, 0), //
                                 Arrays.asList(5, 1)))));
-        sequenceMatch = new SequenceMatch(sequences, 2, 1);
+        sequenceMatch = new SequenceMatch(sequences, 2, 0);
         List<MatchesData> result = sequenceMatch.getMatches();
         assertNotNull(result);
         assertEquals(expected, result);

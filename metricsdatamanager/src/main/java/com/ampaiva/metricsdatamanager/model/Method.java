@@ -12,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -24,7 +25,8 @@ import org.eclipse.persistence.annotations.CascadeOnDelete;
  */
 @Entity
 @Table(name = "methods")
-@NamedQuery(name = "Method.findAll", query = "SELECT m FROM Method m")
+@NamedQueries({ @NamedQuery(name = "Method.findAll", query = "SELECT m FROM Method m"),
+        @NamedQuery(name = "Method.findById", query = "SELECT r FROM Method r WHERE r.id=?1") })
 public class Method implements Serializable {
     private static final long serialVersionUID = 1L;
 

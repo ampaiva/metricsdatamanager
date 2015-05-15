@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.log4j.BasicConfigurator;
@@ -22,6 +23,7 @@ import com.ampaiva.metricsdatamanager.controller.ConcernCallsManager;
 import com.ampaiva.metricsdatamanager.controller.DataManager;
 import com.ampaiva.metricsdatamanager.controller.IDataManager;
 import com.ampaiva.metricsdatamanager.model.Analyse;
+import com.ampaiva.metricsdatamanager.model.Call;
 import com.ampaiva.metricsdatamanager.model.Clone;
 import com.ampaiva.metricsdatamanager.model.CloneCall;
 import com.ampaiva.metricsdatamanager.model.Method;
@@ -61,9 +63,38 @@ public class PersistDuplications {
         if (repository == null) {
             ConcernCallsManager concernCallsManager = new ConcernCallsManager();
             repository = concernCallsManager.createRepository(file, sequences);
-            commit(repository);
+            commitRepository(repository);
         }
         return repository;
+    }
+
+    private void commitRepository(Repository repository) {
+        List<Method> methods = repository.getMethods();
+        repository.setMethods(Collections.<Method> emptyList());
+        commit(repository);
+        IProgressUpdate update = ProgressUpdate.start("Persisting methods", methods.size());
+        for (Method method : methods) {
+            update.beginIndex(method);
+            List<Call> calls = method.getCalls();
+            method.setCalls(Collections.<Call> emptyList());
+            dataManager.open();
+            method.setRepositoryBean(dataManager.getSingleResult(Repository.class, "Repository.findById",
+                    repository.getId()));
+            dataManager.persist(method);
+            dataManager.close();
+            for (Call call : calls) {
+                dataManager.open();
+                call.setMethodBean(dataManager.getSingleResult(Method.class, "Method.findById", method.getId()));
+                Sequence sequence = dataManager.getSingleResult(Sequence.class, "Sequence.findByName", call
+                        .getSequence().getName());
+                if (sequence != null) {
+                    call.setSequence(sequence);
+                }
+                dataManager.persist(call);
+                dataManager.close();
+            }
+        }
+
     }
 
     private Repository getRepositoryByLocation(String location) {
@@ -104,8 +135,12 @@ public class PersistDuplications {
                 repository.getAnalysis().add(analyse);
                 List<Method> methods = repository.getMethods();
                 List<MatchesData> sequenceMatches = getSequenceMatches(sequences, methods, minSeq, maxDist);
+                IProgressUpdate update3 = ProgressUpdate.start("Saving matches", sequenceMatches.size());
                 for (MatchesData matchesData : sequenceMatches) {
+                    update3.beginIndex(matchesData);
+                    IProgressUpdate update4 = ProgressUpdate.start("Saving groups", matchesData.groupsMatched.size());
                     for (int i = 0; i < matchesData.groupsMatched.size(); i++) {
+                        update4.beginIndex();
                         int groupMatched = matchesData.groupsMatched.get(i);
                         Clone clone = new Clone();
                         clone.setCopy(methods.get(matchesData.groupIndex));
@@ -115,7 +150,9 @@ public class PersistDuplications {
                         analyse.getClones().add(clone);
 
                         List<List<Integer>> duplications = matchesData.sequencesMatches.get(i);
+                        IProgressUpdate update5 = ProgressUpdate.start("Saving duplications", duplications.size());
                         for (List<Integer> duplication : duplications) {
+                            update5.beginIndex(duplication);
                             CloneCall cloneCall = new CloneCall();
                             cloneCall.setCopy(clone.getCopy().getCalls().get(duplication.get(0)));
                             cloneCall.setPaste(clone.getPaste().getCalls().get(duplication.get(1)));
@@ -124,8 +161,14 @@ public class PersistDuplications {
                         }
                     }
                 }
+                IProgressUpdate updateCommit = ProgressUpdate.startSingle("Commiting", analyse);
                 dataManager.persist(analyse);
                 dataManager.close();
+                updateCommit.endIndex(analyse);
+
+                if (analyse.getClones().size() == 0) {
+                    return;
+                }
             }
         }
     }
@@ -153,7 +196,7 @@ public class PersistDuplications {
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(Level.INFO);
         List<File> files = Helper.getFilesRecursevely(folder, ".zip");
-        IProgressReport report = new ProgressReport();
+        IProgressReport report = new ProgressReport(5);
         IProgressUpdate update = ProgressUpdate.start(report, "Run over " + folder, 1);
         List<Sequence> sequences = getSequences(dataManager);
         List<Repository> repositories = createRepositories(files, sequences);
@@ -184,7 +227,7 @@ public class PersistDuplications {
     public static void main(String[] args) throws IOException, ParseException {
         BasicConfigurator.configure();
         String folder = "/temp";
-        PersistDuplications persistDuplications = new PersistDuplications(9, 9, 1);
+        PersistDuplications persistDuplications = new PersistDuplications(2, 100, 1);
         persistDuplications.run(folder);
     }
 

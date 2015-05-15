@@ -10,6 +10,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
@@ -23,7 +24,7 @@ import org.eclipse.persistence.annotations.CascadeOnDelete;
  * 
  */
 @Entity
-@Table(name = "clones")
+@Table(name = "clones", indexes = { @Index(name = "analyse_copy_paste_idx", columnList = "analyse,copy,paste", unique = true) })
 @NamedQuery(name = "Clone.findAll", query = "SELECT r FROM Clone r")
 public class Clone implements Serializable {
     private static final long serialVersionUID = 1L;

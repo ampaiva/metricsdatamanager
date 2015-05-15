@@ -8,7 +8,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
@@ -19,8 +18,7 @@ import javax.persistence.Table;
  * 
  */
 @Entity
-@Table(name = "clonecalls", indexes = { @Index(name = "clone_copy_idx", columnList = "clone,copy", unique = true),
-        @Index(name = "clone_paste_idx", columnList = "clone,paste", unique = true) })
+@Table(name = "clonecalls")
 @NamedQuery(name = "CloneCall.findAll", query = "SELECT m FROM CloneCall m")
 public class CloneCall implements Serializable {
     private static final long serialVersionUID = 1L;

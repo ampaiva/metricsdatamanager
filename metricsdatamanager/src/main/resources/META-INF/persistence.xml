@@ -21,7 +21,7 @@
 			<property name="javax.persistence.jdbc.user" value="cm" />
 			<property name="javax.persistence.jdbc.password" value="cm" />
 			<property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />
-			<property name="eclipselink.ddl-generation" value="drop-and-create-tables" />
+			<property name="eclipselink.ddl-generation" value="create-or-extend-tables" />
 			<property name="eclipselink.logging.level" value="INFO" />
 		</properties>
 	</persistence-unit>
@@ -45,7 +45,7 @@
 			<property name="javax.persistence.jdbc.password" value="cm" />
 			<property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />
 			<property name="eclipselink.ddl-generation" value="drop-and-create-tables" />
-			<property name="eclipselink.logging.level" value="INFO" />
+			<property name="eclipselink.logging.level" value="FINE" />
 		</properties>
 	</persistence-unit>
 </persistence>

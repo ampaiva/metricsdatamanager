@@ -10,6 +10,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -22,7 +23,8 @@ import org.eclipse.persistence.annotations.CascadeOnDelete;
  */
 @Entity
 @Table(name = "sequences")
-@NamedQuery(name = "Sequence.findAll", query = "SELECT s FROM Sequence s")
+@NamedQueries({ @NamedQuery(name = "Sequence.findAll", query = "SELECT s FROM Sequence s"),
+        @NamedQuery(name = "Sequence.findByName", query = "SELECT r FROM Sequence r WHERE r.name=?1") })
 public class Sequence implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -31,7 +33,7 @@ public class Sequence implements Serializable {
     @Column(unique = true, nullable = false)
     private int id;
 
-    @Column(length = 255, unique = true, nullable = false)
+    @Column(length = 512, unique = true, nullable = false)
     private String name;
 
     @OneToMany(mappedBy = "sequence", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)

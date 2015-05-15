@@ -35,6 +35,7 @@ public class SequenceMatch {
         }
 
         Map<Integer, List<List<Integer>>> map = createCallMap();
+        removeUniqueEntries(map);
 
         Map<Integer, MatchesData> mapMerge = new HashMap<Integer, MatchesData>();
         List<MatchesData> result = new ArrayList<MatchesData>();
@@ -89,6 +90,30 @@ public class SequenceMatch {
     //            System.out.println(sb.toString());
     //        }
     //    }
+
+    private void removeUniqueEntries(Map<Integer, List<List<Integer>>> map) {
+        IProgressUpdate update = ProgressUpdate.start("Searching unique", map.entrySet().size());
+        List<Integer> keys = new ArrayList<Integer>();
+        for (Entry<Integer, List<List<Integer>>> entry : map.entrySet()) {
+            update.beginIndex(entry);
+            boolean sameGroup = true;
+            for (int i = 1; i < entry.getValue().size(); i++) {
+                if (entry.getValue().get(i).get(0).intValue() != entry.getValue().get(0).get(0).intValue()) {
+                    sameGroup = false;
+                    break;
+                }
+            }
+            if (sameGroup) {
+                keys.add(entry.getKey());
+            }
+        }
+        update.endIndex();
+        IProgressUpdate update2 = ProgressUpdate.start("Removing unique", keys.size());
+        for (Integer integer : keys) {
+            update2.beginIndex(integer);
+            map.remove(integer);
+        }
+    }
 
     private Map<Integer, List<List<Integer>>> createCallMap() {
         Map<Integer, List<List<Integer>>> map = new HashMap<Integer, List<List<Integer>>>();
@@ -159,7 +184,7 @@ public class SequenceMatch {
                 continue;
             }
             List<List<Integer>> sequenceMatches = getSequenceMatches(copy, paste);
-            if (sequenceMatches.size() >= minSequence) {
+            if (sequenceMatches.size() == minSequence) {
                 groupsMatched.add(paste.get(0));
                 sequencesMatches.add(sequenceMatches);
             }
@@ -182,9 +207,9 @@ public class SequenceMatch {
         List<Integer> sequencePaste = sequences.get(paste.get(0));
         boolean result = false;
         int distance_i = 0;
-        for (int i = copy.get(1) - 1; i >= 0; i--) {
+        for (int i = copy.get(1) - (paste.get(1) == 0 ? 1 : 0); i >= 0; i--) {
             int distance_j = 0;
-            for (int j = paste.get(1) - 1; j >= 0; j--) {
+            for (int j = paste.get(1) - (i == copy.get(1) ? 1 : 0); j >= 0; j--) {
                 if (sequenceCopy.get(i).intValue() == sequencePaste.get(j).intValue()) {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("sequenceCopy[" + i + "]==sequencePaste[" + j + "]");
