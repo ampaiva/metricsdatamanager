@@ -33,7 +33,7 @@ public class Sequence implements Serializable {
     @Column(unique = true, nullable = false)
     private int id;
 
-    @Column(length = 512, unique = true, nullable = false)
+    @Column(length = 255, unique = true, nullable = false)
     private String name;
 
     @OneToMany(mappedBy = "sequence", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)

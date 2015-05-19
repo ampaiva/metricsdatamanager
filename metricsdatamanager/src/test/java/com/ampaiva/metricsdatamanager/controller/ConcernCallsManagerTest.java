@@ -3,7 +3,6 @@ package com.ampaiva.metricsdatamanager.controller;
 import static org.easymock.EasyMock.expect;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -67,7 +66,6 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(sequences, methodCodes, config);
         List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, methodCodes);
         assertNotNull(duplications);
-        assertTrue(duplications.size() > 0);
     }
 
     @Test
@@ -85,7 +83,7 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(sequences, methods, config);
         List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, methods);
         assertNotNull(duplications);
-        assertEquals(29, duplications.size());
+        assertEquals(24, duplications.size());
     }
 
     @Test

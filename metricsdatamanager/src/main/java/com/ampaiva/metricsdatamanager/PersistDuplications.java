@@ -227,7 +227,7 @@ public class PersistDuplications {
     public static void main(String[] args) throws IOException, ParseException {
         BasicConfigurator.configure();
         String folder = "/temp";
-        PersistDuplications persistDuplications = new PersistDuplications(2, 100, 1);
+        PersistDuplications persistDuplications = new PersistDuplications(3, 100, 1);
         persistDuplications.run(folder);
     }
 

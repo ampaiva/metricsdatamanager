@@ -22,21 +22,6 @@
 			<version>2.6.0-M3</version>
 		</dependency>
 		<dependency>
-			<groupId>org.codehaus.sonar</groupId>
-			<artifactId>manual-measure-ws</artifactId>
-			<version>1.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>org.codehaus.sonar</groupId>
-			<artifactId>sonar-ws-client</artifactId>
-			<version>5.0-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.ampaiva.googledrive</groupId>
-			<artifactId>googledrive</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.8.1</version>
@@ -47,6 +32,11 @@
 			<artifactId>easymock</artifactId>
 			<version>3.2</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>commons-logging</groupId>
+			<artifactId>commons-logging</artifactId>
+			<version>1.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>log4j</groupId>

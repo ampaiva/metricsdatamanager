@@ -15,14 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.StringTokenizer;
-
-import org.sonar.wsclient.Host;
-import org.sonar.wsclient.Sonar;
-import org.sonar.wsclient.connectors.HttpClient4Connector;
-import org.sonar.wsclient.services.Duplications;
-import org.sonar.wsclient.services.Duplications.Block;
-import org.sonar.wsclient.services.DuplicationsMgr;
 
 import com.ampaiva.hlo.cm.ConcernCollection;
 import com.ampaiva.hlo.cm.ConcernMetricNode;
@@ -35,7 +27,6 @@ import com.ampaiva.metricsdatamanager.controller.DataManager;
 import com.ampaiva.metricsdatamanager.controller.EOcurrencyType;
 import com.ampaiva.metricsdatamanager.controller.IDataManager;
 import com.ampaiva.metricsdatamanager.controller.MetricsManager;
-import com.ampaiva.metricsdatamanager.model.Ocurrency;
 import com.ampaiva.metricsdatamanager.util.ZipUtil;
 
 public class Main {
@@ -104,54 +95,6 @@ public class Main {
                 }
             }
         }
-    }
-
-    public void persist(String projectKey, List<Duplications> duplicationsList) {
-        for (Duplications duplications : duplicationsList) {
-            List<Block> blocks = duplications.getBlocks();
-            for (Block block : blocks) {
-                System.out.println(block);
-                String stBlock = block.toString().substring(1, block.toString().lastIndexOf(']'));
-                persistDuplicationBlock(projectKey, duplications, stBlock);
-            }
-        }
-    }
-
-    public void persistDuplicationBlock(String projectKey, Duplications duplications, String stBlock) {
-        List<Integer> ocurrencies = new ArrayList<Integer>();
-        while (stBlock.length() > 0) {
-            String[] duplication2 = stBlock.substring(stBlock.indexOf('[') + 1, stBlock.indexOf(']')).split(",");
-            stBlock = stBlock.substring(stBlock.indexOf(']') + 1);
-            org.sonar.wsclient.services.Duplications.File file = duplications.getFile(duplication2[0]
-                    .substring(duplication2[0].indexOf('=') + 1));
-            StringTokenizer stFile = new StringTokenizer(file.toString(), "=,");
-            // discard key
-            stFile.nextToken();
-            stFile.nextToken();
-            stFile.nextToken();
-            String resourceName = stFile.nextToken();
-            resourceName = resourceName.substring(resourceName.indexOf('/') + 1);
-            System.out.println(resourceName);
-            int from = Integer.parseInt(duplication2[1].substring(duplication2[1].indexOf('=') + 1));
-            int size = Integer.parseInt(duplication2[2].substring(duplication2[2].indexOf('=') + 1));
-
-            Ocurrency ocurrency = metricsManager.persist(projectKey, resourceName, EOcurrencyType.DUPLICATION, from, 0,
-                    from + size, 0);
-            ocurrencies.add(ocurrency.getId());
-        }
-        int copy = ocurrencies.remove(0).intValue();
-        System.out.println("Duplication: copy=" + copy + " paste=" + ocurrencies);
-        metricsManager.persist(copy, ocurrencies);
-    }
-
-    public List<Duplications> getDuplicationsofProject(String projectName) throws Exception {
-        String url = "http://localhost:9000";
-        String login = "admin";
-        String password = "admin";
-        Sonar sonar = new Sonar(new HttpClient4Connector(new Host(url, login, password)));
-        DuplicationsMgr duplicationsMgr = new DuplicationsMgr(sonar);
-        List<Duplications> duplicationsList = duplicationsMgr.getDuplicationsforResources(projectName);
-        return duplicationsList;
     }
 
     private String getProjectKey(String propFileName) throws IOException {
