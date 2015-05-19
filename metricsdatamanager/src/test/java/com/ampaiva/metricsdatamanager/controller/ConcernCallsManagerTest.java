@@ -54,7 +54,6 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
     @Test
     public void getConcernClonesZipTest2() throws Exception {
         expect(config.getMinSeq()).andReturn(5).anyTimes();
-        expect(config.getMaxDistance()).andReturn(5).anyTimes();
 
         replayAll();
 
@@ -71,7 +70,6 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
     @Test
     public void getConcernClonesZipTest3() throws Exception {
         expect(config.getMinSeq()).andReturn(5).anyTimes();
-        expect(config.getMaxDistance()).andReturn(1).anyTimes();
 
         replayAll();
 
@@ -83,7 +81,7 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(sequences, methods, config);
         List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, methods);
         assertNotNull(duplications);
-        assertEquals(24, duplications.size());
+        assertEquals(18, duplications.size());
     }
 
     @Test
@@ -113,7 +111,6 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
                     resetAll();
 
                     expect(config.getMinSeq()).andReturn(minSeq).anyTimes();
-                    expect(config.getMaxDistance()).andReturn(maxDistance).anyTimes();
 
                     replayAll();
 

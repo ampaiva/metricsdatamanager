@@ -158,7 +158,7 @@ public class ConcernCallsManager {
             hashArray.put(sequences.get(i).getName());
         }
         List<List<Integer>> sequencesInt = getSequencesInt(hashArray, methods);
-        SequenceMatch sequenceMatch = new SequenceMatch(sequencesInt, config.getMinSeq(), config.getMaxDistance());
+        SequenceMatch sequenceMatch = new SequenceMatch(sequencesInt, config.getMinSeq());
         return sequenceMatch.getMatches();
     }
 

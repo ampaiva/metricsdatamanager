@@ -42,9 +42,6 @@ public class Analyse implements Serializable {
     @Column(nullable = false)
     private Integer minSeq;
 
-    @Column(nullable = false)
-    private Integer maxDist;
-
     @OneToMany(mappedBy = "analyseBean", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
     @CascadeOnDelete
     private List<Clone> clones;
@@ -60,9 +57,8 @@ public class Analyse implements Serializable {
     public Analyse() {
     }
 
-    public Analyse(int minSeq, int maxDist) {
+    public Analyse(int minSeq) {
         this.minSeq = minSeq;
-        this.maxDist = maxDist;
     }
 
     public int getId() {
@@ -81,14 +77,6 @@ public class Analyse implements Serializable {
         this.minSeq = minSeq;
     }
 
-    public Integer getMaxDist() {
-        return maxDist;
-    }
-
-    public void setMaxDist(Integer maxDist) {
-        this.maxDist = maxDist;
-    }
-
     public Repository getRepositoryBean() {
         return repositoryBean;
     }
@@ -99,8 +87,7 @@ public class Analyse implements Serializable {
 
     @Override
     public String toString() {
-        return "Analyse [id=" + id + ", minSeq=" + minSeq + ", maxDist=" + maxDist + ", repository=" + repositoryBean
-                + "]";
+        return "Analyse [id=" + id + ", minSeq=" + minSeq + ", repository=" + repositoryBean + "]";
     }
 
 }
