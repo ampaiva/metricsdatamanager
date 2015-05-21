@@ -1,8 +1,8 @@
 package com.ampaiva.metricsdatamanager.controller;
 
 import static org.easymock.EasyMock.expect;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -26,6 +26,7 @@ import com.ampaiva.metricsdatamanager.model.Method;
 import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.model.Sequence;
 import com.ampaiva.metricsdatamanager.util.MatchesData;
+import com.ampaiva.metricsdatamanager.util.SequencesInt;
 
 public class ConcernCallsManagerTest extends EasyMockSupport {
     // Class under test
@@ -60,10 +61,11 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         List<Sequence> sequences = new ArrayList<Sequence>();
         Repository repository = concernCallsManager.createRepository(new File(
                 "src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest2.zip"), sequences);
-        List<Method> methodCodes = repository.getMethods();
-        assertNotNull(methodCodes);
-        List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(sequences, methodCodes, config);
-        List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, methodCodes);
+        List<Method> methods = repository.getMethods();
+        assertNotNull(methods);
+        concernCallsManager = new ConcernCallsManager(new SequencesInt(sequences, methods));
+        List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(config);
+        List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, methods);
         assertNotNull(duplications);
     }
 
@@ -78,10 +80,11 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
                 "src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest3.zip"), sequences);
         List<Method> methods = repository.getMethods();
         assertNotNull(methods);
-        List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(sequences, methods, config);
+        concernCallsManager = new ConcernCallsManager(new SequencesInt(sequences, methods));
+        List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(config);
         List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, methods);
         assertNotNull(duplications);
-        assertEquals(18, duplications.size());
+        assertTrue(duplications.size() > 0);
     }
 
     @Test
@@ -95,8 +98,8 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
             update3.beginIndex(file);
             List<Sequence> sequences = new ArrayList<Sequence>();
             Repository repository = concernCallsManager.createRepository(new File(file.getAbsolutePath()), sequences);
-            List<Method> methodCodes = repository.getMethods();
-            assertNotNull(methodCodes);
+            List<Method> methods = repository.getMethods();
+            assertNotNull(methods);
 
             final int MIN_SEQ = 5;
             final int MAX_SEQ = 5;
@@ -114,10 +117,9 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
 
                     replayAll();
 
-                    List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(sequences, methodCodes,
-                            config);
-                    List<ConcernClone> duplications = concernCallsManager
-                            .getConcernClones(sequenceMatches, methodCodes);
+                    concernCallsManager = new ConcernCallsManager(new SequencesInt(sequences, methods));
+                    List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(config);
+                    List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, methods);
                     assertNotNull(duplications);
                     if (duplications.size() > 0) {
                         System.out.println(duplications.get(0));

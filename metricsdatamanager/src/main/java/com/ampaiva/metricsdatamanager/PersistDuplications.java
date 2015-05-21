@@ -30,6 +30,7 @@ import com.ampaiva.metricsdatamanager.model.Method;
 import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.model.Sequence;
 import com.ampaiva.metricsdatamanager.util.MatchesData;
+import com.ampaiva.metricsdatamanager.util.SequencesInt;
 
 public class PersistDuplications {
 
@@ -112,62 +113,65 @@ public class PersistDuplications {
         return null;
     }
 
-    private void processAnalysis(int repositoryId) {
+    private void processAnalysis(int repositoryId, List<Sequence> sequences) {
         IProgressUpdate update = ProgressUpdate.start("Processing sequence", MAX_SEQ - MIN_SEQ + 1);
-        List<Sequence> sequences = getSequences(dataManager);
+        dataManager.open();
+        Repository repository2 = dataManager.getSingleResult(Repository.class, "Repository.findById", repositoryId);
+        List<Method> methods2 = repository2.getMethods();
+        SequencesInt sequencesInt = new SequencesInt(sequences, methods2);
+        dataManager.close();
+        ConcernCallsManager concernCallsManager = new ConcernCallsManager(sequencesInt);
         for (int minSeq = MIN_SEQ; minSeq <= MAX_SEQ; minSeq++) {
             update.beginIndex("minSeq=" + minSeq);
             dataManager.open();
             Repository repository = dataManager.getSingleResult(Repository.class, "Repository.findById", repositoryId);
             Analyse analyse = getAnalysisByRepoAndConfig(repository, minSeq);
-            if (analyse != null) {
-                continue;
-            }
-            analyse = new Analyse(minSeq);
-            analyse.setClones(new ArrayList<Clone>());
-            analyse.setRepositoryBean(repository);
-            repository.getAnalysis().add(analyse);
-            List<Method> methods = repository.getMethods();
-            List<MatchesData> sequenceMatches = getSequenceMatches(sequences, methods, minSeq);
-            IProgressUpdate update3 = ProgressUpdate.start("Saving matches", sequenceMatches.size());
-            for (MatchesData matchesData : sequenceMatches) {
-                update3.beginIndex(matchesData);
-                IProgressUpdate update4 = ProgressUpdate.start("Saving groups", matchesData.groupsMatched.size());
-                for (int i = 0; i < matchesData.groupsMatched.size(); i++) {
-                    update4.beginIndex();
-                    int groupMatched = matchesData.groupsMatched.get(i);
-                    Clone clone = new Clone();
-                    clone.setCopy(methods.get(matchesData.groupIndex));
-                    clone.setPaste(methods.get(groupMatched));
-                    clone.setAnalyseBean(analyse);
-                    clone.setCalls(new ArrayList<CloneCall>());
-                    analyse.getClones().add(clone);
-
-                    List<List<Integer>> duplications = matchesData.sequencesMatches.get(i);
-                    IProgressUpdate update5 = ProgressUpdate.start("Saving duplications", duplications.size());
-                    for (List<Integer> duplication : duplications) {
-                        update5.beginIndex(duplication);
-                        CloneCall cloneCall = new CloneCall();
-                        cloneCall.setCopy(clone.getCopy().getCalls().get(duplication.get(0)));
-                        cloneCall.setPaste(clone.getPaste().getCalls().get(duplication.get(1)));
-                        cloneCall.setClone(clone);
-                        clone.getCalls().add(cloneCall);
-                    }
+            if (analyse == null) {
+                analyse = new Analyse(minSeq);
+                analyse.setClones(new ArrayList<Clone>());
+                analyse.setRepositoryBean(repository);
+                repository.getAnalysis().add(analyse);
+                List<Method> methods = repository.getMethods();
+                List<MatchesData> sequenceMatches = getSequenceMatches(concernCallsManager, minSeq);
+                IProgressUpdate update3 = ProgressUpdate.start("Saving matches", sequenceMatches.size());
+                for (MatchesData matchesData : sequenceMatches) {
+                    update3.beginIndex(matchesData);
+                    saveClones(analyse, methods, matchesData);
                 }
-                IProgressUpdate updateCommit = ProgressUpdate.startSingle("Commiting", analyse);
                 dataManager.persist(analyse);
-                dataManager.close();
-                updateCommit.endIndex(analyse);
-
-                if (analyse.getClones().size() == 0) {
-                    return;
-                }
             }
+            dataManager.close();
         }
     }
 
-    private List<MatchesData> getSequenceMatches(List<Sequence> sequences, List<Method> methods, final int minSeq) {
-        ConcernCallsManager concernCallsManager = new ConcernCallsManager();
+    private void saveClones(Analyse analyse, List<Method> methods, MatchesData matchesData) {
+        IProgressUpdate update4 = ProgressUpdate.start("Saving clones", matchesData.groupsMatched.size());
+        for (int i = 0; i < matchesData.groupsMatched.size(); i++) {
+            update4.beginIndex();
+            int groupMatched = matchesData.groupsMatched.get(i);
+            Clone clone = new Clone();
+            clone.setCopy(methods.get(matchesData.groupIndex));
+            clone.setPaste(methods.get(groupMatched));
+            clone.setAnalyseBean(analyse);
+            clone.setCalls(new ArrayList<CloneCall>());
+            analyse.getClones().add(clone);
+
+            List<List<Integer>> duplications = matchesData.sequencesMatches.get(i);
+            IProgressUpdate update5 = ProgressUpdate.start("Saving clone calls", duplications.size());
+            for (List<Integer> duplication : duplications) {
+                update5.beginIndex(duplication);
+                CloneCall cloneCall = new CloneCall();
+                cloneCall.setCopy(clone.getCopy().getCalls().get(duplication.get(0)));
+                cloneCall.setPaste(clone.getPaste().getCalls().get(duplication.get(1)));
+                cloneCall.setClone(clone);
+                clone.getCalls().add(cloneCall);
+            }
+        }
+        update4.endIndex();
+    }
+
+    private List<MatchesData> getSequenceMatches(ConcernCallsManager concernCallsManager, final int minSeq) {
+
         IConcernCallsConfig config = new IConcernCallsConfig() {
 
             @Override
@@ -175,7 +179,7 @@ public class PersistDuplications {
                 return minSeq;
             }
         };
-        List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(sequences, methods, config);
+        List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(config);
         return sequenceMatches;
     }
 
@@ -183,16 +187,21 @@ public class PersistDuplications {
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(Level.INFO);
         List<File> files = Helper.getFilesRecursevely(folder, ".zip");
-        IProgressReport report = new ProgressReport(5);
-        IProgressUpdate update = ProgressUpdate.start(report, "Run over " + folder, 1);
+        IProgressReport report = new ProgressReport();
+        IProgressUpdate update = ProgressUpdate.start(report, "Run over " + folder, 2);
         List<Sequence> sequences = getSequences(dataManager);
+        update.beginIndex("Creating repositories");
         List<Repository> repositories = createRepositories(files, sequences);
-        for (Repository repository : repositories) {
-            processAnalysis(repository.getId());
-        }
-
+        update.beginIndex("Analysing repositories");
+        analyseRepositories(sequences, repositories);
         update.endIndex();
         BasicConfigurator.resetConfiguration();
+    }
+
+    private void analyseRepositories(List<Sequence> sequences, List<Repository> repositories) {
+        for (Repository repository : repositories) {
+            processAnalysis(repository.getId(), sequences);
+        }
     }
 
     private List<Sequence> getSequences(IDataManager dataManager) {
@@ -214,7 +223,7 @@ public class PersistDuplications {
     public static void main(String[] args) throws IOException, ParseException {
         BasicConfigurator.configure();
         String folder = "/temp";
-        PersistDuplications persistDuplications = new PersistDuplications(1, 100);
+        PersistDuplications persistDuplications = new PersistDuplications(3, 100);
         persistDuplications.run(folder);
     }
 
