@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.log4j.BasicConfigurator;
@@ -16,6 +17,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.ampaiva.hlo.cm.ICodeSource;
 import com.ampaiva.hlo.util.Helper;
 import com.ampaiva.hlo.util.view.IProgressReport;
 import com.ampaiva.hlo.util.view.IProgressUpdate;
@@ -59,8 +61,9 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         replayAll();
 
         List<Sequence> sequences = new ArrayList<Sequence>();
-        Repository repository = concernCallsManager.createRepository(new File(
-                "src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest2.zip"), sequences);
+        File file = new File("src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest2.zip");
+        Repository repository = concernCallsManager.createRepository(Arrays.asList((ICodeSource) file), file.getName(),
+                sequences);
         List<Method> methods = repository.getMethods();
         assertNotNull(methods);
         concernCallsManager = new ConcernCallsManager(new SequencesInt(sequences, methods));
@@ -76,8 +79,9 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         replayAll();
 
         List<Sequence> sequences = new ArrayList<Sequence>();
-        Repository repository = concernCallsManager.createRepository(new File(
-                "src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest3.zip"), sequences);
+        File file = new File("src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest3.zip");
+        Repository repository = concernCallsManager.createRepository(Arrays.asList((ICodeSource) file), file.getName(),
+                sequences);
         List<Method> methods = repository.getMethods();
         assertNotNull(methods);
         concernCallsManager = new ConcernCallsManager(new SequencesInt(sequences, methods));
@@ -97,7 +101,8 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         for (File file : files) {
             update3.beginIndex(file);
             List<Sequence> sequences = new ArrayList<Sequence>();
-            Repository repository = concernCallsManager.createRepository(new File(file.getAbsolutePath()), sequences);
+            Repository repository = concernCallsManager.createRepository(Arrays.asList((ICodeSource) file),
+                    file.getName(), sequences);
             List<Method> methods = repository.getMethods();
             assertNotNull(methods);
 

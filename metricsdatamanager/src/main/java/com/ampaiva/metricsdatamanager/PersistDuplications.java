@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -13,6 +14,7 @@ import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.ampaiva.hlo.cm.ICodeSource;
 import com.ampaiva.hlo.util.Helper;
 import com.ampaiva.hlo.util.view.IProgressReport;
 import com.ampaiva.hlo.util.view.IProgressUpdate;
@@ -29,8 +31,10 @@ import com.ampaiva.metricsdatamanager.model.CloneCall;
 import com.ampaiva.metricsdatamanager.model.Method;
 import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.model.Sequence;
+import com.ampaiva.metricsdatamanager.util.FolderUtil;
 import com.ampaiva.metricsdatamanager.util.MatchesData;
 import com.ampaiva.metricsdatamanager.util.SequencesInt;
+import com.ampaiva.metricsdatamanager.util.ZipStreamUtil;
 
 public class PersistDuplications {
 
@@ -61,7 +65,16 @@ public class PersistDuplications {
         Repository repository = getRepositoryByLocation(location);
         if (repository == null) {
             ConcernCallsManager concernCallsManager = new ConcernCallsManager();
-            repository = concernCallsManager.createRepository(file, sequences);
+            List<ICodeSource> codeSources = new ArrayList<ICodeSource>();
+            if (file.isDirectory()) {
+                FolderUtil folderUtil = new FolderUtil(file.getAbsolutePath());
+                codeSources.add(folderUtil);
+            } else {
+                ZipStreamUtil zipStreamUtil = new ZipStreamUtil(file.toString(),
+                        Helper.convertFile2InputStream(new File(file.getAbsolutePath())));
+                codeSources.add(zipStreamUtil);
+            }
+            repository = concernCallsManager.createRepository(codeSources, file.getName(), sequences);
             commitRepository(repository);
         }
         return repository;
@@ -117,9 +130,8 @@ public class PersistDuplications {
         IProgressUpdate update = ProgressUpdate.start("Processing sequence", MAX_SEQ - MIN_SEQ + 1);
         dataManager.open();
         Repository repository2 = dataManager.getSingleResult(Repository.class, "Repository.findById", repositoryId);
-        List<Method> methods2 = repository2.getMethods();
-        SequencesInt sequencesInt = new SequencesInt(sequences, methods2);
         dataManager.close();
+        SequencesInt sequencesInt = new SequencesInt(sequences, repository2.getMethods());
         ConcernCallsManager concernCallsManager = new ConcernCallsManager(sequencesInt);
         for (int minSeq = MIN_SEQ; minSeq <= MAX_SEQ; minSeq++) {
             update.beginIndex("minSeq=" + minSeq);
@@ -183,10 +195,10 @@ public class PersistDuplications {
         return sequenceMatches;
     }
 
-    private void run(String folder) throws IOException, ParseException {
+    private void run(String folder, boolean searchZips) throws IOException, ParseException {
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(Level.INFO);
-        List<File> files = Helper.getFilesRecursevely(folder, ".zip");
+        List<File> files = searchZips ? Helper.getFilesRecursevely(folder, ".zip") : Arrays.asList(new File(folder));
         IProgressReport report = new ProgressReport();
         IProgressUpdate update = ProgressUpdate.start(report, "Run over " + folder, 2);
         List<Sequence> sequences = getSequences(dataManager);
@@ -222,9 +234,9 @@ public class PersistDuplications {
 
     public static void main(String[] args) throws IOException, ParseException {
         BasicConfigurator.configure();
-        String folder = "/temp";
-        PersistDuplications persistDuplications = new PersistDuplications(3, 100);
-        persistDuplications.run(folder);
+        String folder = "../CloneSnippet";
+        PersistDuplications persistDuplications = new PersistDuplications(3, 3);
+        persistDuplications.run(folder, false);
     }
 
 }

@@ -69,4 +69,9 @@ public class SequencesInt {
         return sequencesInt;
     }
 
+    @Override
+    public String toString() {
+        return "SequencesInt [sequencesInt=" + sequencesInt + "]";
+    }
+
 }

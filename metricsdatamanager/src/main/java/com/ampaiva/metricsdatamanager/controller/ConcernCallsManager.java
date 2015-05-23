@@ -2,7 +2,6 @@ package com.ampaiva.metricsdatamanager.controller;
 
 import japa.parser.ParseException;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,7 +16,6 @@ import com.ampaiva.hlo.cm.IConcernMetric;
 import com.ampaiva.hlo.cm.IMethodCalls;
 import com.ampaiva.hlo.cm.IMetricsSource;
 import com.ampaiva.hlo.cm.MetricsColector;
-import com.ampaiva.hlo.util.Helper;
 import com.ampaiva.hlo.util.view.IProgressUpdate;
 import com.ampaiva.hlo.util.view.ProgressUpdate;
 import com.ampaiva.metricsdatamanager.config.IConcernCallsConfig;
@@ -29,7 +27,6 @@ import com.ampaiva.metricsdatamanager.util.MatchesData;
 import com.ampaiva.metricsdatamanager.util.SequenceMatch;
 import com.ampaiva.metricsdatamanager.util.SequencesInt;
 import com.ampaiva.metricsdatamanager.util.SequencesMap;
-import com.ampaiva.metricsdatamanager.util.ZipStreamUtil;
 
 public class ConcernCallsManager {
     public static final String SEPARATOR = "#";
@@ -69,25 +66,16 @@ public class ConcernCallsManager {
         return concernCollections;
     }
 
-    public Repository createRepository(File file, List<Sequence> sequences) throws FileNotFoundException, IOException,
-            ParseException {
+    public Repository createRepository(List<ICodeSource> codeSources, String location, List<Sequence> sequences)
+            throws FileNotFoundException, IOException, ParseException {
         Repository repository = new Repository();
-        repository.setLocation(file.getName());
-        List<Method> methods = getMethodCodes(sequences, file);
+        repository.setLocation(location);
+        List<Method> methods = getMethodCodes(sequences, codeSources);
         for (Method method : methods) {
             method.setRepositoryBean(repository);
         }
         repository.setMethods(methods);
         return repository;
-    }
-
-    private List<Method> getMethodCodes(List<Sequence> sequences, File file) throws FileNotFoundException, IOException,
-            ParseException {
-        ZipStreamUtil zipStreamUtil = new ZipStreamUtil(file.toString(), Helper.convertFile2InputStream(new File(file
-                .getAbsolutePath())));
-        List<ICodeSource> codeSources = Arrays.asList((ICodeSource) zipStreamUtil);
-        List<Method> methodCodes = getMethodCodes(sequences, codeSources);
-        return methodCodes;
     }
 
     public List<Method> getMethodCodes(List<Sequence> sequences, List<ICodeSource> codeSources) throws IOException,
@@ -108,8 +96,9 @@ public class ConcernCallsManager {
                 List<String> seq = methodCall.getSequences().get(i);
                 for (int order = 0; order < seq.size(); order++) {
                     String sequenceName = seq.get(order);
-                    if (sequenceName.length() > 255)
+                    if (sequenceName.length() > 255) {
                         continue;
+                    }
                     Call call = new Call();
                     call.setPosition(order);
                     Sequence sequence = null;
@@ -153,8 +142,8 @@ public class ConcernCallsManager {
                 clone.sources = Arrays.asList(methodCodes.get(matchesData.groupIndex).getSource(),
                         methodCodes.get(matchedIndex).getSource());
                 clone.sequences = Arrays.asList(
-                        sequencesInt.callsToStringList(methodCodes.get(matchesData.groupIndex).getCalls()),
-                        sequencesInt.callsToStringList(methodCodes.get(matchedIndex).getCalls()));
+                        SequencesInt.callsToStringList(methodCodes.get(matchesData.groupIndex).getCalls()),
+                        SequencesInt.callsToStringList(methodCodes.get(matchedIndex).getCalls()));
                 clone.duplications = matchesData.sequencesMatches.get(i);
                 concernClones.add(clone);
             }
