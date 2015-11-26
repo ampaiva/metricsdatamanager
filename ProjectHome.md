@@ -1,0 +1,1 @@
+This project maintains a database with code metrics collected from open projects.
