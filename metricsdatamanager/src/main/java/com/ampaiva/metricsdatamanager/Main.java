@@ -1,6 +1,5 @@
 package com.ampaiva.metricsdatamanager;
 
-import japa.parser.ParseException;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,6 +27,7 @@ import com.ampaiva.metricsdatamanager.controller.EOcurrencyType;
 import com.ampaiva.metricsdatamanager.controller.IDataManager;
 import com.ampaiva.metricsdatamanager.controller.MetricsManager;
 import com.ampaiva.metricsdatamanager.util.ZipUtil;
+import com.github.javaparser.ParseException;
 
 public class Main {
     private final IDataManager dataManager = new DataManager("metricsdatamanager");

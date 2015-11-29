@@ -273,4 +273,36 @@ public class DataManagerTest {
         dataManager.close();
     }
 
+    @Test
+    public void testCodeClone() throws Exception {
+        DataManager dataManager = new DataManager(PU_NAME);
+        dataManager.open();
+        Project project1 = new Project();
+        project1.setName(PROJECT_NAME);
+        project1.setLocation(PROJECT_LOCATION);
+        Project project2 = new Project();
+        project2.setName(PROJECT_NAME + "2");
+        project2.setLocation(PROJECT_LOCATION);
+        dataManager.persist(project1);
+        dataManager.persist(project2);
+        dataManager.commit();
+
+        int id1 = project1.getId();
+        assertTrue(id1 > 0);
+        int id2 = project2.getId();
+        assertTrue(id2 > 0);
+        Collection<Project> projects = dataManager.findAll(Project.class);
+        assertNotNull(projects);
+        assertEquals(2, projects.size());
+        assertTrue(projects.contains(project1));
+
+        dataManager.begin();
+        dataManager.removeAll(Project.class);
+        dataManager.commit();
+        Collection<Project> projects2 = dataManager.findAll(Project.class);
+        assertNotNull(projects2);
+        assertEquals(0, projects2.size());
+        dataManager.close();
+    }
+
 }

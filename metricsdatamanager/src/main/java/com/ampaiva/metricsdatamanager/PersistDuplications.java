@@ -1,6 +1,5 @@
 package com.ampaiva.metricsdatamanager;
 
-import japa.parser.ParseException;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -35,6 +34,7 @@ import com.ampaiva.metricsdatamanager.util.FolderUtil;
 import com.ampaiva.metricsdatamanager.util.MatchesData;
 import com.ampaiva.metricsdatamanager.util.SequencesInt;
 import com.ampaiva.metricsdatamanager.util.ZipStreamUtil;
+import com.github.javaparser.ParseException;
 
 public class PersistDuplications {
 

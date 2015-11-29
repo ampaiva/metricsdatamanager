@@ -1,6 +1,5 @@
 package com.ampaiva.metricsdatamanager.controller;
 
-import japa.parser.ParseException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -27,6 +26,7 @@ import com.ampaiva.metricsdatamanager.util.MatchesData;
 import com.ampaiva.metricsdatamanager.util.SequenceMatch;
 import com.ampaiva.metricsdatamanager.util.SequencesInt;
 import com.ampaiva.metricsdatamanager.util.SequencesMap;
+import com.github.javaparser.ParseException;
 
 public class ConcernCallsManager {
     public static final String SEPARATOR = "#";
