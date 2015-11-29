@@ -1,6 +1,5 @@
 package com.ampaiva.metricsdatamanager;
 
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -59,8 +58,8 @@ public class PersistDuplications {
         return repositories;
     }
 
-    private Repository processFile(File file, List<Sequence> sequences) throws FileNotFoundException, IOException,
-            ParseException {
+    private Repository processFile(File file, List<Sequence> sequences)
+            throws FileNotFoundException, IOException, ParseException {
         String location = file.getName();
         Repository repository = getRepositoryByLocation(location);
         if (repository == null) {
@@ -90,15 +89,15 @@ public class PersistDuplications {
             List<Call> calls = method.getCalls();
             method.setCalls(Collections.<Call> emptyList());
             dataManager.open();
-            method.setRepositoryBean(dataManager.getSingleResult(Repository.class, "Repository.findById",
-                    repository.getId()));
+            method.setRepositoryBean(
+                    dataManager.getSingleResult(Repository.class, "Repository.findById", repository.getId()));
             dataManager.persist(method);
             dataManager.close();
             for (Call call : calls) {
                 dataManager.open();
                 call.setMethodBean(dataManager.getSingleResult(Method.class, "Method.findById", method.getId()));
-                Sequence sequence = dataManager.getSingleResult(Sequence.class, "Sequence.findByName", call
-                        .getSequence().getName());
+                Sequence sequence = dataManager.getSingleResult(Sequence.class, "Sequence.findByName",
+                        call.getSequence().getName());
                 if (sequence != null) {
                     call.setSequence(sequence);
                 }
@@ -234,9 +233,9 @@ public class PersistDuplications {
 
     public static void main(String[] args) throws IOException, ParseException {
         BasicConfigurator.configure();
-        String folder = "../CloneSnippet";
-        PersistDuplications persistDuplications = new PersistDuplications(3, 3);
-        persistDuplications.run(folder, false);
+        String folder = "c:/temp";
+        PersistDuplications persistDuplications = new PersistDuplications(3, 100);
+        persistDuplications.run(folder, true);
     }
 
 }

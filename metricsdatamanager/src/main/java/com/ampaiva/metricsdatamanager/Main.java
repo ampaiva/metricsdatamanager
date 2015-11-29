@@ -1,6 +1,5 @@
 package com.ampaiva.metricsdatamanager;
 
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -62,8 +61,8 @@ public class Main {
         }
     }
 
-    public List<IMethodCalls> getConcernCollectionofAllFiles(IMetricsSource metricsSource, List<ICodeSource> codeSources)
-            throws Exception {
+    public List<IMethodCalls> getConcernCollectionofAllFiles(IMetricsSource metricsSource,
+            List<ICodeSource> codeSources) throws Exception {
         for (ICodeSource codeSource : codeSources) {
             MetricsColector metricsColector = new MetricsColector(metricsSource, codeSource);
             persistConcernCollection(metricsColector);
@@ -119,7 +118,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         Main main = new Main();
         //        String folder = "C:/opt/tools/target-projects";
-        String folder = "C:/code/target-projects";
+        String folder = "C:/temp";
         IMetricsSource metricsSource = new IMetricsSource() {
 
             @Override
