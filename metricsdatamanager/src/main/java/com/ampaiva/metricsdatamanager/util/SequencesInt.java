@@ -6,16 +6,17 @@ import java.util.List;
 import com.ampaiva.metricsdatamanager.model.Call;
 import com.ampaiva.metricsdatamanager.model.Method;
 import com.ampaiva.metricsdatamanager.model.Sequence;
+import com.ampaiva.metricsdatamanager.model.Unit;
 
 public class SequencesInt {
 
     private final List<Sequence> sequences;
-    private final List<Method> methods;
+    private final List<Unit> units;
     private final List<List<Integer>> sequencesInt;
 
-    public SequencesInt(List<Sequence> sequences, List<Method> methods) {
+    public SequencesInt(List<Sequence> sequences, List<Unit> units) {
         this.sequences = sequences;
-        this.methods = methods;
+        this.units = units;
         this.sequencesInt = initSequencesInt();
     }
 
@@ -23,16 +24,18 @@ public class SequencesInt {
 
         List<String> callNames = new ArrayList<String>();
         for (Call call : calls) {
-            callNames.add(call.getSequence().getName());
+            callNames.add(call.getSequenceBean().getName());
         }
         return callNames;
     }
 
     private List<List<String>> getSequences() {
         List<List<String>> sequencesStr = new ArrayList<List<String>>();
-        for (Method method : methods) {
-            List<String> callNames = callsToStringList(method.getCalls());
-            sequencesStr.add(callNames);
+        for (Unit unit : units) {
+            for (Method method : unit.getMethods()) {
+                List<String> callNames = callsToStringList(method.getCalls());
+                sequencesStr.add(callNames);
+            }
         }
         return sequencesStr;
     }

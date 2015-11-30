@@ -20,14 +20,20 @@ import javax.persistence.Table;
 import org.eclipse.persistence.annotations.CascadeOnDelete;
 
 /**
- * The persistent class for the repositories database table.
+ * The persistent class for the clones database table.
  * 
  */
 @Entity
-@Table(name = "clones", indexes = { @Index(name = "analyse_copy_paste_idx", columnList = "analyse,copy,paste", unique = true) })
+@Table(name = "clones", indexes = {
+        @Index(name = "analyse_copy_paste_idx", columnList = "analyse,copy,paste", unique = true) })
 @NamedQuery(name = "Clone.findAll", query = "SELECT r FROM Clone r")
 public class Clone implements Serializable {
     private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.TABLE)
+    @Column(unique = true, nullable = false)
+    private int id;
 
     //bi-directional many-to-one association to Repository
     @ManyToOne(cascade = { CascadeType.ALL })
@@ -42,14 +48,9 @@ public class Clone implements Serializable {
     @JoinColumn(name = "paste", nullable = false)
     private Method paste;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.TABLE)
-    @Column(unique = true, nullable = false)
-    private int id;
-
-    @OneToMany(mappedBy = "clone", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "cloneBean", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
     @CascadeOnDelete
-    private List<CloneCall> calls;
+    private List<Clonecall> clonecalls;
 
     public Clone() {
     }
@@ -62,16 +63,38 @@ public class Clone implements Serializable {
         this.id = id;
     }
 
-    public Analyse getAnalyseBean() {
-        return analyseBean;
+    public List<Clonecall> getClonecalls() {
+        return this.clonecalls;
     }
 
-    public void setAnalyseBean(Analyse analyseBean) {
-        this.analyseBean = analyseBean;
+    public void setClonecalls(List<Clonecall> clonecalls) {
+        this.clonecalls = clonecalls;
+    }
+
+    public Clonecall addClonecall(Clonecall clonecall) {
+        getClonecalls().add(clonecall);
+        clonecall.setCloneBean(this);
+
+        return clonecall;
+    }
+
+    public Clonecall removeClonecall(Clonecall clonecall) {
+        getClonecalls().remove(clonecall);
+        clonecall.setCloneBean(null);
+
+        return clonecall;
+    }
+
+    public Analyse getAnalyseBean() {
+        return this.analyseBean;
+    }
+
+    public void setAnalyseBean(Analyse analyse) {
+        this.analyseBean = analyse;
     }
 
     public Method getCopy() {
-        return copy;
+        return this.copy;
     }
 
     public void setCopy(Method copy) {
@@ -79,18 +102,11 @@ public class Clone implements Serializable {
     }
 
     public Method getPaste() {
-        return paste;
+        return this.paste;
     }
 
     public void setPaste(Method paste) {
         this.paste = paste;
     }
 
-    public List<CloneCall> getCalls() {
-        return calls;
-    }
-
-    public void setCalls(List<CloneCall> calls) {
-        this.calls = calls;
-    }
 }

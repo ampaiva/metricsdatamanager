@@ -20,7 +20,7 @@ import javax.persistence.Table;
 import org.eclipse.persistence.annotations.CascadeOnDelete;
 
 /**
- * The persistent class for the sources database table.
+ * The persistent class for the methods database table.
  * 
  */
 @Entity
@@ -29,11 +29,6 @@ import org.eclipse.persistence.annotations.CascadeOnDelete;
         @NamedQuery(name = "Method.findById", query = "SELECT r FROM Method r WHERE r.id=?1") })
 public class Method implements Serializable {
     private static final long serialVersionUID = 1L;
-
-    //bi-directional many-to-one association to Repository
-    @ManyToOne(cascade = { CascadeType.ALL })
-    @JoinColumn(name = "repository", nullable = false)
-    private Repository repositoryBean;
 
     @Id
     @GeneratedValue(strategy = GenerationType.TABLE)
@@ -58,12 +53,12 @@ public class Method implements Serializable {
     @CascadeOnDelete
     private List<Clone> pastes;
 
-    public Method() {
-    }
+    //bi-directional many-to-one association to Unit
+    @ManyToOne(cascade = { CascadeType.ALL })
+    @JoinColumn(name = "unit", nullable = false)
+    private Unit unitBean;
 
-    public Method(String methodName, String methodSource) {
-        this.name = methodName;
-        this.source = methodSource;
+    public Method() {
     }
 
     public int getId() {
@@ -83,31 +78,43 @@ public class Method implements Serializable {
     }
 
     public String getSource() {
-        return source;
+        return this.source;
     }
 
     public void setSource(String source) {
         this.source = source;
     }
 
-    public Repository getRepositoryBean() {
-        return repositoryBean;
-    }
-
-    public void setRepositoryBean(Repository repositoryBean) {
-        this.repositoryBean = repositoryBean;
-    }
-
     public List<Call> getCalls() {
-        return calls;
+        return this.calls;
     }
 
     public void setCalls(List<Call> calls) {
         this.calls = calls;
     }
 
-    @Override
-    public String toString() {
-        return "Method [name=" + name + "]";
+    public List<Clone> getCopies() {
+        return this.copies;
     }
+
+    public void setCopies(List<Clone> copies) {
+        this.copies = copies;
+    }
+
+    public List<Clone> getClones2() {
+        return this.pastes;
+    }
+
+    public void setPastes(List<Clone> pastes) {
+        this.pastes = pastes;
+    }
+
+    public Unit getUnitBean() {
+        return this.unitBean;
+    }
+
+    public void setUnitBean(Unit unitBean) {
+        this.unitBean = unitBean;
+    }
+
 }

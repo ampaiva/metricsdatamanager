@@ -1,7 +1,9 @@
 package com.ampaiva.metricsdatamanager.controller;
 
 import static org.easymock.EasyMock.expect;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -22,9 +24,9 @@ import com.ampaiva.hlo.util.view.IProgressUpdate;
 import com.ampaiva.hlo.util.view.ProgressReport;
 import com.ampaiva.hlo.util.view.ProgressUpdate;
 import com.ampaiva.metricsdatamanager.config.IConcernCallsConfig;
-import com.ampaiva.metricsdatamanager.model.Method;
 import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.model.Sequence;
+import com.ampaiva.metricsdatamanager.model.Unit;
 import com.ampaiva.metricsdatamanager.util.MatchesData;
 import com.ampaiva.metricsdatamanager.util.SequencesInt;
 import com.ampaiva.metricsdatamanager.util.ZipStreamUtil;
@@ -64,11 +66,13 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         ZipStreamUtil zipStreamUtil = new ZipStreamUtil(Helper.convertFile2InputStream(file));
         Repository repository = concernCallsManager.createRepository(Arrays.asList(zipStreamUtil), file.getName(),
                 sequences);
-        List<Method> methods = repository.getMethods();
-        assertNotNull(methods);
-        concernCallsManager = new ConcernCallsManager(new SequencesInt(sequences, methods));
+        assertNotNull(repository);
+        assertEquals("ZipTest2.zip", repository.getLocation());
+        List<Unit> units = repository.getUnits();
+        assertNotNull(units);
+        concernCallsManager = new ConcernCallsManager(new SequencesInt(sequences, units));
         List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(config);
-        List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, methods);
+        List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, units);
         assertNotNull(duplications);
     }
 
@@ -83,13 +87,13 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         ZipStreamUtil zipStreamUtil = new ZipStreamUtil(Helper.convertFile2InputStream(file));
         Repository repository = concernCallsManager.createRepository(Arrays.asList(zipStreamUtil), file.getName(),
                 sequences);
-        List<Method> methods = repository.getMethods();
-        assertNotNull(methods);
-        concernCallsManager = new ConcernCallsManager(new SequencesInt(sequences, methods));
+        List<Unit> units = repository.getUnits();
+        assertNotNull(units);
+        concernCallsManager = new ConcernCallsManager(new SequencesInt(sequences, units));
         List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(config);
-        List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, methods);
+        List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, units);
         assertNotNull(duplications);
-        //assertTrue(duplications.size() > 0);
+        assertTrue(duplications.size() > 0);
     }
 
     @Test
@@ -105,8 +109,8 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
             List<Sequence> sequences = new ArrayList<Sequence>();
             Repository repository = concernCallsManager.createRepository(Arrays.asList(zipStreamUtil), file.getName(),
                     sequences);
-            List<Method> methods = repository.getMethods();
-            assertNotNull(methods);
+            List<Unit> units = repository.getUnits();
+            assertNotNull(units);
 
             final int MIN_SEQ = 5;
             final int MAX_SEQ = 5;
@@ -124,9 +128,9 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
 
                     replayAll();
 
-                    concernCallsManager = new ConcernCallsManager(new SequencesInt(sequences, methods));
+                    concernCallsManager = new ConcernCallsManager(new SequencesInt(sequences, units));
                     List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(config);
-                    List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, methods);
+                    List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, units);
                     assertNotNull(duplications);
                     if (duplications.size() > 0) {
                         System.out.println(duplications.get(0));

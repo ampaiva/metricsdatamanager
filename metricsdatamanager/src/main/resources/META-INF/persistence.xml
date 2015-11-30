@@ -15,7 +15,8 @@
 		<class>com.ampaiva.metricsdatamanager.model.Call</class>
 		<class>com.ampaiva.metricsdatamanager.model.Analyse</class>
 		<class>com.ampaiva.metricsdatamanager.model.Clone</class>
-		<class>com.ampaiva.metricsdatamanager.model.CloneCall</class>
+		<class>com.ampaiva.metricsdatamanager.model.Clonecall</class>
+		<class>com.ampaiva.metricsdatamanager.model.Unit</class>
 		<properties>
 			<property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/cm" />
 			<property name="javax.persistence.jdbc.user" value="cm" />
@@ -38,7 +39,8 @@
 		<class>com.ampaiva.metricsdatamanager.model.Call</class>
 		<class>com.ampaiva.metricsdatamanager.model.Analyse</class>
 		<class>com.ampaiva.metricsdatamanager.model.Clone</class>
-		<class>com.ampaiva.metricsdatamanager.model.CloneCall</class>
+		<class>com.ampaiva.metricsdatamanager.model.Clonecall</class>
+		<class>com.ampaiva.metricsdatamanager.model.Unit</class>
 		<properties>
 			<property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/test" />
 			<property name="javax.persistence.jdbc.user" value="cm" />

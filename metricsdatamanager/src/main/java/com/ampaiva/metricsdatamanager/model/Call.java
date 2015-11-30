@@ -18,39 +18,40 @@ import javax.persistence.Table;
 import org.eclipse.persistence.annotations.CascadeOnDelete;
 
 /**
- * The persistent class for the sources database table.
+ * The persistent class for the calls database table.
  * 
  */
 @Entity
 @Table(name = "calls")
-@NamedQuery(name = "Call.findAll", query = "SELECT m FROM Call m")
+@NamedQuery(name = "Call.findAll", query = "SELECT c FROM Call c")
 public class Call implements Serializable {
     private static final long serialVersionUID = 1L;
-
-    //bi-directional many-to-one association to Method
-    @ManyToOne(cascade = { CascadeType.ALL })
-    @JoinColumn(name = "method", nullable = false)
-    private Method methodBean;
 
     @Id
     @GeneratedValue(strategy = GenerationType.TABLE)
     @Column(unique = true, nullable = false)
     private int id;
 
+    @Column(nullable = false)
+    private int position;
+
+    //bi-directional many-to-one association to Method
+    @ManyToOne(cascade = { CascadeType.ALL })
+    @JoinColumn(name = "method", nullable = false)
+    private Method methodBean;
+
+    //bi-directional many-to-one association to Sequence
     @ManyToOne(cascade = { CascadeType.ALL })
     @JoinColumn(name = "sequence", nullable = false)
-    private Sequence sequence;
-
-    @Column(name = "position", nullable = false)
-    private int position;
+    private Sequence sequenceBean;
 
     @OneToMany(mappedBy = "copy", orphanRemoval = true, cascade = { CascadeType.ALL })
     @CascadeOnDelete
-    private List<CloneCall> copies;
+    private List<Clonecall> copies;
 
     @OneToMany(mappedBy = "paste", orphanRemoval = true, cascade = { CascadeType.ALL })
     @CascadeOnDelete
-    private List<CloneCall> pastes;
+    private List<Clonecall> pastes;
 
     public Call() {
     }
@@ -63,49 +64,49 @@ public class Call implements Serializable {
         this.id = id;
     }
 
-    public Method getMethodBean() {
-        return methodBean;
-    }
-
-    public void setMethodBean(Method methodBean) {
-        this.methodBean = methodBean;
-    }
-
-    public Sequence getSequence() {
-        return sequence;
-    }
-
-    public void setSequence(Sequence sequence) {
-        this.sequence = sequence;
-    }
-
     public int getPosition() {
-        return position;
+        return this.position;
     }
 
     public void setPosition(int position) {
         this.position = position;
     }
 
-    public List<CloneCall> getCopies() {
-        return copies;
+    public Method getMethodBean() {
+        return this.methodBean;
     }
 
-    public void setCopies(List<CloneCall> copies) {
+    public void setMethodBean(Method methodBean) {
+        this.methodBean = methodBean;
+    }
+
+    public Sequence getSequenceBean() {
+        return this.sequenceBean;
+    }
+
+    public void setSequenceBean(Sequence sequenceBean) {
+        this.sequenceBean = sequenceBean;
+    }
+
+    public List<Clonecall> getCopies() {
+        return this.copies;
+    }
+
+    public void setCopies(List<Clonecall> copies) {
         this.copies = copies;
     }
 
-    public List<CloneCall> getPastes() {
-        return pastes;
+    public List<Clonecall> getPastes() {
+        return this.pastes;
     }
 
-    public void setPastes(List<CloneCall> pastes) {
+    public void setPastes(List<Clonecall> pastes) {
         this.pastes = pastes;
     }
 
     @Override
     public String toString() {
-        return "Call [id=" + id + ", position=" + position + ", sequence=" + sequence + ", methodBean=" + methodBean
-                + "]";
+        return "Call [id=" + id + ", position=" + position + ", methodBean=" + methodBean + ", sequenceBean="
+                + sequenceBean + "]";
     }
 }

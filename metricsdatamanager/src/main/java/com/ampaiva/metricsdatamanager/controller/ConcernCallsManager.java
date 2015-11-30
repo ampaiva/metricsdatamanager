@@ -1,6 +1,5 @@
 package com.ampaiva.metricsdatamanager.controller;
 
-
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,6 +21,7 @@ import com.ampaiva.metricsdatamanager.model.Call;
 import com.ampaiva.metricsdatamanager.model.Method;
 import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.model.Sequence;
+import com.ampaiva.metricsdatamanager.model.Unit;
 import com.ampaiva.metricsdatamanager.util.MatchesData;
 import com.ampaiva.metricsdatamanager.util.SequenceMatch;
 import com.ampaiva.metricsdatamanager.util.SequencesInt;
@@ -70,16 +70,23 @@ public class ConcernCallsManager {
             throws FileNotFoundException, IOException, ParseException {
         Repository repository = new Repository();
         repository.setLocation(location);
-        List<Method> methods = getMethodCodes(sequences, codeSources);
-        for (Method method : methods) {
-            method.setRepositoryBean(repository);
+        List<Unit> units = new ArrayList<>();
+        for (ICodeSource codeSource : codeSources) {
+            Unit unit = new Unit();
+            unit.setRepositoryBean(repository);
+            units.add(unit);
+            List<Method> methods = getMethodCodes(sequences, codeSources);
+            for (Method method : methods) {
+                method.setUnitBean(unit);
+            }
+            unit.setMethods(methods);
         }
-        repository.setMethods(methods);
+        repository.setUnits(units);
         return repository;
     }
 
-    public List<Method> getMethodCodes(List<Sequence> sequences, List<ICodeSource> codeSources) throws IOException,
-            ParseException {
+    public List<Method> getMethodCodes(List<Sequence> sequences, List<ICodeSource> codeSources)
+            throws IOException, ParseException {
         IMetricsSource metricsSource = new IMetricsSource() {
 
             @Override
@@ -91,7 +98,9 @@ public class ConcernCallsManager {
         List<Method> methodCodes = new ArrayList<Method>();
         for (IMethodCalls methodCall : allMethodCalls) {
             for (int i = 0; i < methodCall.getMethodNames().size(); i++) {
-                Method method = new Method(methodCall.getMethodNames().get(i), methodCall.getMethodSources().get(i));
+                Method method = new Method();
+                method.setName(methodCall.getMethodNames().get(i));
+                method.setSource(methodCall.getMethodSources().get(i));
                 method.setCalls(new ArrayList<Call>());
                 List<String> seq = methodCall.getSequences().get(i);
                 for (int order = 0; order < seq.size(); order++) {
@@ -110,10 +119,11 @@ public class ConcernCallsManager {
 
                     }
                     if (sequence == null) {
-                        sequence = new Sequence(sequenceName);
+                        sequence = new Sequence();
+                        sequence.setName(sequenceName);
                         sequences.add(sequence);
                     }
-                    call.setSequence(sequence);
+                    call.setSequenceBean(sequence);
                     call.setMethodBean(method);
                     method.getCalls().add(call);
                 }
@@ -131,7 +141,11 @@ public class ConcernCallsManager {
         return sequenceMatch.getMatches(sequencesMap.getMap());
     }
 
-    public List<ConcernClone> getConcernClones(List<MatchesData> sequenceMatches, List<Method> methodCodes) {
+    public List<ConcernClone> getConcernClones(List<MatchesData> sequenceMatches, List<Unit> units) {
+        List<Method> methodCodes = new ArrayList<>();
+        for (Unit unit : units) {
+            methodCodes.addAll(unit.getMethods());
+        }
         List<ConcernClone> concernClones = new ArrayList<ConcernClone>();
         for (MatchesData matchesData : sequenceMatches) {
             for (int i = 0; i < matchesData.groupsMatched.size(); i++) {
@@ -154,12 +168,12 @@ public class ConcernCallsManager {
     public ConcernClone getConcernClone(IMethodCalls concernCollectionA, IMethodCalls concernCollectionB,
             int methodAIndex, int methodBIndex, int[] indexes) {
         ConcernClone clone = new ConcernClone();
-        clone.methods = Arrays.asList(concernCollectionA.getMethodNames().get(methodAIndex), concernCollectionB
-                .getMethodNames().get(methodBIndex));
-        clone.sources = Arrays.asList(concernCollectionA.getMethodSources().get(methodAIndex), concernCollectionB
-                .getMethodSources().get(methodBIndex));
-        clone.sequences = Arrays.asList(concernCollectionA.getSequences().get(methodAIndex), concernCollectionB
-                .getSequences().get(methodBIndex));
+        clone.methods = Arrays.asList(concernCollectionA.getMethodNames().get(methodAIndex),
+                concernCollectionB.getMethodNames().get(methodBIndex));
+        clone.sources = Arrays.asList(concernCollectionA.getMethodSources().get(methodAIndex),
+                concernCollectionB.getMethodSources().get(methodBIndex));
+        clone.sequences = Arrays.asList(concernCollectionA.getSequences().get(methodAIndex),
+                concernCollectionB.getSequences().get(methodBIndex));
         clone.duplications = null; //indexes;
         return clone;
     }

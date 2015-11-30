@@ -19,13 +19,18 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name = "clonecalls")
-@NamedQuery(name = "CloneCall.findAll", query = "SELECT m FROM CloneCall m")
-public class CloneCall implements Serializable {
+@NamedQuery(name = "Clonecall.findAll", query = "SELECT m FROM Clonecall m")
+public class Clonecall implements Serializable {
     private static final long serialVersionUID = 1L;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.TABLE)
+    @Column(unique = true, nullable = false)
+    private int id;
 
     @ManyToOne(cascade = { CascadeType.ALL })
     @JoinColumn(name = "clone", nullable = false)
-    private Clone clone;
+    private Clone cloneBean;
 
     @ManyToOne(cascade = { CascadeType.ALL })
     @JoinColumn(name = "copy", nullable = false)
@@ -35,12 +40,7 @@ public class CloneCall implements Serializable {
     @JoinColumn(name = "paste", nullable = false)
     private Call paste;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.TABLE)
-    @Column(unique = true, nullable = false)
-    private int id;
-
-    public CloneCall() {
+    public Clonecall() {
     }
 
     public int getId() {
@@ -51,12 +51,12 @@ public class CloneCall implements Serializable {
         this.id = id;
     }
 
-    public Clone getClone() {
-        return clone;
+    public Clone getCloneBean() {
+        return cloneBean;
     }
 
-    public void setClone(Clone clone) {
-        this.clone = clone;
+    public void setCloneBean(Clone clone) {
+        this.cloneBean = clone;
     }
 
     public Call getCopy() {

@@ -25,10 +25,11 @@ import com.ampaiva.metricsdatamanager.controller.IDataManager;
 import com.ampaiva.metricsdatamanager.model.Analyse;
 import com.ampaiva.metricsdatamanager.model.Call;
 import com.ampaiva.metricsdatamanager.model.Clone;
-import com.ampaiva.metricsdatamanager.model.CloneCall;
+import com.ampaiva.metricsdatamanager.model.Clonecall;
 import com.ampaiva.metricsdatamanager.model.Method;
 import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.model.Sequence;
+import com.ampaiva.metricsdatamanager.model.Unit;
 import com.ampaiva.metricsdatamanager.util.FolderUtil;
 import com.ampaiva.metricsdatamanager.util.MatchesData;
 import com.ampaiva.metricsdatamanager.util.SequencesInt;
@@ -80,30 +81,35 @@ public class PersistDuplications {
     }
 
     private void commitRepository(Repository repository) {
-        List<Method> methods = repository.getMethods();
-        repository.setMethods(Collections.<Method> emptyList());
+        List<Unit> units = repository.getUnits();
+        repository.setUnits(Collections.<Unit> emptyList());
         commit(repository);
-        IProgressUpdate update = ProgressUpdate.start("Persisting methods", methods.size());
-        for (Method method : methods) {
-            update.beginIndex(method);
-            List<Call> calls = method.getCalls();
-            method.setCalls(Collections.<Call> emptyList());
-            dataManager.open();
-            method.setRepositoryBean(
-                    dataManager.getSingleResult(Repository.class, "Repository.findById", repository.getId()));
-            dataManager.persist(method);
-            dataManager.close();
-            for (Call call : calls) {
+        IProgressUpdate update = ProgressUpdate.start("Persisting units", units.size());
+        for (Unit unit : units) {
+            List<Method> methods = unit.getMethods();
+            unit.setMethods(Collections.<Method> emptyList());
+            commit(unit);
+            for (Method method : methods) {
+                update.beginIndex(method);
+                List<Call> calls = method.getCalls();
+                method.setCalls(Collections.<Call> emptyList());
                 dataManager.open();
-                call.setMethodBean(dataManager.getSingleResult(Method.class, "Method.findById", method.getId()));
-                Sequence sequence = dataManager.getSingleResult(Sequence.class, "Sequence.findByName",
-                        call.getSequence().getName());
-                if (sequence != null) {
-                    call.setSequence(sequence);
-                }
-                dataManager.persist(call);
+                method.setUnitBean(dataManager.getSingleResult(Unit.class, "Unit.findById", unit.getId()));
+                dataManager.persist(method);
                 dataManager.close();
+                for (Call call : calls) {
+                    dataManager.open();
+                    call.setMethodBean(dataManager.getSingleResult(Method.class, "Method.findById", method.getId()));
+                    Sequence sequence = dataManager.getSingleResult(Sequence.class, "Sequence.findByName",
+                            call.getSequenceBean().getName());
+                    if (sequence != null) {
+                        call.setSequenceBean(sequence);
+                    }
+                    dataManager.persist(call);
+                    dataManager.close();
+                }
             }
+
         }
 
     }
@@ -130,7 +136,7 @@ public class PersistDuplications {
         dataManager.open();
         Repository repository2 = dataManager.getSingleResult(Repository.class, "Repository.findById", repositoryId);
         dataManager.close();
-        SequencesInt sequencesInt = new SequencesInt(sequences, repository2.getMethods());
+        SequencesInt sequencesInt = new SequencesInt(sequences, repository2.getUnits());
         ConcernCallsManager concernCallsManager = new ConcernCallsManager(sequencesInt);
         for (int minSeq = MIN_SEQ; minSeq <= MAX_SEQ; minSeq++) {
             update.beginIndex("minSeq=" + minSeq);
@@ -142,12 +148,12 @@ public class PersistDuplications {
                 analyse.setClones(new ArrayList<Clone>());
                 analyse.setRepositoryBean(repository);
                 repository.getAnalysis().add(analyse);
-                List<Method> methods = repository.getMethods();
+                List<Unit> units = repository.getUnits();
                 List<MatchesData> sequenceMatches = getSequenceMatches(concernCallsManager, minSeq);
                 IProgressUpdate update3 = ProgressUpdate.start("Saving matches", sequenceMatches.size());
                 for (MatchesData matchesData : sequenceMatches) {
                     update3.beginIndex(matchesData);
-                    saveClones(analyse, methods, matchesData);
+                    saveClones(analyse, units, matchesData);
                 }
                 dataManager.persist(analyse);
             }
@@ -155,7 +161,11 @@ public class PersistDuplications {
         }
     }
 
-    private void saveClones(Analyse analyse, List<Method> methods, MatchesData matchesData) {
+    private void saveClones(Analyse analyse, List<Unit> units, MatchesData matchesData) {
+        List<Method> methods = new ArrayList<>();
+        for (Unit unit : units) {
+            methods.addAll(unit.getMethods());
+        }
         IProgressUpdate update4 = ProgressUpdate.start("Saving clones", matchesData.groupsMatched.size());
         for (int i = 0; i < matchesData.groupsMatched.size(); i++) {
             update4.beginIndex();
@@ -164,18 +174,18 @@ public class PersistDuplications {
             clone.setCopy(methods.get(matchesData.groupIndex));
             clone.setPaste(methods.get(groupMatched));
             clone.setAnalyseBean(analyse);
-            clone.setCalls(new ArrayList<CloneCall>());
+            clone.setClonecalls(new ArrayList<Clonecall>());
             analyse.getClones().add(clone);
 
             List<List<Integer>> duplications = matchesData.sequencesMatches.get(i);
             IProgressUpdate update5 = ProgressUpdate.start("Saving clone calls", duplications.size());
             for (List<Integer> duplication : duplications) {
                 update5.beginIndex(duplication);
-                CloneCall cloneCall = new CloneCall();
+                Clonecall cloneCall = new Clonecall();
                 cloneCall.setCopy(clone.getCopy().getCalls().get(duplication.get(0)));
                 cloneCall.setPaste(clone.getPaste().getCalls().get(duplication.get(1)));
-                cloneCall.setClone(clone);
-                clone.getCalls().add(cloneCall);
+                cloneCall.setCloneBean(clone);
+                clone.getClonecalls().add(cloneCall);
             }
         }
         update4.endIndex();

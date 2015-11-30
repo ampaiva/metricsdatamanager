@@ -37,15 +37,15 @@ public class Repository implements Serializable {
     @Column(length = 255, unique = true, nullable = false)
     private String location;
 
-    //bi-directional many-to-one association to Method
-    @OneToMany(mappedBy = "repositoryBean", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
-    @CascadeOnDelete
-    private List<Method> methods;
-
     //bi-directional many-to-one association to Analyse
     @OneToMany(mappedBy = "repositoryBean", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
     @CascadeOnDelete
     private List<Analyse> analysis;
+
+    //bi-directional many-to-one association to Unit
+    @OneToMany(mappedBy = "repositoryBean", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
+    @CascadeOnDelete
+    private List<Unit> units;
 
     public Repository() {
     }
@@ -66,48 +66,48 @@ public class Repository implements Serializable {
         this.location = location;
     }
 
-    public List<Method> getMethods() {
-        return this.methods;
-    }
-
-    public void setMethods(List<Method> methods) {
-        this.methods = methods;
-    }
-
-    public Method addMethod(Method method) {
-        getMethods().add(method);
-        method.setRepositoryBean(this);
-
-        return method;
-    }
-
-    public Method removeMethod(Method method) {
-        getMethods().remove(method);
-        method.setRepositoryBean(null);
-
-        return method;
-    }
-
     public List<Analyse> getAnalysis() {
-        return analysis;
+        return this.analysis;
     }
 
     public void setAnalysis(List<Analyse> analysis) {
         this.analysis = analysis;
     }
 
-    public Analyse addAnalyse(Analyse analyse) {
-        getAnalysis().add(analyse);
-        analyse.setRepositoryBean(this);
+    public Analyse addAnalysi(Analyse analysi) {
+        getAnalysis().add(analysi);
+        analysi.setRepositoryBean(this);
 
-        return analyse;
+        return analysi;
     }
 
-    public Analyse removeAnalyse(Analyse analyse) {
-        getAnalysis().remove(analyse);
-        analyse.setRepositoryBean(null);
+    public Analyse removeAnalysi(Analyse analysi) {
+        getAnalysis().remove(analysi);
+        analysi.setRepositoryBean(null);
 
-        return analyse;
+        return analysi;
+    }
+
+    public List<Unit> getUnits() {
+        return this.units;
+    }
+
+    public void setUnits(List<Unit> units) {
+        this.units = units;
+    }
+
+    public Unit addUnit(Unit unit) {
+        getUnits().add(unit);
+        unit.setRepositoryBean(this);
+
+        return unit;
+    }
+
+    public Unit removeUnit(Unit unit) {
+        getUnits().remove(unit);
+        unit.setRepositoryBean(null);
+
+        return unit;
     }
 
     @Override

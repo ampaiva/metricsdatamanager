@@ -18,7 +18,7 @@ import javax.persistence.Table;
 import org.eclipse.persistence.annotations.CascadeOnDelete;
 
 /**
- * The persistent class for the sources database table.
+ * The persistent class for the sequences database table.
  * 
  */
 @Entity
@@ -33,18 +33,14 @@ public class Sequence implements Serializable {
     @Column(unique = true, nullable = false)
     private int id;
 
-    @Column(length = 255, unique = true, nullable = false)
+    @Column(nullable = false, unique = true, length = 255)
     private String name;
 
-    @OneToMany(mappedBy = "sequence", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "sequenceBean", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
     @CascadeOnDelete
     private List<Call> calls;
 
     public Sequence() {
-    }
-
-    public Sequence(String name) {
-        this.name = name;
     }
 
     public int getId() {
@@ -63,17 +59,16 @@ public class Sequence implements Serializable {
         this.name = name;
     }
 
-    @Override
-    public String toString() {
-        return "Sequence [name=" + name + "]";
-    }
-
     public List<Call> getCalls() {
-        return calls;
+        return this.calls;
     }
 
     public void setCalls(List<Call> calls) {
         this.calls = calls;
     }
 
+    @Override
+    public String toString() {
+        return "Sequence [id=" + id + ", name=" + name + "]";
+    }
 }
