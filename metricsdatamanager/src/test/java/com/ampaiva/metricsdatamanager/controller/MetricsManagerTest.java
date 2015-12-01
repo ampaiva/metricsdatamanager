@@ -15,7 +15,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.ampaiva.hlo.cm.ConcernMetricNode;
-import com.ampaiva.metricsdatamanager.model.Duplication;
 import com.ampaiva.metricsdatamanager.model.Ocurrency;
 import com.ampaiva.metricsdatamanager.model.Project;
 import com.ampaiva.metricsdatamanager.model.Resource;
@@ -54,7 +53,6 @@ public class MetricsManagerTest extends EasyMockSupport {
     public void testDeleteAllData() {
 
         dataManager.open();
-        dataManager.removeAll(Duplication.class);
         dataManager.removeAll(Project.class);
         dataManager.close();
 

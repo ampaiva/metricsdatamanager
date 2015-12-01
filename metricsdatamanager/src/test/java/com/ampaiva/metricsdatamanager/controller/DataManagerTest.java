@@ -17,7 +17,6 @@ import javax.persistence.TypedQuery;
 
 import org.junit.Test;
 
-import com.ampaiva.metricsdatamanager.model.Duplication;
 import com.ampaiva.metricsdatamanager.model.Ocurrency;
 import com.ampaiva.metricsdatamanager.model.Project;
 import com.ampaiva.metricsdatamanager.model.Resource;
@@ -211,38 +210,6 @@ public class DataManagerTest {
         Collection<Project> projects2 = dataManager.findAll(Project.class);
         assertNotNull(projects2);
         assertEquals(0, projects2.size());
-        dataManager.close();
-    }
-
-    @Test
-    public void testDuplicationBlock() throws Exception {
-        DataManager dataManager = new DataManager(PU_NAME);
-        dataManager.open();
-        ProjectBuilder projectBuilder = ProjectBuilder.New().add().addResource()
-                .addOcurrency(EOcurrencyType.DUPLICATION, 1, 0, 3, 0).addResource()
-                .addOcurrency(EOcurrencyType.DUPLICATION, 1, 0, 3, 0);
-        dataManager.persist(projectBuilder.get());
-        Duplication duplication = new Duplication();
-        int copy = projectBuilder.getOcurrency(0, 0, 0).getId();
-        duplication.setCopy(copy);
-        int paste = projectBuilder.getOcurrency(0, 1, 0).getId();
-        duplication.setPaste(paste);
-        dataManager.persist(duplication);
-        dataManager.commit();
-
-        int id1 = duplication.getId();
-        assertTrue(id1 > 0);
-        Duplication duplication1 = dataManager.find(duplication, id1);
-        assertNotNull(duplication1);
-        assertEquals(id1, duplication.getId());
-        assertEquals(copy, duplication.getCopy());
-        assertEquals(paste, duplication.getPaste());
-        dataManager.begin();
-        dataManager.remove(projectBuilder.get());
-        dataManager.remove(duplication);
-        dataManager.commit();
-        duplication = dataManager.find(duplication, duplication.getId());
-        assertNull(duplication);
         dataManager.close();
     }
 

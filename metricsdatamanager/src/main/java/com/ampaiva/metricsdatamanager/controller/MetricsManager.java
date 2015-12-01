@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.ampaiva.hlo.cm.ConcernMetricNode;
-import com.ampaiva.metricsdatamanager.model.Duplication;
 import com.ampaiva.metricsdatamanager.model.Ocurrency;
 import com.ampaiva.metricsdatamanager.model.Project;
 import com.ampaiva.metricsdatamanager.model.Resource;
@@ -20,7 +19,6 @@ public class MetricsManager {
 
     public void deleteAllData() {
         dataManager.open();
-        dataManager.removeAll(Duplication.class);
         dataManager.removeAll(Project.class);
         dataManager.close();
     }
@@ -74,19 +72,5 @@ public class MetricsManager {
         dataManager.persist(ocurrency);
         dataManager.close();
         return ocurrency;
-    }
-
-    public List<Duplication> persist(int copy, List<Integer> pastes) {
-        dataManager.open();
-        List<Duplication> duplications = new ArrayList<Duplication>();
-        for (Integer paste : pastes) {
-            Duplication duplication = new Duplication();
-            duplication.setCopy(copy);
-            duplication.setPaste(paste);
-            dataManager.persist(duplication);
-            duplications.add(duplication);
-        }
-        dataManager.close();
-        return duplications;
     }
 }
