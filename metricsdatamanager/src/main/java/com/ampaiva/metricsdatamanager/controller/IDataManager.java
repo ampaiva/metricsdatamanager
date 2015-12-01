@@ -3,8 +3,6 @@ package com.ampaiva.metricsdatamanager.controller;
 import java.util.Collection;
 import java.util.List;
 
-import com.ampaiva.metricsdatamanager.model.Resource;
-
 public interface IDataManager {
 
     void open();
@@ -22,6 +20,4 @@ public interface IDataManager {
     <U> List<U> getResultList(Class<U> clazz, String namedQuery, Object... params);
 
     <U> U getSingleResult(Class<U> clazz, String namedQuery, Object... params);
-
-    Resource getResourceByName(String projectName, String resourceName);
 }

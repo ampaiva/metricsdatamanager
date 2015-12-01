@@ -4,10 +4,7 @@
 	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
 	<persistence-unit name="metricsdatamanager"
 		transaction-type="RESOURCE_LOCAL">
-		<class>com.ampaiva.metricsdatamanager.model.Ocurrency</class>
-		<class>com.ampaiva.metricsdatamanager.model.Project</class>
 		<class>com.ampaiva.metricsdatamanager.model.Sequence</class>
-		<class>com.ampaiva.metricsdatamanager.model.Resource</class>
 		<class>com.ampaiva.metricsdatamanager.model.Repository</class>
 		<class>com.ampaiva.metricsdatamanager.model.Method</class>
 		<class>com.ampaiva.metricsdatamanager.model.Call</class>
@@ -26,10 +23,7 @@
 	</persistence-unit>
 	<persistence-unit name="metricsdatamanagerTEST"
 		transaction-type="RESOURCE_LOCAL">
-		<class>com.ampaiva.metricsdatamanager.model.Ocurrency</class>
-		<class>com.ampaiva.metricsdatamanager.model.Project</class>
 		<class>com.ampaiva.metricsdatamanager.model.Sequence</class>
-		<class>com.ampaiva.metricsdatamanager.model.Resource</class>
 		<class>com.ampaiva.metricsdatamanager.model.Repository</class>
 		<class>com.ampaiva.metricsdatamanager.model.Method</class>
 		<class>com.ampaiva.metricsdatamanager.model.Call</class>

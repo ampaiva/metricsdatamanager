@@ -10,8 +10,6 @@ import javax.persistence.Persistence;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 
-import com.ampaiva.metricsdatamanager.model.Resource;
-
 public class DataManager implements IDataManager {
     private EntityManagerFactory emFactory;
     EntityManager entityManager;
@@ -119,15 +117,4 @@ public class DataManager implements IDataManager {
             remove(entity);
         }
     }
-
-    @Override
-    public Resource getResourceByName(String projectName, String resourceName) {
-        TypedQuery<Resource> query = entityManager.createQuery(
-                "SELECT r FROM Resource r WHERE r.projectBean.name = ?1 and r.name = ?2", Resource.class);
-        query.setParameter(1, projectName);
-        query.setParameter(2, resourceName);
-
-        return query.getSingleResult();
-    }
-
 }
