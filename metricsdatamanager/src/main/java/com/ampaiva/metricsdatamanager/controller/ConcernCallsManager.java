@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import com.ampaiva.hlo.cm.ConcernCollection;
@@ -41,9 +42,9 @@ public class ConcernCallsManager {
         this(null);
     }
 
-    private void persistConcernCollection(MetricsColector metricsColector, List<IMethodCalls> concernCollections)
-            throws ParseException, IOException {
-        HashMap<String, List<IConcernMetric>> hash = metricsColector.getMetrics().getHash();
+    private void persistConcernCollection(MetricsColector metricsColector, Map<String, String> codeSourceMap,
+            List<IMethodCalls> concernCollections) throws ParseException, IOException {
+        HashMap<String, List<IConcernMetric>> hash = metricsColector.getMetrics(codeSourceMap).getHash();
         for (Entry<String, List<IConcernMetric>> entry : hash.entrySet()) {
             for (IConcernMetric concernMetric : entry.getValue()) {
                 if (concernMetric instanceof ConcernCollection) {
@@ -54,13 +55,13 @@ public class ConcernCallsManager {
     }
 
     private List<IMethodCalls> getConcernCollectionofAllFiles(IMetricsSource metricsSource,
-            List<ICodeSource> codeSources) throws ParseException, IOException {
+            List<Map<String, String>> codeSourcesMaps) throws ParseException, IOException {
         final List<IMethodCalls> concernCollections = new ArrayList<IMethodCalls>();
-        IProgressUpdate update = ProgressUpdate.start("Processing code source", codeSources.size());
-        for (ICodeSource codeSource : codeSources) {
+        IProgressUpdate update = ProgressUpdate.start("Processing code source", codeSourcesMaps.size());
+        for (Map<String, String> codeSource : codeSourcesMaps) {
             update.beginIndex(codeSource);
-            MetricsColector metricsColector = new MetricsColector(metricsSource, codeSource);
-            persistConcernCollection(metricsColector, concernCollections);
+            MetricsColector metricsColector = new MetricsColector(metricsSource);
+            persistConcernCollection(metricsColector, codeSource, concernCollections);
         }
 
         return concernCollections;
@@ -71,21 +72,30 @@ public class ConcernCallsManager {
         Repository repository = new Repository();
         repository.setLocation(location);
         List<Unit> units = new ArrayList<>();
+        List<Map<String, String>> codeSourceMaps = new ArrayList<>();
         for (ICodeSource codeSource : codeSources) {
-            Unit unit = new Unit();
-            unit.setRepositoryBean(repository);
-            units.add(unit);
-            List<Method> methods = getMethodCodes(sequences, codeSources);
-            for (Method method : methods) {
-                method.setUnitBean(unit);
+            Map<String, String> codeSourceMap = codeSource.getCodeSource();
+            codeSourceMaps.add(codeSourceMap);
+        }
+        for (Map<String, String> codeSourceMap : codeSourceMaps) {
+            for (Entry<String, String> entries : codeSourceMap.entrySet()) {
+                Unit unit = new Unit();
+                unit.setRepositoryBean(repository);
+                unit.setName(entries.getKey());
+                unit.setSource(entries.getValue());
+                units.add(unit);
+                List<Method> methods = getMethodCodes(sequences, codeSourceMaps);
+                for (Method method : methods) {
+                    method.setUnitBean(unit);
+                }
+                unit.setMethods(methods);
             }
-            unit.setMethods(methods);
         }
         repository.setUnits(units);
         return repository;
     }
 
-    public List<Method> getMethodCodes(List<Sequence> sequences, List<ICodeSource> codeSources)
+    public List<Method> getMethodCodes(List<Sequence> sequences, List<Map<String, String>> codeSourcesMaps)
             throws IOException, ParseException {
         IMetricsSource metricsSource = new IMetricsSource() {
 
@@ -94,7 +104,7 @@ public class ConcernCallsManager {
                 return Arrays.asList((IConcernMetric) new ConcernCollection());
             }
         };
-        List<IMethodCalls> allMethodCalls = getConcernCollectionofAllFiles(metricsSource, codeSources);
+        List<IMethodCalls> allMethodCalls = getConcernCollectionofAllFiles(metricsSource, codeSourcesMaps);
         List<Method> methodCodes = new ArrayList<Method>();
         for (IMethodCalls methodCall : allMethodCalls) {
             for (int i = 0; i < methodCall.getMethodNames().size(); i++) {

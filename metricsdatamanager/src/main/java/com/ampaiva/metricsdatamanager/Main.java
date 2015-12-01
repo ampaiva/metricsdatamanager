@@ -53,28 +53,28 @@ public class Main {
         for (File zipFile : files) {
             System.out.println(zipFile.getName());
             ZipUtil zipUtil = new ZipUtil(zipFile.getAbsolutePath());
-            MetricsColector metricsColector = new MetricsColector(metricsSource, zipUtil);
+            MetricsColector metricsColector = new MetricsColector(metricsSource);
             if (shouldPersist) {
-                persist(getProjectKey(zipFile), zipFile.getAbsolutePath(), metricsColector);
+                persist(getProjectKey(zipFile), zipFile.getAbsolutePath(), metricsColector, zipUtil);
             }
-            persistConcernCollection(metricsColector);
+            persistConcernCollection(metricsColector, zipUtil);
         }
     }
 
     public List<IMethodCalls> getConcernCollectionofAllFiles(IMetricsSource metricsSource,
             List<ICodeSource> codeSources) throws Exception {
         for (ICodeSource codeSource : codeSources) {
-            MetricsColector metricsColector = new MetricsColector(metricsSource, codeSource);
-            persistConcernCollection(metricsColector);
+            MetricsColector metricsColector = new MetricsColector(metricsSource);
+            persistConcernCollection(metricsColector, codeSource);
         }
 
         return concernCollections;
     }
 
-    private void persist(String projectKey, String projectLocation, MetricsColector metricsColector)
-            throws ParseException, IOException {
+    private void persist(String projectKey, String projectLocation, MetricsColector metricsColector,
+            ICodeSource codeSource) throws ParseException, IOException {
         Map<String, List<ConcernMetricNode>> metrics = new HashMap<String, List<ConcernMetricNode>>();
-        HashMap<String, List<IConcernMetric>> hash = metricsColector.getMetrics().getHash();
+        HashMap<String, List<IConcernMetric>> hash = metricsColector.getMetrics(codeSource.getCodeSource()).getHash();
         for (Entry<String, List<IConcernMetric>> entry : hash.entrySet()) {
             for (IConcernMetric concernMetric : entry.getValue()) {
                 if (!(concernMetric instanceof ConcernCollection)) {
@@ -85,8 +85,9 @@ public class Main {
         metricsManager.persist(projectKey, projectLocation, EOcurrencyType.EXCEPTION_HANDLING, metrics);
     }
 
-    private void persistConcernCollection(MetricsColector metricsColector) throws ParseException, IOException {
-        HashMap<String, List<IConcernMetric>> hash = metricsColector.getMetrics().getHash();
+    private void persistConcernCollection(MetricsColector metricsColector, ICodeSource codeSource)
+            throws ParseException, IOException {
+        HashMap<String, List<IConcernMetric>> hash = metricsColector.getMetrics(codeSource.getCodeSource()).getHash();
         for (Entry<String, List<IConcernMetric>> entry : hash.entrySet()) {
             for (IConcernMetric concernMetric : entry.getValue()) {
                 if (concernMetric instanceof ConcernCollection) {

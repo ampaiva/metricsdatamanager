@@ -86,11 +86,11 @@ public class PersistDuplications {
         commit(repository);
         IProgressUpdate update = ProgressUpdate.start("Persisting units", units.size());
         for (Unit unit : units) {
+            update.beginIndex(unit);
             List<Method> methods = unit.getMethods();
             unit.setMethods(Collections.<Method> emptyList());
             commit(unit);
             for (Method method : methods) {
-                update.beginIndex(method);
                 List<Call> calls = method.getCalls();
                 method.setCalls(Collections.<Call> emptyList());
                 dataManager.open();
@@ -244,7 +244,7 @@ public class PersistDuplications {
     public static void main(String[] args) throws IOException, ParseException {
         BasicConfigurator.configure();
         String folder = "c:/temp";
-        PersistDuplications persistDuplications = new PersistDuplications(3, 100);
+        PersistDuplications persistDuplications = new PersistDuplications(3, 3);
         persistDuplications.run(folder, true);
     }
 

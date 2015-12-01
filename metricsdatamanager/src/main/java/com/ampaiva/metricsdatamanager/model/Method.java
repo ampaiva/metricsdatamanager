@@ -117,4 +117,9 @@ public class Method implements Serializable {
         this.unitBean = unitBean;
     }
 
+    @Override
+    public String toString() {
+        return "Method [id=" + id + ", name=" + name + ", unitBean=" + unitBean + "]";
+    }
+
 }
