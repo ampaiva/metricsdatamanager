@@ -97,6 +97,34 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
     }
 
     @Test
+    public void getConcernClonesZipTest4() throws Exception {
+        expect(config.getMinSeq()).andReturn(4).anyTimes();
+
+        replayAll();
+
+        List<Sequence> sequences = new ArrayList<Sequence>();
+        File file = new File("src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest4.zip");
+        ZipStreamUtil zipStreamUtil = new ZipStreamUtil(Helper.convertFile2InputStream(file));
+        Repository repository = concernCallsManager.createRepository(Arrays.asList(zipStreamUtil), file.getName(),
+                sequences);
+        List<Unit> units = repository.getUnits();
+        assertNotNull(units);
+        concernCallsManager = new ConcernCallsManager(new SequencesInt(sequences, units));
+        List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches(config);
+        List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, units);
+        assertNotNull(duplications);
+        assertEquals(1, duplications.size());
+        ConcernClone concernClone = duplications.get(0);
+        assertNotNull(concernClone);
+        assertEquals(2, concernClone.methods.size());
+        assertEquals(2, concernClone.sequences.size());
+        assertEquals(5, concernClone.sequences.get(0).size());
+        assertEquals(7, concernClone.sequences.get(1).size());
+        assertEquals(1, concernClone.duplications.size());
+
+    }
+
+    @Test
     public void getConcernClonesAll() throws Exception {
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(Level.INFO);

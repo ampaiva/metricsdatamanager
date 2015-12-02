@@ -156,27 +156,25 @@ public class SequenceMatch {
         }
         List<Integer> sequenceCopy = sequences.get(copy.get(0));
         List<Integer> sequencePaste = sequences.get(paste.get(0));
-        boolean result = false;
-        for (int i = copy.get(1) - (paste.get(1) == 0 ? 1 : 0); i >= 0; i--) {
-            for (int j = paste.get(1) - (i == copy.get(1) ? 1 : 0); j >= 0; j--) {
-                if (sequenceCopy.get(i).intValue() == sequencePaste.get(j).intValue()) {
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("sequenceCopy[" + i + "]==sequencePaste[" + j + "]");
-                    }
-                    result = true;
-                    break;
-                } else {
-                    break;
-                }
-            }
-            if (result) {
-                break;
-            }
-        }
+        boolean result = hasMatchesAbove(copy.get(1), paste.get(1), sequenceCopy, sequencePaste);
         if (LOG.isDebugEnabled()) {
             LOG.debug("hasMatchesAbove(" + copy + ", " + paste + ") return " + result);
         }
         return result;
+    }
+
+    public static boolean hasMatchesAbove(Integer copy, Integer paste, List<Integer> sequenceCopy,
+            List<Integer> sequencePaste) {
+        if ((copy > 0) && (sequenceCopy.get(copy - 1).intValue() == sequenceCopy.get(copy).intValue())) {
+            return true;
+        }
+        if ((paste > 0) && (sequencePaste.get(paste - 1).intValue() == sequencePaste.get(paste).intValue())) {
+            return true;
+        }
+        if (copy == 0 || paste == 0) {
+            return false;
+        }
+        return sequenceCopy.get(copy - 1).intValue() == sequencePaste.get(paste - 1).intValue();
     }
 
     private List<List<Integer>> getSequenceMatches(List<Integer> copy, List<Integer> paste) {
