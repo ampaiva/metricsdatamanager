@@ -195,9 +195,18 @@ public class PersistDuplications {
         return sequenceMatches;
     }
 
-    private void run(String folder, boolean searchZips) throws IOException, ParseException {
+    private void deleteAllAnalysis() {
+        dataManager.open();
+        dataManager.removeAll(Analyse.class);
+        dataManager.close();
+    }
+
+    private void run(String folder, boolean searchZips, boolean deleteAllAnalysis) throws IOException, ParseException {
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(Level.INFO);
+        if (deleteAllAnalysis) {
+            deleteAllAnalysis();
+        }
         List<File> files = searchZips ? Helper.getFilesRecursevely(folder, ".zip") : Arrays.asList(new File(folder));
         IProgressReport report = new ProgressReport();
         IProgressUpdate update = ProgressUpdate.start(report, "Run over " + folder, 2);
@@ -236,7 +245,7 @@ public class PersistDuplications {
         BasicConfigurator.configure();
         String folder = "c:/temp";
         PersistDuplications persistDuplications = new PersistDuplications(3, 10);
-        persistDuplications.run(folder, true);
+        persistDuplications.run(folder, true, true);
     }
 
 }
