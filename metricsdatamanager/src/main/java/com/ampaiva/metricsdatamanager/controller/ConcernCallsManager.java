@@ -4,7 +4,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -43,12 +42,12 @@ public class ConcernCallsManager {
     }
 
     private void persistConcernCollection(MetricsColector metricsColector, Map<String, String> codeSourceMap,
-            List<IMethodCalls> concernCollections) throws ParseException, IOException {
-        HashMap<String, List<IConcernMetric>> hash = metricsColector.getMetrics(codeSourceMap).getHash();
+            List<IMethodCalls> methodCalls) throws ParseException, IOException {
+        Map<String, List<IConcernMetric>> hash = metricsColector.getMetrics(codeSourceMap).getHash();
         for (Entry<String, List<IConcernMetric>> entry : hash.entrySet()) {
             for (IConcernMetric concernMetric : entry.getValue()) {
                 if (concernMetric instanceof ConcernCollection) {
-                    concernCollections.add((ConcernCollection) concernMetric);
+                    methodCalls.add((ConcernCollection) concernMetric);
                 }
             }
         }
@@ -56,15 +55,15 @@ public class ConcernCallsManager {
 
     private List<IMethodCalls> getConcernCollectionofAllFiles(IMetricsSource metricsSource,
             List<Map<String, String>> codeSourcesMaps) throws ParseException, IOException {
-        final List<IMethodCalls> concernCollections = new ArrayList<IMethodCalls>();
+        final List<IMethodCalls> methodCalls = new ArrayList<IMethodCalls>();
         IProgressUpdate update = ProgressUpdate.start("Processing code source", codeSourcesMaps.size());
         for (Map<String, String> codeSource : codeSourcesMaps) {
             update.beginIndex(codeSource);
             MetricsColector metricsColector = new MetricsColector(metricsSource);
-            persistConcernCollection(metricsColector, codeSource, concernCollections);
+            persistConcernCollection(metricsColector, codeSource, methodCalls);
         }
 
-        return concernCollections;
+        return methodCalls;
     }
 
     public Repository createRepository(List<ICodeSource> codeSources, String location, List<Sequence> sequences)
@@ -78,13 +77,15 @@ public class ConcernCallsManager {
             codeSourceMaps.add(codeSourceMap);
         }
         for (Map<String, String> codeSourceMap : codeSourceMaps) {
-            for (Entry<String, String> entries : codeSourceMap.entrySet()) {
+            for (Entry<String, String> entry : codeSourceMap.entrySet()) {
                 Unit unit = new Unit();
                 unit.setRepositoryBean(repository);
-                unit.setName(entries.getKey());
-                unit.setSource(entries.getValue());
+                unit.setName(entry.getKey());
+                unit.setSource(entry.getValue());
                 units.add(unit);
-                List<Method> methods = getMethodCodes(sequences, codeSourceMaps);
+                IConcernMetric concernMetric = new ConcernCollection();
+                concernMetric.parse(unit.getSource());
+                List<Method> methods = getMethods(sequences, (IMethodCalls) concernMetric);
                 for (Method method : methods) {
                     method.setUnitBean(unit);
                 }
@@ -105,42 +106,60 @@ public class ConcernCallsManager {
             }
         };
         List<IMethodCalls> allMethodCalls = getConcernCollectionofAllFiles(metricsSource, codeSourcesMaps);
+        return getMethods(sequences, allMethodCalls);
+    }
+
+    private List<Method> getMethods(List<Sequence> sequences, List<IMethodCalls> allMethodCalls) {
         List<Method> methodCodes = new ArrayList<Method>();
         for (IMethodCalls methodCall : allMethodCalls) {
             for (int i = 0; i < methodCall.getMethodNames().size(); i++) {
-                Method method = new Method();
-                method.setName(methodCall.getMethodNames().get(i));
-                method.setSource(methodCall.getMethodSources().get(i));
-                method.setCalls(new ArrayList<Call>());
-                List<String> seq = methodCall.getSequences().get(i);
-                for (int order = 0; order < seq.size(); order++) {
-                    String sequenceName = seq.get(order);
-                    if (sequenceName.length() > 255) {
-                        continue;
-                    }
-                    Call call = new Call();
-                    call.setPosition(order);
-                    Sequence sequence = null;
-                    for (Sequence sequenceT : sequences) {
-                        if (sequenceT.getName().equals(sequenceName)) {
-                            sequence = sequenceT;
-                            break;
-                        }
-
-                    }
-                    if (sequence == null) {
-                        sequence = new Sequence();
-                        sequence.setName(sequenceName);
-                        sequences.add(sequence);
-                    }
-                    call.setSequenceBean(sequence);
-                    call.setMethodBean(method);
-                    method.getCalls().add(call);
-                }
+                Method method = getMethod(sequences, methodCall, i);
                 methodCodes.add(method);
             }
         }
         return methodCodes;
+    }
+
+    private List<Method> getMethods(List<Sequence> sequences, IMethodCalls methodCall) {
+        List<Method> methodCodes = new ArrayList<Method>();
+        for (int i = 0; i < methodCall.getMethodNames().size(); i++) {
+            Method method = getMethod(sequences, methodCall, i);
+            methodCodes.add(method);
+        }
+        return methodCodes;
+    }
+
+    private Method getMethod(List<Sequence> sequences, IMethodCalls methodCall, int i) {
+        Method method = new Method();
+        method.setName(methodCall.getMethodNames().get(i));
+        method.setSource(methodCall.getMethodSources().get(i));
+        method.setCalls(new ArrayList<Call>());
+        List<String> seq = methodCall.getSequences().get(i);
+        for (int order = 0; order < seq.size(); order++) {
+            String sequenceName = seq.get(order);
+            if (sequenceName.length() > 255) {
+                continue;
+            }
+            Call call = new Call();
+            call.setPosition(order);
+            Sequence sequence = null;
+            for (Sequence sequenceT : sequences) {
+                if (sequenceT.getName().equals(sequenceName)) {
+                    sequence = sequenceT;
+                    break;
+                }
+
+            }
+            if (sequence == null) {
+                sequence = new Sequence();
+                sequence.setName(sequenceName);
+                sequences.add(sequence);
+            }
+            call.setSequenceBean(sequence);
+            call.setMethodBean(method);
+            method.getCalls().add(call);
+        }
+        return method;
     }
 
     public List<MatchesData> getSequenceMatches(IConcernCallsConfig config) {

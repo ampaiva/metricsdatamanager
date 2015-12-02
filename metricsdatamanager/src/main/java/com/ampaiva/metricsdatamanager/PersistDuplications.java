@@ -161,11 +161,9 @@ public class PersistDuplications {
     }
 
     private void saveClones(Analyse analyse, List<Unit> units, MatchesData matchesData) {
-        List<Call> calls = new ArrayList<>();
+        List<Method> methods = new ArrayList<>();
         for (Unit unit : units) {
-            for (Method method : unit.getMethods()) {
-                calls.addAll(method.getCalls());
-            }
+            methods.addAll(unit.getMethods());
         }
         IProgressUpdate update4 = ProgressUpdate.start("Saving clones", matchesData.groupsMatched.size());
         for (int i = 0; i < matchesData.groupsMatched.size(); i++) {
@@ -174,8 +172,8 @@ public class PersistDuplications {
             List<List<Integer>> duplications = matchesData.sequencesMatches.get(i);
             for (List<Integer> duplication : duplications) {
                 Clone clone = new Clone();
-                clone.setCopy(calls.get(duplication.get(0)));
-                clone.setPaste(calls.get(duplication.get(1)));
+                clone.setCopy(methods.get(matchesData.groupIndex).getCalls().get(duplication.get(0)));
+                clone.setPaste(methods.get(matchesData.groupsMatched.get(i)).getCalls().get(duplication.get(1)));
                 clone.setAnalyseBean(analyse);
                 analyse.getClones().add(clone);
                 break;
