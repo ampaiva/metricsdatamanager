@@ -98,7 +98,7 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
 
     @Test
     public void getConcernClonesZipTest4() throws Exception {
-        expect(config.getMinSeq()).andReturn(4).anyTimes();
+        expect(config.getMinSeq()).andReturn(5).anyTimes();
 
         replayAll();
 
@@ -120,7 +120,7 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         assertEquals(2, concernClone.sequences.size());
         assertEquals(5, concernClone.sequences.get(0).size());
         assertEquals(7, concernClone.sequences.get(1).size());
-        assertEquals(1, concernClone.duplications.size());
+        assertEquals(5, concernClone.duplications.size());
 
     }
 
