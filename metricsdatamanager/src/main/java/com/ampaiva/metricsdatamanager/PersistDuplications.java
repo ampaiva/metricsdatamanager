@@ -25,7 +25,6 @@ import com.ampaiva.metricsdatamanager.controller.IDataManager;
 import com.ampaiva.metricsdatamanager.model.Analyse;
 import com.ampaiva.metricsdatamanager.model.Call;
 import com.ampaiva.metricsdatamanager.model.Clone;
-import com.ampaiva.metricsdatamanager.model.Clonecall;
 import com.ampaiva.metricsdatamanager.model.Method;
 import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.model.Sequence;
@@ -162,30 +161,24 @@ public class PersistDuplications {
     }
 
     private void saveClones(Analyse analyse, List<Unit> units, MatchesData matchesData) {
-        List<Method> methods = new ArrayList<>();
+        List<Call> calls = new ArrayList<>();
         for (Unit unit : units) {
-            methods.addAll(unit.getMethods());
+            for (Method method : unit.getMethods()) {
+                calls.addAll(method.getCalls());
+            }
         }
         IProgressUpdate update4 = ProgressUpdate.start("Saving clones", matchesData.groupsMatched.size());
         for (int i = 0; i < matchesData.groupsMatched.size(); i++) {
             update4.beginIndex();
-            int groupMatched = matchesData.groupsMatched.get(i);
-            Clone clone = new Clone();
-            clone.setCopy(methods.get(matchesData.groupIndex));
-            clone.setPaste(methods.get(groupMatched));
-            clone.setAnalyseBean(analyse);
-            clone.setClonecalls(new ArrayList<Clonecall>());
-            analyse.getClones().add(clone);
 
             List<List<Integer>> duplications = matchesData.sequencesMatches.get(i);
-            IProgressUpdate update5 = ProgressUpdate.start("Saving clone calls", duplications.size());
             for (List<Integer> duplication : duplications) {
-                update5.beginIndex(duplication);
-                Clonecall cloneCall = new Clonecall();
-                cloneCall.setCopy(clone.getCopy().getCalls().get(duplication.get(0)));
-                cloneCall.setPaste(clone.getPaste().getCalls().get(duplication.get(1)));
-                cloneCall.setCloneBean(clone);
-                clone.getClonecalls().add(cloneCall);
+                Clone clone = new Clone();
+                clone.setCopy(calls.get(duplication.get(0)));
+                clone.setPaste(calls.get(duplication.get(1)));
+                clone.setAnalyseBean(analyse);
+                analyse.getClones().add(clone);
+                break;
             }
         }
         update4.endIndex();

@@ -45,15 +45,6 @@ public class Method implements Serializable {
     @CascadeOnDelete
     private List<Call> calls;
 
-    @OneToMany(mappedBy = "copy", orphanRemoval = true, cascade = { CascadeType.ALL })
-    @CascadeOnDelete
-    private List<Clone> copies;
-
-    @OneToMany(mappedBy = "paste", orphanRemoval = true, cascade = { CascadeType.ALL })
-    @CascadeOnDelete
-    private List<Clone> pastes;
-
-    //bi-directional many-to-one association to Unit
     @ManyToOne(cascade = { CascadeType.ALL })
     @JoinColumn(name = "unit", nullable = false)
     private Unit unitBean;
@@ -91,22 +82,6 @@ public class Method implements Serializable {
 
     public void setCalls(List<Call> calls) {
         this.calls = calls;
-    }
-
-    public List<Clone> getCopies() {
-        return this.copies;
-    }
-
-    public void setCopies(List<Clone> copies) {
-        this.copies = copies;
-    }
-
-    public List<Clone> getClones2() {
-        return this.pastes;
-    }
-
-    public void setPastes(List<Clone> pastes) {
-        this.pastes = pastes;
     }
 
     public Unit getUnitBean() {

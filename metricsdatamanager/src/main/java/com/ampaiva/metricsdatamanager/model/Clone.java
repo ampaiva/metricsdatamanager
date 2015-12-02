@@ -1,12 +1,10 @@
 package com.ampaiva.metricsdatamanager.model;
 
 import java.io.Serializable;
-import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -14,10 +12,7 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
 import javax.persistence.Table;
-
-import org.eclipse.persistence.annotations.CascadeOnDelete;
 
 /**
  * The persistent class for the clones database table.
@@ -42,15 +37,11 @@ public class Clone implements Serializable {
 
     @ManyToOne(cascade = { CascadeType.ALL })
     @JoinColumn(name = "copy", nullable = false)
-    private Method copy;
+    private Call copy;
 
     @ManyToOne(cascade = { CascadeType.ALL })
     @JoinColumn(name = "paste", nullable = false)
-    private Method paste;
-
-    @OneToMany(mappedBy = "cloneBean", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
-    @CascadeOnDelete
-    private List<Clonecall> clonecalls;
+    private Call paste;
 
     public Clone() {
     }
@@ -63,28 +54,6 @@ public class Clone implements Serializable {
         this.id = id;
     }
 
-    public List<Clonecall> getClonecalls() {
-        return this.clonecalls;
-    }
-
-    public void setClonecalls(List<Clonecall> clonecalls) {
-        this.clonecalls = clonecalls;
-    }
-
-    public Clonecall addClonecall(Clonecall clonecall) {
-        getClonecalls().add(clonecall);
-        clonecall.setCloneBean(this);
-
-        return clonecall;
-    }
-
-    public Clonecall removeClonecall(Clonecall clonecall) {
-        getClonecalls().remove(clonecall);
-        clonecall.setCloneBean(null);
-
-        return clonecall;
-    }
-
     public Analyse getAnalyseBean() {
         return this.analyseBean;
     }
@@ -93,20 +62,25 @@ public class Clone implements Serializable {
         this.analyseBean = analyse;
     }
 
-    public Method getCopy() {
+    public Call getCopy() {
         return this.copy;
     }
 
-    public void setCopy(Method copy) {
+    public void setCopy(Call copy) {
         this.copy = copy;
     }
 
-    public Method getPaste() {
+    public Call getPaste() {
         return this.paste;
     }
 
-    public void setPaste(Method paste) {
+    public void setPaste(Call paste) {
         this.paste = paste;
+    }
+
+    @Override
+    public String toString() {
+        return "Clone [id=" + id + ", analyseBean=" + analyseBean + ", copy=" + copy + ", paste=" + paste + "]";
     }
 
 }

@@ -47,11 +47,11 @@ public class Call implements Serializable {
 
     @OneToMany(mappedBy = "copy", orphanRemoval = true, cascade = { CascadeType.ALL })
     @CascadeOnDelete
-    private List<Clonecall> copies;
+    private List<Clone> copies;
 
     @OneToMany(mappedBy = "paste", orphanRemoval = true, cascade = { CascadeType.ALL })
     @CascadeOnDelete
-    private List<Clonecall> pastes;
+    private List<Clone> pastes;
 
     public Call() {
     }
@@ -88,19 +88,19 @@ public class Call implements Serializable {
         this.sequenceBean = sequenceBean;
     }
 
-    public List<Clonecall> getCopies() {
+    public List<Clone> getCopies() {
         return this.copies;
     }
 
-    public void setCopies(List<Clonecall> copies) {
+    public void setCopies(List<Clone> copies) {
         this.copies = copies;
     }
 
-    public List<Clonecall> getPastes() {
+    public List<Clone> getPastes() {
         return this.pastes;
     }
 
-    public void setPastes(List<Clonecall> pastes) {
+    public void setPastes(List<Clone> pastes) {
         this.pastes = pastes;
     }
 
