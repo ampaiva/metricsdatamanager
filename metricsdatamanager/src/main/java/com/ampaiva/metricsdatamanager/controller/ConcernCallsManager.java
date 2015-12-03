@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.ampaiva.hlo.cm.ConcernCollection;
+import com.ampaiva.hlo.cm.ConcernMetricNode;
 import com.ampaiva.hlo.cm.ICodeSource;
 import com.ampaiva.hlo.cm.IConcernMetric;
 import com.ampaiva.hlo.cm.IMethodCalls;
@@ -142,6 +143,11 @@ public class ConcernCallsManager {
             }
             Call call = new Call();
             call.setPosition(order);
+            ConcernMetricNode concernMetricNode = ((ConcernCollection) methodCall).getNodes().get(order);
+            call.setBeglin(concernMetricNode.getBeginLine());
+            call.setEndlin(concernMetricNode.getEndLine());
+            call.setBegcol(concernMetricNode.getBeginColumn());
+            call.setEndcol(concernMetricNode.getEndColumn());
             Sequence sequence = null;
             for (Sequence sequenceT : sequences) {
                 if (sequenceT.getName().equals(sequenceName)) {

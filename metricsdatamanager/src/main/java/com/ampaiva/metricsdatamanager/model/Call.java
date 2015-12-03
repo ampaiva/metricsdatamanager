@@ -35,6 +35,18 @@ public class Call implements Serializable {
     @Column(nullable = false)
     private int position;
 
+    @Column(nullable = false)
+    private int beglin;
+
+    @Column(nullable = false)
+    private int begcol;
+
+    @Column(nullable = false)
+    private int endlin;
+
+    @Column(nullable = false)
+    private int endcol;
+
     //bi-directional many-to-one association to Method
     @ManyToOne(cascade = { CascadeType.ALL })
     @JoinColumn(name = "method", nullable = false)
@@ -104,9 +116,41 @@ public class Call implements Serializable {
         this.pastes = pastes;
     }
 
+    public int getBeglin() {
+        return beglin;
+    }
+
+    public void setBeglin(int beglin) {
+        this.beglin = beglin;
+    }
+
+    public int getBegcol() {
+        return begcol;
+    }
+
+    public void setBegcol(int begcol) {
+        this.begcol = begcol;
+    }
+
+    public int getEndlin() {
+        return endlin;
+    }
+
+    public void setEndlin(int endlin) {
+        this.endlin = endlin;
+    }
+
+    public int getEndcol() {
+        return endcol;
+    }
+
+    public void setEndcol(int endcol) {
+        this.endcol = endcol;
+    }
+
     @Override
     public String toString() {
-        return "Call [id=" + id + ", position=" + position + ", methodBean=" + methodBean + ", sequenceBean="
-                + sequenceBean + "]";
+        return "Call [id=" + id + ", position=" + position + ", beglin=" + beglin + ", begcol=" + begcol + ", endlin="
+                + endlin + ", endcol=" + endcol + ", methodBean=" + methodBean + ", sequenceBean=" + sequenceBean + "]";
     }
 }
