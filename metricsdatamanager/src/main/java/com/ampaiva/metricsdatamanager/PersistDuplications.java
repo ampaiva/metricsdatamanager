@@ -8,10 +8,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.log4j.BasicConfigurator;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
-
 import com.ampaiva.hlo.cm.ICodeSource;
 import com.ampaiva.hlo.util.Helper;
 import com.ampaiva.hlo.util.view.IProgressReport;
@@ -20,7 +16,6 @@ import com.ampaiva.hlo.util.view.ProgressReport;
 import com.ampaiva.hlo.util.view.ProgressUpdate;
 import com.ampaiva.metricsdatamanager.config.IConcernCallsConfig;
 import com.ampaiva.metricsdatamanager.controller.ConcernCallsManager;
-import com.ampaiva.metricsdatamanager.controller.DataManager;
 import com.ampaiva.metricsdatamanager.controller.IDataManager;
 import com.ampaiva.metricsdatamanager.model.Analyse;
 import com.ampaiva.metricsdatamanager.model.Call;
@@ -39,9 +34,10 @@ public class PersistDuplications {
 
     final int MIN_SEQ;
     final int MAX_SEQ;
-    final IDataManager dataManager = new DataManager("metricsdatamanager");
+    final IDataManager dataManager;
 
-    private PersistDuplications(int mIN_SEQ, int mAX_SEQ) {
+    public PersistDuplications(IDataManager dataManager, int mIN_SEQ, int mAX_SEQ) {
+        this.dataManager = dataManager;
         MIN_SEQ = mIN_SEQ;
         MAX_SEQ = mAX_SEQ;
     }
@@ -201,24 +197,6 @@ public class PersistDuplications {
         dataManager.close();
     }
 
-    private void run(String folder, boolean searchZips, boolean deleteAllAnalysis) throws IOException, ParseException {
-        BasicConfigurator.configure();
-        Logger.getRootLogger().setLevel(Level.INFO);
-        if (deleteAllAnalysis) {
-            deleteAllAnalysis();
-        }
-        List<File> files = searchZips ? Helper.getFilesRecursevely(folder, ".zip") : Arrays.asList(new File(folder));
-        IProgressReport report = new ProgressReport();
-        IProgressUpdate update = ProgressUpdate.start(report, "Run over " + folder, 2);
-        List<Sequence> sequences = getSequences(dataManager);
-        update.beginIndex("Creating repositories");
-        List<Repository> repositories = createRepositories(files, sequences);
-        update.beginIndex("Analysing repositories");
-        analyseRepositories(sequences, repositories);
-        update.endIndex();
-        BasicConfigurator.resetConfiguration();
-    }
-
     private void analyseRepositories(List<Sequence> sequences, List<Repository> repositories) {
         for (Repository repository : repositories) {
             processAnalysis(repository.getId(), sequences);
@@ -241,11 +219,18 @@ public class PersistDuplications {
         update.endIndex(entity);
     }
 
-    public static void main(String[] args) throws IOException, ParseException {
-        BasicConfigurator.configure();
-        String folder = "c:/temp";
-        PersistDuplications persistDuplications = new PersistDuplications(3, 10);
-        persistDuplications.run(folder, true, true);
+    public void run(String folder, boolean searchZips, boolean deleteAllAnalysis) throws IOException, ParseException {
+        if (deleteAllAnalysis) {
+            deleteAllAnalysis();
+        }
+        List<File> files = searchZips ? Helper.getFilesRecursevely(folder, ".zip") : Arrays.asList(new File(folder));
+        IProgressReport report = new ProgressReport();
+        IProgressUpdate update = ProgressUpdate.start(report, "Run over " + folder, 2);
+        List<Sequence> sequences = getSequences(dataManager);
+        update.beginIndex("Creating repositories");
+        List<Repository> repositories = createRepositories(files, sequences);
+        update.beginIndex("Analysing repositories");
+        analyseRepositories(sequences, repositories);
+        update.endIndex();
     }
-
 }

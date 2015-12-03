@@ -1,7 +1,9 @@
 package com.ampaiva.metricsdatamanager.controller;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -14,14 +16,19 @@ public class DataManager implements IDataManager {
     private EntityManagerFactory emFactory;
     EntityManager entityManager;
     private final String persistenceUnitName;
+    private final Map<String, String> properties = new HashMap<String, String>();
 
     public DataManager(String persistenceUnitName) {
         this.persistenceUnitName = persistenceUnitName;
     }
 
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
     @Override
     public void open() {
-        emFactory = Persistence.createEntityManagerFactory(persistenceUnitName);
+        emFactory = Persistence.createEntityManagerFactory(persistenceUnitName, properties);
         entityManager = emFactory.createEntityManager();
         begin();
     }
