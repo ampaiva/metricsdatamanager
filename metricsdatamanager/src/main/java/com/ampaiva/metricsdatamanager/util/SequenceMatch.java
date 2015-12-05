@@ -2,6 +2,8 @@ package com.ampaiva.metricsdatamanager.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,11 +19,9 @@ public class SequenceMatch {
     private static final Log LOG = LogFactory.getLog(SequenceMatch.class);
 
     private final List<List<Integer>> sequences;
-    private final int minSequence;
 
-    public SequenceMatch(List<List<Integer>> sequences, int minSequence) {
+    public SequenceMatch(List<List<Integer>> sequences) {
         this.sequences = sequences;
-        this.minSequence = minSequence;
         if (LOG.isDebugEnabled()) {
             LOG.debug(this);
         }
@@ -64,6 +64,20 @@ public class SequenceMatch {
 
         if (LOG.isDebugEnabled()) {
             LOG.debug("getMatches() return " + result);
+        }
+        for (MatchesData matchesData : result) {
+            for (List<List<Integer>> matches : matchesData.sequencesMatches) {
+                Collections.sort(matches, new Comparator<List<Integer>>() {
+                    @Override
+                    public int compare(List<Integer> match1, List<Integer> match2) {
+                        int result = match1.get(0).compareTo(match2.get(0));
+                        if (result != 0) {
+                            return result;
+                        }
+                        return match1.get(1).compareTo(match2.get(1));
+                    }
+                });
+            }
         }
         return result;
     }
@@ -135,10 +149,8 @@ public class SequenceMatch {
                 continue;
             }
             List<List<Integer>> sequenceMatches = getSequenceMatches(copy, paste);
-            if (sequenceMatches.size() == minSequence) {
-                groupsMatched.add(paste.get(0));
-                sequencesMatches.add(sequenceMatches);
-            }
+            groupsMatched.add(paste.get(0));
+            sequencesMatches.add(sequenceMatches);
         }
         MatchesData matchesData = null;
         if (groupsMatched.size() > 0) {
@@ -196,7 +208,7 @@ public class SequenceMatch {
         int indexPaste = paste.get(1) + 1;
         for (int i = indexCopy; i < sequenceCopy.size(); i++) {
             boolean found = false;
-            for (int j = indexPaste; j < sequencePaste.size(); j++) {
+            for (int j = indexPaste; j < sequencePaste.size();) {
                 if (sequenceCopy.get(i).intValue() == sequencePaste.get(j).intValue()) {
                     sequenceMatches.add(Arrays.asList(i, j));
                     indexPaste = j + 1;
@@ -221,6 +233,6 @@ public class SequenceMatch {
 
     @Override
     public String toString() {
-        return "SequenceMatch [sequences=" + sequences + ", minSequence=" + minSequence + "]";
+        return "SequenceMatch [sequences=" + sequences + "]";
     }
 }

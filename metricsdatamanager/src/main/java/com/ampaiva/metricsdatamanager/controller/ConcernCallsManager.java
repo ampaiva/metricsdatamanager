@@ -17,7 +17,6 @@ import com.ampaiva.hlo.cm.IMetricsSource;
 import com.ampaiva.hlo.cm.MetricsColector;
 import com.ampaiva.hlo.util.view.IProgressUpdate;
 import com.ampaiva.hlo.util.view.ProgressUpdate;
-import com.ampaiva.metricsdatamanager.config.IConcernCallsConfig;
 import com.ampaiva.metricsdatamanager.model.Call;
 import com.ampaiva.metricsdatamanager.model.Method;
 import com.ampaiva.metricsdatamanager.model.Repository;
@@ -168,8 +167,8 @@ public class ConcernCallsManager {
         return method;
     }
 
-    public List<MatchesData> getSequenceMatches(IConcernCallsConfig config) {
-        SequenceMatch sequenceMatch = new SequenceMatch(sequencesInt.getSequencesInt(), config.getMinSeq());
+    public List<MatchesData> getSequenceMatches() {
+        SequenceMatch sequenceMatch = new SequenceMatch(sequencesInt.getSequencesInt());
         if (sequencesMap == null) {
             sequencesMap = new SequencesMap(sequencesInt.getSequencesInt());
         }
