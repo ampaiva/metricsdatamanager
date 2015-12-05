@@ -38,6 +38,18 @@ public class Method implements Serializable {
     @Column(length = 255)
     private String name;
 
+    @Column(nullable = false)
+    private int beglin;
+
+    @Column(nullable = false)
+    private int begcol;
+
+    @Column(nullable = false)
+    private int endlin;
+
+    @Column(nullable = false)
+    private int endcol;
+
     @Lob
     private String source;
 
@@ -66,6 +78,38 @@ public class Method implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getBeglin() {
+        return beglin;
+    }
+
+    public void setBeglin(int beglin) {
+        this.beglin = beglin;
+    }
+
+    public int getBegcol() {
+        return begcol;
+    }
+
+    public void setBegcol(int begcol) {
+        this.begcol = begcol;
+    }
+
+    public int getEndlin() {
+        return endlin;
+    }
+
+    public void setEndlin(int endlin) {
+        this.endlin = endlin;
+    }
+
+    public int getEndcol() {
+        return endcol;
+    }
+
+    public void setEndcol(int endcol) {
+        this.endcol = endcol;
     }
 
     public String getSource() {

@@ -222,6 +222,7 @@ public class PersistDuplications {
     public void run(String folder, boolean searchZips, boolean deleteAllAnalysis) throws IOException, ParseException {
         if (deleteAllAnalysis) {
             deleteAllAnalysis();
+            return;
         }
         List<File> files = searchZips ? Helper.getFilesRecursevely(folder, ".zip") : Arrays.asList(new File(folder));
         IProgressReport report = new ProgressReport();
