@@ -62,7 +62,7 @@ public class Main {
         final IDataManager dataManager = new ConfigDataManager(config);
 
         PersistDuplications persistDuplications = new PersistDuplications(dataManager,
-                Integer.parseInt(config.get("analysis.minseq")), Integer.parseInt(config.get("analysis.maxseq")));
+                Integer.parseInt(config.get("analysis.minseq")));
         persistDuplications.run(config.get("analysis.folder"), Boolean.parseBoolean(config.get("analysis.searchzips")),
                 Boolean.parseBoolean(config.get("analysis.deleteall")));
         BasicConfigurator.resetConfiguration();

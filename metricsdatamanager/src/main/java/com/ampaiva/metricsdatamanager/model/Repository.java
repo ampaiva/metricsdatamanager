@@ -43,8 +43,7 @@ public class Repository implements Serializable {
     private List<Analyse> analysis;
 
     //bi-directional many-to-one association to Unit
-    @OneToMany(mappedBy = "repositoryBean", orphanRemoval = true, cascade = {
-            CascadeType.ALL }, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "repositoryBean", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
     @CascadeOnDelete
     private List<Unit> units;
 

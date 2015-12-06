@@ -35,15 +35,12 @@ import com.github.javaparser.ParseException;
 
 public class PersistDuplications {
 
-    private static final int MINSEQ = 3;
     final int MIN_SEQ;
-    final int MAX_SEQ;
     final IDataManager dataManager;
 
-    public PersistDuplications(IDataManager dataManager, int mIN_SEQ, int mAX_SEQ) {
+    public PersistDuplications(IDataManager dataManager, int minSeq) {
         this.dataManager = dataManager;
-        MIN_SEQ = mIN_SEQ;
-        MAX_SEQ = mAX_SEQ;
+        MIN_SEQ = minSeq;
     }
 
     private List<Repository> createRepositories(List<File> files, Map<String, Sequence> sequencesMap)
@@ -149,7 +146,7 @@ public class PersistDuplications {
                 Duplications duplications = new Duplications(matchesData.sequencesMatches.get(i));
                 DuplicationInfo duplicationInfo = duplications.next();
                 while (duplicationInfo != null) {
-                    if (duplicationInfo.count >= MINSEQ) {
+                    if (duplicationInfo.count >= MIN_SEQ) {
                         saveAnalysis(repository, method0, method1, duplicationInfo.count, duplicationInfo.position0,
                                 duplicationInfo.position1);
                     }

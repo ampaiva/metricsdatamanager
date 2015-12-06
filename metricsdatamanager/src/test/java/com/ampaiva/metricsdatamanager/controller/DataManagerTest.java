@@ -11,10 +11,8 @@ import com.ampaiva.metricsdatamanager.model.Repository;
 
 public class DataManagerTest {
 
-    private static final String RESOURCE_NAME = "com.ampaiva.AnyClass";
     private static final String PU_NAME = "metricsdatamanagerTEST";
     private static final String PROJECT_LOCATION = "/somewhere/TestProject.zip";
-    private static final String PROJECT_NAME = "TestProject";
 
     @Test
     public void testEmpty() throws Exception {
