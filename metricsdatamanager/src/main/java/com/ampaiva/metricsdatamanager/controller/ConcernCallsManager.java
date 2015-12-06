@@ -66,8 +66,8 @@ public class ConcernCallsManager {
         return methodCalls;
     }
 
-    public Repository createRepository(List<ICodeSource> codeSources, String location, List<Sequence> sequences)
-            throws FileNotFoundException, IOException, ParseException {
+    public Repository createRepository(List<ICodeSource> codeSources, String location,
+            Map<String, Sequence> sequencesMap) throws FileNotFoundException, IOException, ParseException {
         Repository repository = new Repository();
         repository.setLocation(location);
         List<Unit> units = new ArrayList<>();
@@ -85,10 +85,7 @@ public class ConcernCallsManager {
                 units.add(unit);
                 IConcernMetric concernMetric = new ConcernCollection();
                 concernMetric.parse(unit.getSource());
-                List<Method> methods = getMethods(sequences, (IMethodCalls) concernMetric);
-                for (Method method : methods) {
-                    method.setUnitBean(unit);
-                }
+                List<Method> methods = getMethods(unit, sequencesMap, (IMethodCalls) concernMetric);
                 unit.setMethods(methods);
             }
         }
@@ -96,7 +93,7 @@ public class ConcernCallsManager {
         return repository;
     }
 
-    public List<Method> getMethodCodes(List<Sequence> sequences, List<Map<String, String>> codeSourcesMaps)
+    public List<Method> getMethodCodes(Map<String, Sequence> sequencesMap, List<Map<String, String>> codeSourcesMaps)
             throws IOException, ParseException {
         IMetricsSource metricsSource = new IMetricsSource() {
 
@@ -106,30 +103,31 @@ public class ConcernCallsManager {
             }
         };
         List<IMethodCalls> allMethodCalls = getConcernCollectionofAllFiles(metricsSource, codeSourcesMaps);
-        return getMethods(sequences, allMethodCalls);
+        return getMethods(sequencesMap, allMethodCalls);
     }
 
-    private List<Method> getMethods(List<Sequence> sequences, List<IMethodCalls> allMethodCalls) {
+    private List<Method> getMethods(Map<String, Sequence> sequencesMap, List<IMethodCalls> allMethodCalls) {
         List<Method> methodCodes = new ArrayList<Method>();
         for (IMethodCalls methodCall : allMethodCalls) {
             for (int i = 0; i < methodCall.getMethodNames().size(); i++) {
-                Method method = getMethod(sequences, methodCall, i);
+                Method method = getMethod(sequencesMap, methodCall, i);
                 methodCodes.add(method);
             }
         }
         return methodCodes;
     }
 
-    private List<Method> getMethods(List<Sequence> sequences, IMethodCalls methodCall) {
+    private List<Method> getMethods(Unit unit, Map<String, Sequence> sequencesMap, IMethodCalls methodCall) {
         List<Method> methodCodes = new ArrayList<Method>();
         for (int i = 0; i < methodCall.getMethodNames().size(); i++) {
-            Method method = getMethod(sequences, methodCall, i);
+            Method method = getMethod(sequencesMap, methodCall, i);
+            method.setUnitBean(unit);
             methodCodes.add(method);
         }
         return methodCodes;
     }
 
-    private Method getMethod(List<Sequence> sequences, IMethodCalls methodCall, int i) {
+    private Method getMethod(Map<String, Sequence> sequencesMap, IMethodCalls methodCall, int i) {
         Method method = new Method();
         method.setName(methodCall.getMethodNames().get(i));
         method.setSource(methodCall.getMethodSources().get(i));
@@ -147,18 +145,11 @@ public class ConcernCallsManager {
             call.setEndlin(concernMetricNode.getEndLine());
             call.setBegcol(concernMetricNode.getBeginColumn());
             call.setEndcol(concernMetricNode.getEndColumn());
-            Sequence sequence = null;
-            for (Sequence sequenceT : sequences) {
-                if (sequenceT.getName().equals(sequenceName)) {
-                    sequence = sequenceT;
-                    break;
-                }
-
-            }
+            Sequence sequence = sequencesMap.get(sequenceName);
             if (sequence == null) {
                 sequence = new Sequence();
                 sequence.setName(sequenceName);
-                sequences.add(sequence);
+                sequencesMap.put(sequenceName, sequence);
             }
             call.setSequenceBean(sequence);
             call.setMethodBean(method);

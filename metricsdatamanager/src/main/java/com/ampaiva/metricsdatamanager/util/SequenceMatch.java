@@ -208,7 +208,8 @@ public class SequenceMatch {
         int indexPaste = paste.get(1) + 1;
         for (int i = indexCopy; i < sequenceCopy.size(); i++) {
             boolean found = false;
-            for (int j = indexPaste; j < sequencePaste.size();) {
+            int j = indexPaste;
+            if (j < sequencePaste.size()) {
                 if (sequenceCopy.get(i).intValue() == sequencePaste.get(j).intValue()) {
                     sequenceMatches.add(Arrays.asList(i, j));
                     indexPaste = j + 1;
@@ -216,9 +217,6 @@ public class SequenceMatch {
                     if (LOG.isDebugEnabled()) {
                         LOG.debug("getSequenceMatches: add" + sequenceMatches);
                     }
-                    break;
-                } else {
-                    break;
                 }
             }
             if (!found) {

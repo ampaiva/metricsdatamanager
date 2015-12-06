@@ -13,6 +13,7 @@ import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
@@ -24,8 +25,11 @@ import org.eclipse.persistence.annotations.CascadeOnDelete;
  * 
  */
 @Entity
-@Table(name = "analysis", indexes = { @Index(name = "repository_params_idx", columnList = "repository,minseq,maxdist", unique = true) })
-@NamedQuery(name = "Analyse.findAll", query = "SELECT a FROM Analyse a")
+@Table(name = "analysis", indexes = {
+        @Index(name = "repository_params_idx", columnList = "repository,minseq,maxdist", unique = true) })
+
+@NamedQueries({ @NamedQuery(name = "Analyse.findAll", query = "SELECT a FROM Analyse a"),
+        @NamedQuery(name = "Analyse.findByRepoAndMinseq", query = "SELECT a FROM Analyse a WHERE a.repositoryBean=?1 and a.minSeq=?2") })
 public class Analyse implements Serializable {
     private static final long serialVersionUID = 1L;
 

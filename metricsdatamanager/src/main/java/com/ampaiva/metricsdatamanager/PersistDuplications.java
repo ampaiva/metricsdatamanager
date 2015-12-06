@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.ampaiva.hlo.cm.ICodeSource;
 import com.ampaiva.hlo.util.Helper;
@@ -23,6 +25,8 @@ import com.ampaiva.metricsdatamanager.model.Method;
 import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.model.Sequence;
 import com.ampaiva.metricsdatamanager.model.Unit;
+import com.ampaiva.metricsdatamanager.util.Duplications;
+import com.ampaiva.metricsdatamanager.util.Duplications.DuplicationInfo;
 import com.ampaiva.metricsdatamanager.util.FolderUtil;
 import com.ampaiva.metricsdatamanager.util.MatchesData;
 import com.ampaiva.metricsdatamanager.util.SequencesInt;
@@ -31,6 +35,7 @@ import com.github.javaparser.ParseException;
 
 public class PersistDuplications {
 
+    private static final int MINSEQ = 3;
     final int MIN_SEQ;
     final int MAX_SEQ;
     final IDataManager dataManager;
@@ -41,19 +46,19 @@ public class PersistDuplications {
         MAX_SEQ = mAX_SEQ;
     }
 
-    private List<Repository> createRepositories(List<File> files, List<Sequence> sequences)
+    private List<Repository> createRepositories(List<File> files, Map<String, Sequence> sequencesMap)
             throws FileNotFoundException, IOException, ParseException {
         IProgressUpdate update = ProgressUpdate.start("Processing file", files.size());
         List<Repository> repositories = new ArrayList<Repository>();
         for (File file : files) {
             update.beginIndex(file);
-            Repository repository = processFile(file, sequences);
+            Repository repository = processFile(file, sequencesMap);
             repositories.add(repository);
         }
         return repositories;
     }
 
-    private Repository processFile(File file, List<Sequence> sequences)
+    private Repository processFile(File file, Map<String, Sequence> sequencesMap)
             throws FileNotFoundException, IOException, ParseException {
         String location = file.getName();
         Repository repository = getRepositoryByLocation(location);
@@ -68,7 +73,7 @@ public class PersistDuplications {
                         Helper.convertFile2InputStream(new File(file.getAbsolutePath())));
                 codeSources.add(zipStreamUtil);
             }
-            repository = concernCallsManager.createRepository(codeSources, file.getName(), sequences);
+            repository = concernCallsManager.createRepository(codeSources, file.getName(), sequencesMap);
             commitRepository(repository);
         }
         return repository;
@@ -115,21 +120,15 @@ public class PersistDuplications {
         return repository;
     }
 
-    private Analyse getAnalysisByRepoAndConfig(Repository repository, int minSeq) {
-        //TODO: create a query
-        for (Analyse analyse : repository.getAnalysis()) {
-            if (analyse.getMinSeq() == minSeq) {
-                return analyse;
-            }
-        }
-        return null;
+    private Analyse getAnalysisByRepoAndConfig(Repository repository, int size) {
+        return dataManager.getSingleResult(Analyse.class, "Analyse.findByRepoAndMinseq", repository, size);
     }
 
-    private void processAnalysis(int repositoryId, List<Sequence> sequences) {
+    private void processAnalysis(int repositoryId, Map<String, Sequence> sequencesMap) {
         dataManager.open();
         Repository repository2 = dataManager.getSingleResult(Repository.class, "Repository.findById", repositoryId);
         dataManager.close();
-        SequencesInt sequencesInt = new SequencesInt(sequences, repository2.getUnits());
+        SequencesInt sequencesInt = new SequencesInt(sequencesMap, repository2.getUnits());
         ConcernCallsManager concernCallsManager = new ConcernCallsManager(sequencesInt);
         List<MatchesData> matchesDataList = getSequenceMatches(concernCallsManager);
         IProgressUpdate update3 = ProgressUpdate.start("Saving matches", matchesDataList.size());
@@ -147,51 +146,36 @@ public class PersistDuplications {
             for (int i = 0; i < matchesData.groupsMatched.size(); i++) {
                 update4.beginIndex();
                 final Method method1 = methods.get(matchesData.groupsMatched.get(i));
-                List<List<Integer>> duplications = matchesData.sequencesMatches.get(i);
-                int count = 1;
-                int position0 = 0;
-                int position1 = 0;
-                for (int j = 1; j < duplications.size(); j++) {
-                    if (duplications.get(j).get(0) == (duplications.get(j - 1).get(0) + 1)
-                            && duplications.get(j).get(1) == (duplications.get(j - 1).get(1) + 1)) {
-                        count++;
-                    } else {
-                        Analyse analyse = getAnalysisByRepoAndConfig(repository, count);
-                        if (analyse == null) {
-                            analyse = new Analyse(count);
-                            analyse.setClones(new ArrayList<Clone>());
-                            analyse.setRepositoryBean(repository);
-                            repository.getAnalysis().add(analyse);
-                        }
-                        Clone clone = new Clone();
-                        clone.setCopy(method0.getCalls().get(position0));
-                        clone.setPaste(method1.getCalls().get(position1));
-                        clone.setAnalyseBean(analyse);
-                        analyse.getClones().add(clone);
-                        dataManager.persist(analyse);
-
-                        count = 1;
-                        position0 = duplications.get(j).get(0);
-                        position1 = duplications.get(j).get(1);
+                Duplications duplications = new Duplications(matchesData.sequencesMatches.get(i));
+                DuplicationInfo duplicationInfo = duplications.next();
+                while (duplicationInfo != null) {
+                    if (duplicationInfo.count >= MINSEQ) {
+                        saveAnalysis(repository, method0, method1, duplicationInfo.count, duplicationInfo.position0,
+                                duplicationInfo.position1);
                     }
+                    duplicationInfo = duplications.next();
                 }
-                Analyse analyse = getAnalysisByRepoAndConfig(repository, count);
-                if (analyse == null) {
-                    analyse = new Analyse(count);
-                    analyse.setClones(new ArrayList<Clone>());
-                    analyse.setRepositoryBean(repository);
-                    repository.getAnalysis().add(analyse);
-                }
-                Clone clone = new Clone();
-                clone.setCopy(method0.getCalls().get(position0));
-                clone.setPaste(method1.getCalls().get(position1));
-                clone.setAnalyseBean(analyse);
-                analyse.getClones().add(clone);
-                dataManager.persist(analyse);
                 update4.endIndex();
             }
             dataManager.close();
         }
+    }
+
+    public void saveAnalysis(Repository repository, final Method method0, final Method method1, int count,
+            int position0, int position1) {
+        Analyse analyse = getAnalysisByRepoAndConfig(repository, count);
+        if (analyse == null) {
+            analyse = new Analyse(count);
+            analyse.setClones(new ArrayList<Clone>());
+            analyse.setRepositoryBean(repository);
+            repository.getAnalysis().add(analyse);
+        }
+        Clone clone = new Clone();
+        clone.setCopy(method0.getCalls().get(position0));
+        clone.setPaste(method1.getCalls().get(position1));
+        clone.setAnalyseBean(analyse);
+        analyse.getClones().add(clone);
+        dataManager.persist(analyse);
     }
 
     private List<MatchesData> getSequenceMatches(ConcernCallsManager concernCallsManager) {
@@ -205,17 +189,21 @@ public class PersistDuplications {
         dataManager.close();
     }
 
-    private void analyseRepositories(List<Sequence> sequences, List<Repository> repositories) {
+    private void analyseRepositories(Map<String, Sequence> sequencesMap, List<Repository> repositories) {
         for (Repository repository : repositories) {
-            processAnalysis(repository.getId(), sequences);
+            processAnalysis(repository.getId(), sequencesMap);
         }
     }
 
-    private List<Sequence> getSequences(IDataManager dataManager) {
+    private Map<String, Sequence> getSequences(IDataManager dataManager) {
         dataManager.open();
         List<Sequence> sequences = (List<Sequence>) dataManager.findAll(Sequence.class);
+        Map<String, Sequence> sequencesMap = new HashMap<>();
+        for (Sequence sequence : sequences) {
+            sequencesMap.put(sequence.getName(), sequence);
+        }
         dataManager.close();
-        return sequences;
+        return sequencesMap;
     }
 
     private void commit(Object entity) {
@@ -230,16 +218,15 @@ public class PersistDuplications {
     public void run(String folder, boolean searchZips, boolean deleteAllAnalysis) throws IOException, ParseException {
         if (deleteAllAnalysis) {
             deleteAllAnalysis();
-            return;
         }
         List<File> files = searchZips ? Helper.getFilesRecursevely(folder, ".zip") : Arrays.asList(new File(folder));
         IProgressReport report = new ProgressReport();
         IProgressUpdate update = ProgressUpdate.start(report, "Run over " + folder, 2);
-        List<Sequence> sequences = getSequences(dataManager);
+        Map<String, Sequence> sequencesMap = getSequences(dataManager);
         update.beginIndex("Creating repositories");
-        List<Repository> repositories = createRepositories(files, sequences);
+        List<Repository> repositories = createRepositories(files, sequencesMap);
         update.beginIndex("Analysing repositories");
-        analyseRepositories(sequences, repositories);
+        analyseRepositories(sequencesMap, repositories);
         update.endIndex();
     }
 }

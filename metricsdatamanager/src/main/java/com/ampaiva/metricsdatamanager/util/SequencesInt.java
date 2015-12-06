@@ -2,6 +2,7 @@ package com.ampaiva.metricsdatamanager.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.ampaiva.metricsdatamanager.model.Call;
 import com.ampaiva.metricsdatamanager.model.Method;
@@ -10,12 +11,12 @@ import com.ampaiva.metricsdatamanager.model.Unit;
 
 public class SequencesInt {
 
-    private final List<Sequence> sequences;
+    private final Map<String, Sequence> sequencesMap;
     private final List<Unit> units;
     private final List<List<Integer>> sequencesInt;
 
-    public SequencesInt(List<Sequence> sequences, List<Unit> units) {
-        this.sequences = sequences;
+    public SequencesInt(Map<String, Sequence> sequencesMap, List<Unit> units) {
+        this.sequencesMap = sequencesMap;
         this.units = units;
         this.sequencesInt = initSequencesInt();
     }
@@ -48,8 +49,8 @@ public class SequencesInt {
 
     private List<List<Integer>> initSequencesInt() {
         IHashArray hashArray = new HashArray();
-        for (int i = 0; i < sequences.size(); i++) {
-            hashArray.put(sequences.get(i).getName());
+        for (String sequenceName : sequencesMap.keySet()) {
+            hashArray.put(sequenceName);
         }
         List<List<Integer>> sequencesInt = initSequencesInt(hashArray);
         return sequencesInt;

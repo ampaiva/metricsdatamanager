@@ -5,9 +5,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
@@ -56,7 +57,7 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
 
         replayAll();
 
-        List<Sequence> sequences = new ArrayList<Sequence>();
+        Map<String, Sequence> sequences = new HashMap<>();
         File file = new File("src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest2.zip");
         ZipStreamUtil zipStreamUtil = new ZipStreamUtil(Helper.convertFile2InputStream(file));
         Repository repository = concernCallsManager.createRepository(Arrays.asList(zipStreamUtil), file.getName(),
@@ -75,7 +76,7 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
     public void getConcernClonesZipTest3() throws Exception {
         replayAll();
 
-        List<Sequence> sequences = new ArrayList<Sequence>();
+        Map<String, Sequence> sequences = new HashMap<>();
         File file = new File("src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest3.zip");
         ZipStreamUtil zipStreamUtil = new ZipStreamUtil(Helper.convertFile2InputStream(file));
         Repository repository = concernCallsManager.createRepository(Arrays.asList(zipStreamUtil), file.getName(),
@@ -93,7 +94,7 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
     public void getConcernClonesZipTest4() throws Exception {
         replayAll();
 
-        List<Sequence> sequences = new ArrayList<Sequence>();
+        Map<String, Sequence> sequences = new HashMap<>();
         File file = new File("src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest4.zip");
         ZipStreamUtil zipStreamUtil = new ZipStreamUtil(Helper.convertFile2InputStream(file));
         Repository repository = concernCallsManager.createRepository(Arrays.asList(zipStreamUtil), file.getName(),
@@ -116,6 +117,31 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
     }
 
     @Test
+    public void getConcernClonesZipTest5() throws Exception {
+        replayAll();
+
+        Map<String, Sequence> sequences = new HashMap<>();
+        File file = new File("src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest5.zip");
+        ZipStreamUtil zipStreamUtil = new ZipStreamUtil(Helper.convertFile2InputStream(file));
+        Repository repository = concernCallsManager.createRepository(Arrays.asList(zipStreamUtil), file.getName(),
+                sequences);
+        List<Unit> units = repository.getUnits();
+        assertNotNull(units);
+        concernCallsManager = new ConcernCallsManager(new SequencesInt(sequences, units));
+        List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches();
+        List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, units);
+        assertNotNull(duplications);
+        assertEquals(1, duplications.size());
+        ConcernClone concernClone = duplications.get(0);
+        assertNotNull(concernClone);
+        assertEquals(2, concernClone.methods.size());
+        assertEquals(2, concernClone.sequences.size());
+        assertEquals(18, concernClone.sequences.get(0).size());
+        assertEquals(11, concernClone.sequences.get(1).size());
+        assertEquals(9, concernClone.duplications.size());
+    }
+
+    @Test
     public void getConcernClonesAll() throws Exception {
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(Level.INFO);
@@ -125,7 +151,7 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         for (File file : files) {
             update3.beginIndex(file);
             ZipStreamUtil zipStreamUtil = new ZipStreamUtil(Helper.convertFile2InputStream(file));
-            List<Sequence> sequences = new ArrayList<Sequence>();
+            Map<String, Sequence> sequences = new HashMap<>();
             Repository repository = concernCallsManager.createRepository(Arrays.asList(zipStreamUtil), file.getName(),
                     sequences);
             List<Unit> units = repository.getUnits();
