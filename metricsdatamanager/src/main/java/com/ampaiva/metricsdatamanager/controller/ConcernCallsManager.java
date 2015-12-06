@@ -131,6 +131,11 @@ public class ConcernCallsManager {
         Method method = new Method();
         method.setName(methodCall.getMethodNames().get(i));
         method.setSource(methodCall.getMethodSources().get(i));
+        method.setBeglin(methodCall.getMethodPositions().get(i).get(0));
+        method.setBegcol(methodCall.getMethodPositions().get(i).get(1));
+        method.setEndlin(methodCall.getMethodPositions().get(i).get(2));
+        method.setEndcol(methodCall.getMethodPositions().get(i).get(3));
+
         method.setCalls(new ArrayList<Call>());
         List<String> seq = methodCall.getSequences().get(i);
         for (int order = 0; order < seq.size(); order++) {
