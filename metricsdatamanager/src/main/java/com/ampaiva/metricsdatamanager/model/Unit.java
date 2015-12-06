@@ -6,6 +6,7 @@ import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -28,7 +29,8 @@ import org.eclipse.persistence.annotations.CascadeOnDelete;
 @Table(name = "units", indexes = {
         @Index(name = "units_repository_name_idx", columnList = "repository,name", unique = true) })
 @NamedQueries({ @NamedQuery(name = "Unit.findAll", query = "SELECT u FROM Unit u"),
-        @NamedQuery(name = "Unit.findById", query = "SELECT u FROM Unit u WHERE u.id=?1") })
+        @NamedQuery(name = "Unit.findById", query = "SELECT u FROM Unit u WHERE u.id=?1"),
+        @NamedQuery(name = "Unit.findByRepository", query = "SELECT u FROM Unit u WHERE u.repositoryBean=?1") })
 public class Unit implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -44,7 +46,7 @@ public class Unit implements Serializable {
     @Column(nullable = false)
     private String source;
 
-    @OneToMany(mappedBy = "unitBean", orphanRemoval = true, cascade = { CascadeType.ALL })
+    @OneToMany(mappedBy = "unitBean", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
     @CascadeOnDelete
     private List<Method> methods;
 

@@ -25,16 +25,16 @@ public class DataManagerTest {
 
         int id1 = repository.getId();
         assertTrue(id1 > 0);
-        Repository p1 = dataManager.find(repository, id1);
+        Repository p1 = dataManager.find(Repository.class, id1);
         assertNotNull(p1);
         assertEquals(id1, repository.getId());
         assertEquals(PROJECT_LOCATION, repository.getLocation());
-        Repository p1_2 = dataManager.find(repository, id1);
+        Repository p1_2 = dataManager.find(Repository.class, id1);
         assertNotNull(p1_2);
         dataManager.begin();
         dataManager.remove(p1_2);
         dataManager.commit();
-        p1_2 = dataManager.find(repository, repository.getId());
+        p1_2 = dataManager.find(Repository.class, repository.getId());
         assertNull(p1_2);
         dataManager.close();
     }

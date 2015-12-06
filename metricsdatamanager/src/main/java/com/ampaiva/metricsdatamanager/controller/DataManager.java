@@ -77,9 +77,9 @@ public class DataManager implements IDataManager {
         entityManager.remove(entity);
     }
 
-    public <T> T find(T clazz, int id) {
-        @SuppressWarnings("unchecked")
-        T obj = (T) entityManager.find(clazz.getClass(), id);
+    @Override
+    public <T> T find(Class<T> clazz, int id) {
+        T obj = entityManager.find(clazz, id);
         return obj;
     }
 
@@ -95,7 +95,7 @@ public class DataManager implements IDataManager {
         TypedQuery<U> query = entityManager.createNamedQuery(namedQuery, clazz);
         if (params != null) {
             for (int i = 1; i <= params.length; i++) {
-                query.setParameter(String.valueOf(i), params[i]);
+                query.setParameter(String.valueOf(i), params[i - 1]);
             }
         }
         List<U> results = query.getResultList();

@@ -123,11 +123,12 @@ public class PersistDuplications {
 
     private void processAnalysis(int repositoryId, Map<String, Sequence> sequencesMap) {
         dataManager.open();
-        Repository repository2 = dataManager.getSingleResult(Repository.class, "Repository.findById", repositoryId);
-        dataManager.close();
+        Repository repository2 = dataManager.find(Repository.class, repositoryId);
+        //        final List<Unit> units2 = dataManager.getResultList(Unit.class, "Unit.findByRepository", repository2);
         SequencesInt sequencesInt = new SequencesInt(sequencesMap, repository2.getUnits());
         ConcernCallsManager concernCallsManager = new ConcernCallsManager(sequencesInt);
         List<MatchesData> matchesDataList = getSequenceMatches(concernCallsManager);
+        dataManager.close();
         IProgressUpdate update3 = ProgressUpdate.start("Saving matches", matchesDataList.size());
         for (MatchesData matchesData : matchesDataList) {
             update3.beginIndex(matchesData);

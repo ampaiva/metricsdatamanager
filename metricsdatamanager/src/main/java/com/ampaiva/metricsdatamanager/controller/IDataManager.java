@@ -15,6 +15,8 @@ public interface IDataManager {
 
     void close();
 
+    <T> T find(Class<T> clazz, int id);
+
     <U> Collection<U> findAll(Class<U> clazz);
 
     <U> List<U> getResultList(Class<U> clazz, String namedQuery, Object... params);
