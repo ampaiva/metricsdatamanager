@@ -15,7 +15,7 @@ import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone.PmdOcurrency;
 
 public class PmdTest {
 
-    private static final String REPOSITORY = "c:\\Temp\\generic\\generic\\src\\main\\java\\target\\";
+    private static final String REPOSITORY = "c:\\Temp\\extracted";
 
     @Test
     public void testParse() throws IOException {
@@ -32,11 +32,11 @@ public class PmdTest {
         final PmdOcurrency ocurrency0_0 = clone0.ocurrencies.get(0);
         assertNotNull(ocurrency0_0);
         assertEquals(13, ocurrency0_0.line);
-        assertEquals("CodeCloneType1.java", ocurrency0_0.file);
+        assertEquals("generic/target/CodeCloneType1.java", ocurrency0_0.file);
         final PmdOcurrency ocurrency0_1 = clone0.ocurrencies.get(1);
         assertNotNull(ocurrency0_1);
         assertEquals(13, ocurrency0_1.line);
-        assertEquals("OriginalCode.java", ocurrency0_1.file);
+        assertEquals("generic/target/OriginalCode.java", ocurrency0_1.file);
     }
 
 }

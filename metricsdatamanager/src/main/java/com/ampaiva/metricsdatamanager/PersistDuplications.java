@@ -57,20 +57,20 @@ public class PersistDuplications {
 
     private Repository processFile(File file, Map<String, Sequence> sequencesMap)
             throws FileNotFoundException, IOException, ParseException {
-        String location = file.getName();
+        String location = file.isDirectory() ? file.getAbsolutePath() : file.getName();
         Repository repository = getRepositoryByLocation(location);
         if (repository == null) {
             ConcernCallsManager concernCallsManager = new ConcernCallsManager();
             List<ICodeSource> codeSources = new ArrayList<ICodeSource>();
             if (file.isDirectory()) {
-                FolderUtil folderUtil = new FolderUtil(file.getAbsolutePath());
+                FolderUtil folderUtil = new FolderUtil(location);
                 codeSources.add(folderUtil);
             } else {
                 ZipStreamUtil zipStreamUtil = new ZipStreamUtil(file.toString(),
                         Helper.convertFile2InputStream(new File(file.getAbsolutePath())));
                 codeSources.add(zipStreamUtil);
             }
-            repository = concernCallsManager.createRepository(codeSources, file.getName(), sequencesMap);
+            repository = concernCallsManager.createRepository(codeSources, location, sequencesMap);
             commitRepository(repository);
         }
         return repository;

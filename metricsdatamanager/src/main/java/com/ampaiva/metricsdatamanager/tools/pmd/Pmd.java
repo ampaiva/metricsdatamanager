@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone.PmdOcurrency;
+import com.ampaiva.metricsdatamanager.util.Conventions;
 
 public class Pmd {
     public static class PmdClone {
@@ -40,7 +41,7 @@ public class Pmd {
             for (int j = 0; j < ocurrences; j++) {
                 PmdOcurrency ocurrency = new PmdOcurrency();
                 ocurrency.line = Integer.parseInt(values[3 + 2 * j]);
-                ocurrency.file = values[3 + 2 * j + 1].replace(repository, "");
+                ocurrency.file = Conventions.fileNameInRepository(repository, values[3 + 2 * j + 1]);
                 pmdClone.ocurrencies.add(ocurrency);
             }
             clones.add(pmdClone);

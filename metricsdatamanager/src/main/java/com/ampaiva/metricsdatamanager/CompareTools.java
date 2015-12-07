@@ -24,7 +24,7 @@ public class CompareTools {
     public static void main(String[] args) throws IOException {
         CompareTools compareTools = new CompareTools();
         String pmdResult = Helper.readFile(new File("src/test/resources/pmd/generic.csv"));
-        compareTools.compare("c:\\Temp\\generic\\generic\\src\\main\\java\\target\\", pmdResult);
+        compareTools.compare("c:\\Temp\\extracted", pmdResult);
     }
 
 }

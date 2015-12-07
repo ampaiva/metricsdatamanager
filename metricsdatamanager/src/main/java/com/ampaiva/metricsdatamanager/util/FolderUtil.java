@@ -20,11 +20,12 @@ public class FolderUtil implements ICodeSource {
     public Map<String, String> getCodeSource() throws IOException {
         Map<String, String> sources = new HashMap<String, String>();
         List<File> files = Helper.getFilesRecursevely(folder);
-        for (File entry : files) {
-            if (entry.isDirectory() || !entry.getName().toLowerCase().endsWith(".java")) {
+        for (File file : files) {
+            if (file.isDirectory() || !file.getName().toLowerCase().endsWith(".java")) {
                 continue;
             }
-            sources.put(entry.getName().substring(entry.getName().indexOf('/') + 1), Helper.convertFile2String(entry));
+            sources.put(Conventions.fileNameInRepository(folder, file.getAbsolutePath()),
+                    Helper.convertFile2String(file));
         }
         return sources;
     }
