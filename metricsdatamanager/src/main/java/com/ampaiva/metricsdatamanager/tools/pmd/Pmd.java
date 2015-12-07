@@ -27,7 +27,7 @@ public class Pmd {
         }
     }
 
-    public static List<PmdClone> parse(String pmdResult) {
+    public static List<PmdClone> parse(String repository, String pmdResult) {
         List<PmdClone> clones = new ArrayList<>();
         String[] lines = pmdResult.replace("\r\n", "\n").split("\n");
         for (int i = 1; i < lines.length; i++) {
@@ -40,7 +40,7 @@ public class Pmd {
             for (int j = 0; j < ocurrences; j++) {
                 PmdOcurrency ocurrency = new PmdOcurrency();
                 ocurrency.line = Integer.parseInt(values[3 + 2 * j]);
-                ocurrency.file = values[3 + 2 * j + 1].toString();
+                ocurrency.file = values[3 + 2 * j + 1].replace(repository, "");
                 pmdClone.ocurrencies.add(ocurrency);
             }
             clones.add(pmdClone);
