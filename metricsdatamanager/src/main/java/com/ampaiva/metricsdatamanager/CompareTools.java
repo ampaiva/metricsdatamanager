@@ -19,7 +19,9 @@ import com.ampaiva.metricsdatamanager.controller.IDataManager;
 import com.ampaiva.metricsdatamanager.model.Clone;
 import com.ampaiva.metricsdatamanager.tools.pmd.Pmd;
 import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone;
+import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone.PmdOcurrency;
 import com.ampaiva.metricsdatamanager.util.Config;
+import com.ampaiva.metricsdatamanager.util.Conventions;
 import com.github.javaparser.ParseException;
 
 public class CompareTools {
@@ -102,25 +104,31 @@ public class CompareTools {
         List<PmdClone> pmdClones = Pmd.parse(repository, pmdResult);
         int found = 0, notFound = 0;
         for (PmdClone pmdClone : pmdClones) {
+            boolean hasAllOcurrencies = true;
             for (int i = 0; i < pmdClone.ocurrencies.size(); i++) {
+                final PmdOcurrency pmdOcurrency1 = pmdClone.ocurrencies.get(i);
+                final String file1 = pmdOcurrency1.file;
                 for (int j = i + 1; j < pmdClone.ocurrencies.size(); j++) {
-                    List<Integer> mcSheepClones = getMcSheepClones(pmdClone.ocurrencies.get(i).file,
-                            pmdClone.ocurrencies.get(i).line, pmdClone.ocurrencies.get(i).line + pmdClone.lines - 1,
-                            pmdClone.ocurrencies.get(j).file);
-                    if (found + notFound == 0) {
-                        System.out.println();
-                        System.out.println("Results");
-                        System.out.println("=======");
-                    }
+                    final PmdOcurrency pmdOcurrency2 = pmdClone.ocurrencies.get(j);
+                    final String file2 = pmdOcurrency2.file;
+                    List<Integer> mcSheepClones = getMcSheepClones(file1, pmdOcurrency1.line,
+                            pmdOcurrency1.line + pmdClone.lines - 1, file2);
                     if (mcSheepClones.size() == 0) {
-                        System.err.println("Clone not found by McSheep: " + pmdClone);
-                        notFound++;
-                    } else {
-                        System.out.println("Clone found by McSheep: " + pmdClone);
-                        found++;
+                        hasAllOcurrencies = false;
                     }
                 }
-
+            }
+            if (found + notFound == 0) {
+                System.out.println();
+                System.out.println("Results found by PMD and not found by McSheep");
+                System.out.println("=============================================");
+            }
+            if (!hasAllOcurrencies) {
+                System.err.println("Clone not found by McSheep: " + pmdClone);
+                notFound++;
+            } else {
+                System.out.println("Clone found by McSheep: " + pmdClone);
+                found++;
             }
         }
         System.err.println("Not found: " + notFound);
@@ -145,15 +153,15 @@ public class CompareTools {
             boolean pmdCloneFound = false;
             for (PmdClone pmdClone : pmdClones) {
                 for (int i = 0; i < pmdClone.ocurrencies.size(); i++) {
+                    final PmdOcurrency pmdOcurrency1 = pmdClone.ocurrencies.get(i);
+                    final String file1 = Conventions.fileNameInRepository(repository, pmdOcurrency1.file);
                     for (int j = i + 1; j < pmdClone.ocurrencies.size(); j++) {
-                        if ((pmdClone.ocurrencies.get(i).file.equals(unit1)
-                                && pmdClone.ocurrencies.get(j).file.equals(unit2)
-                                && pmdClone.ocurrencies.get(i).line <= beglinCopy
-                                && pmdClone.ocurrencies.get(i).line + pmdClone.lines - 1 >= endlinCopy)
-                                || (pmdClone.ocurrencies.get(i).file.equals(unit2)
-                                        && pmdClone.ocurrencies.get(j).file.equals(unit1)
-                                        && pmdClone.ocurrencies.get(j).line <= beglinPaste
-                                        && pmdClone.ocurrencies.get(j).line + pmdClone.lines - 1 >= endlinPaste)) {
+                        final PmdOcurrency pmdOcurrency2 = pmdClone.ocurrencies.get(j);
+                        final String file2 = Conventions.fileNameInRepository(repository, pmdOcurrency2.file);
+                        if ((file1.equals(unit1) && file2.equals(unit2) && pmdOcurrency1.line <= beglinCopy
+                                && pmdOcurrency1.line + pmdClone.lines - 1 >= endlinCopy)
+                                || (file1.equals(unit2) && file2.equals(unit1) && pmdOcurrency2.line <= beglinPaste
+                                        && pmdOcurrency2.line + pmdClone.lines - 1 >= endlinPaste)) {
                             pmdCloneFound = true;
                         }
                     }
@@ -162,15 +170,17 @@ public class CompareTools {
             }
             if (found + notFound == 0) {
                 System.out.println();
-                System.out.println("Results");
-                System.out.println("=======");
+                System.out.println("Results found by McSheep and not found by PMD");
+                System.out.println("=============================================");
             }
 
+            String cloneStr = unit1 + ":[" + beglinCopy + "-" + endlinCopy + "] " + unit2 + ":[" + beglinPaste + "-"
+                    + endlinPaste + "] " + clone;
             if (!pmdCloneFound) {
-                System.err.println("Clone not found by McSheep: " + clone);
+                System.err.println("Clone not found by PMD: " + cloneStr);
                 notFound++;
             } else {
-                System.out.println("Clone found by McSheep: " + clone);
+                System.out.println("Clone found by PMD: " + cloneStr);
                 found++;
             }
         }
@@ -189,8 +199,8 @@ public class CompareTools {
         final IDataManager dataManager = new ConfigDataManager(config);
         CompareTools compareTools = new CompareTools(dataManager);
         String pmdResult = Helper.readFile(new File("src/test/resources/pmd/generic.csv"));
-        compareTools.comparePMDxMcSheep("c:\\Temp\\extracted", pmdResult);
-        compareTools.compareMcSheepxPMD("c:\\Temp\\extracted", pmdResult);
+        compareTools.comparePMDxMcSheep("c:\\temp\\extracted", pmdResult);
+        compareTools.compareMcSheepxPMD("c:\\temp\\extracted", pmdResult);
 
         BasicConfigurator.resetConfiguration();
     }

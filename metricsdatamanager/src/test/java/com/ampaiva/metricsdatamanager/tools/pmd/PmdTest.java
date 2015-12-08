@@ -15,7 +15,7 @@ import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone.PmdOcurrency;
 
 public class PmdTest {
 
-    private static final String REPOSITORY = "c:\\Temp\\extracted";
+    private static final String REPOSITORY = "c:\\temp\\extracted";
 
     @Test
     public void testParse() throws IOException {
@@ -23,7 +23,7 @@ public class PmdTest {
 
         List<PmdClone> clones = Pmd.parse(REPOSITORY, pmdResult);
         assertNotNull(clones);
-        assertEquals(2, clones.size());
+        assertEquals(4, clones.size());
         final PmdClone clone0 = clones.get(0);
         assertEquals(19, clone0.lines);
         assertEquals(98, clone0.tokens);
