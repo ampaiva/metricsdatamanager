@@ -1,4 +1,6 @@
 lines,tokens,occurrences
-19,98,2,13,c:\Temp\extracted\generic\target\CodeCloneType1.java,13,c:\Temp\extracted\generic\target\OriginalCode.java
-6,44,2,23,c:\Temp\extracted\generic\target\BaseCode.java,26,c:\Temp\extracted\generic\target\CodeCloneType4Version2.java
+19,98,2,13,c:\temp\extracted\generic\target\CodeCloneType1.java,13,c:\temp\extracted\generic\target\OriginalCode.java
+6,44,2,23,c:\temp\extracted\generic\target\BaseCode.java,26,c:\temp\extracted\generic\target\CodeCloneType4Version2.java
+4,25,3,18,c:\temp\extracted\generic\target\CodeCloneType1.java,33,c:\temp\extracted\generic\target\CodeCloneType4Version2.java,18,c:\temp\extracted\generic\target\OriginalCode.java
+2,22,3,23,c:\temp\extracted\generic\target\CodeCloneType1.java,26,c:\temp\extracted\generic\target\CodeCloneType4.java,23,c:\temp\extracted\generic\target\OriginalCode.java
 
