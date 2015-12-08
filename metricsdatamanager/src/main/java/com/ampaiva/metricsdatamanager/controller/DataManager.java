@@ -124,4 +124,9 @@ public class DataManager implements IDataManager {
             remove(entity);
         }
     }
+
+    @Override
+    public EntityManager getEM() {
+        return entityManager;
+    }
 }

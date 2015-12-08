@@ -9,8 +9,8 @@ import com.ampaiva.metricsdatamanager.util.Conventions;
 public class Pmd {
     public static class PmdClone {
         public static class PmdOcurrency {
-            int line;
-            String file;
+            public int line;
+            public String file;
 
             @Override
             public String toString() {
@@ -18,9 +18,9 @@ public class Pmd {
             }
         }
 
-        int lines;
-        int tokens;
-        List<PmdOcurrency> ocurrencies;
+        public int lines;
+        public int tokens;
+        public List<PmdOcurrency> ocurrencies;
 
         @Override
         public String toString() {
