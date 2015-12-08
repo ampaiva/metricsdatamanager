@@ -79,9 +79,9 @@ public class CompareTools {
                 + "inner join methods m2 on m2.id=ca2.method " + "inner join units u2 on u2.id=m2.unit "
                 + "inner join calls ca1_end on ca1_end.method=m1.id and ca1_end.position=ca1.position+a.MINSEQ-1 "
                 + "inner join calls ca2_end on ca2_end.method=m2.id and ca2_end.position=ca2.position+a.MINSEQ-1 "
-                + "where (u1.name='" + unit1 + "' and u2.name='" + unit2 + "' and ca1.beglin >=" + unit1beglin
-                + " && ca1_end.endlin<=" + unit1endlin + ") " + "or    (u2.name='" + unit1 + "' and u1.name='" + unit2
-                + "' and ca2.beglin >=" + unit1beglin + " && ca2_end.endlin<=" + unit1endlin + ")";
+                + "where (u1.name='" + unit1 + "' and u2.name='" + unit2 + "' and ca1.beglin <=" + unit1endlin
+                + " && ca1_end.endlin>=" + unit1beglin + ") " + "or    (u2.name='" + unit1 + "' and u1.name='" + unit2
+                + "' and ca2.beglin <=" + unit1endlin + " && ca2_end.endlin>=" + unit1beglin + ")";
 
         Connection con = dataManager.getEM().unwrap(java.sql.Connection.class);
         Statement stmt = con.createStatement();
@@ -158,10 +158,28 @@ public class CompareTools {
                     for (int j = i + 1; j < pmdClone.ocurrencies.size(); j++) {
                         final PmdOcurrency pmdOcurrency2 = pmdClone.ocurrencies.get(j);
                         final String file2 = Conventions.fileNameInRepository(repository, pmdOcurrency2.file);
-                        if ((file1.equals(unit1) && file2.equals(unit2) && pmdOcurrency1.line <= beglinCopy
-                                && pmdOcurrency1.line + pmdClone.lines - 1 >= endlinCopy)
-                                || (file1.equals(unit2) && file2.equals(unit1) && pmdOcurrency2.line <= beglinPaste
-                                        && pmdOcurrency2.line + pmdClone.lines - 1 >= endlinPaste)) {
+                        /*
+                         * (u1.name='generic/target/CodeCloneType1.
+                         * java' and
+                         * u2.name='generic/target/CodeCloneType4.
+                         * java' and ca1.beglin <=24 &&
+                         * ca1_end.endlin>=23) or
+                         * (u2.name='generic/target/CodeCloneType1.
+                         * java' and
+                         * u1.name='generic/target/CodeCloneType4.
+                         * java' and ca2.beglin <=24 &&
+                         * ca2_end.endlin>=23)
+                         */
+
+                        if ((file1.equals(unit1) && //
+                                file2.equals(unit2) && //
+                                pmdOcurrency1.line <= endlinCopy
+                                && pmdOcurrency1.line + pmdClone.lines - 1 >= beglinCopy)//
+                                || //
+                                (file2.equals(unit1) && //
+                                        file1.equals(unit2) && //
+                                        pmdOcurrency2.line <= endlinPaste
+                                        && pmdOcurrency2.line + pmdClone.lines - 1 >= beglinPaste)) {
                             pmdCloneFound = true;
                         }
                     }
