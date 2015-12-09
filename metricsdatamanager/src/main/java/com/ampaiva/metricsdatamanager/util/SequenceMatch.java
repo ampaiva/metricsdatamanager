@@ -77,6 +77,17 @@ public class SequenceMatch {
                         return match1.get(1).compareTo(match2.get(1));
                     }
                 });
+                //[0, 0], [0, 2], [1, 1], [2, 0], [2, 2]
+                //[0, 0], [0, 2], [2, 0], [2, 2]
+                for (int i = 1; i < matches.size(); i++) {
+                    if (matches.get(i - 1).get(0).intValue() >= matches.get(i).get(0).intValue()
+                            || matches.get(i - 1).get(1).intValue() >= matches.get(i).get(1).intValue()) {
+                        matches.remove(i);
+                        i--;
+                    }
+
+                }
+
             }
         }
         return result;
