@@ -216,7 +216,7 @@ public class CompareTools {
         Logger.getRootLogger().setLevel(Level.INFO);
         final IDataManager dataManager = new ConfigDataManager(config);
         CompareTools compareTools = new CompareTools(dataManager);
-        String pmdResult = Helper.readFile(new File("src/test/resources/pmd/generic.csv"));
+        String pmdResult = Helper.readFile(new File("src/test/resources/pmd/extracted.csv"));
         compareTools.comparePMDxMcSheep("c:\\temp\\extracted", pmdResult);
         compareTools.compareMcSheepxPMD("c:\\temp\\extracted", pmdResult);
 
