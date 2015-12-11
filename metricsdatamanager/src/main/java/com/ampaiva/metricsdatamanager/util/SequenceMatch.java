@@ -65,6 +65,11 @@ public class SequenceMatch {
         if (LOG.isDebugEnabled()) {
             LOG.debug("getMatches() return " + result);
         }
+        filterResults(result);
+        return result;
+    }
+
+    private void filterResults(List<MatchesData> result) {
         for (MatchesData matchesData : result) {
             for (List<List<Integer>> matches : matchesData.sequencesMatches) {
                 Collections.sort(matches, new Comparator<List<Integer>>() {
@@ -77,20 +82,11 @@ public class SequenceMatch {
                         return match1.get(1).compareTo(match2.get(1));
                     }
                 });
-                //[0, 0], [0, 2], [1, 1], [2, 0], [2, 2]
-                //[0, 0], [0, 2], [2, 0], [2, 2]
-                for (int i = 1; i < matches.size(); i++) {
-                    if (matches.get(i - 1).get(0).intValue() >= matches.get(i).get(0).intValue()
-                            || matches.get(i - 1).get(1).intValue() >= matches.get(i).get(1).intValue()) {
-                        matches.remove(i);
-                        i--;
-                    }
-
-                }
-
+                List<List<Integer>> longestSequence = getLongestSequence(matches);
+                matches.clear();
+                matches.addAll(longestSequence);
             }
         }
-        return result;
     }
 
     //    private void printMemory() {
@@ -111,6 +107,78 @@ public class SequenceMatch {
     //        }
     //    }
 
+    public static List<List<Integer>> getLongestSequence(List<List<Integer>> sequence) {
+        //                [0, 0], [0, 2], [1, 1], [2, 0], [2, 2]
+        //                [0, 0], [0, 2], [2, 0], [2, 2]
+        //                [0, 0], [1, 1], [3, 3], [4, 0], [5, 1], [6, 2], [7, 3]
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("getLongestSequence(" + sequence + ")");
+        }
+        List<List<List<Integer>>> allCandidates = new ArrayList<>();
+        for (List<Integer> match : sequence) {
+            boolean added = false;
+            for (List<List<Integer>> sequences : allCandidates) {
+                List<Integer> lastMatch = sequences.get(sequences.size() - 1);
+                if (lastMatch.get(0).intValue() < match.get(0).intValue()
+                        && lastMatch.get(1).intValue() < match.get(1).intValue()) {
+                    sequences.add(match);
+                    added = true;
+                }
+            }
+            if (!added) {
+                List<List<Integer>> newSequence = new ArrayList<>();
+                newSequence.add(match);
+                allCandidates.add(newSequence);
+            }
+        }
+
+        Collections.sort(allCandidates, new Comparator<List<List<Integer>>>() {
+
+            @Override
+            public int compare(List<List<Integer>> sequences1, List<List<Integer>> sequences2) {
+                return compareLongestSequence(sequences1, sequences2);
+            }
+
+        });
+
+        return allCandidates.get(allCandidates.size() - 1);
+    }
+
+    private static int compareLongestSequence(List<List<Integer>> mySequence, List<List<Integer>> otherSequence) {
+        if (mySequence.size() == otherSequence.size()) {
+            final int score1_1 = getSequenceScore1(mySequence);
+            final int score2_1 = getSequenceScore1(otherSequence);
+            if (score1_1 == score2_1) {
+                int score1 = getSequenceScore2(mySequence);
+                int score2 = getSequenceScore2(otherSequence);
+                return score2 - score1;
+            }
+            return score2_1 - score1_1;
+        }
+        return mySequence.size() - otherSequence.size();
+    }
+
+    private static int getSequenceScore1(List<List<Integer>> sequence) {
+        int score = -sequence.size();
+        for (int i = 1; i < sequence.size(); i++) {
+            if (sequence.get(i - 1).get(0) + 1 != sequence.get(i).get(0)) {
+                score++;
+            }
+            if (sequence.get(i - 1).get(1) + 1 != sequence.get(i).get(1)) {
+                score++;
+            }
+        }
+        return score;
+    }
+
+    private static int getSequenceScore2(List<List<Integer>> sequence) {
+        int score = 0;
+        for (int i = 0; i < sequence.size(); i++) {
+            score += (sequence.get(i).get(0) + sequence.get(i).get(1)) * (i + 1);
+        }
+        return score;
+    }
+
     private int getInsertPosition(List<Integer> existingElements, int newElement) {
         for (int i = 0; i < existingElements.size(); i++) {
             if (existingElements.get(i) >= newElement) {
@@ -124,10 +192,10 @@ public class SequenceMatch {
         if (LOG.isDebugEnabled()) {
             LOG.debug("mergeMatchedData(" + existingMatchesData + ", " + newMatchesData + ")");
         }
-        for (int k = 0; k < newMatchesData.groupsMatched.size(); k++) {
-            int newMatchedGroup = newMatchesData.groupsMatched.get(k);
+        for (int i = 0; i < newMatchesData.groupsMatched.size(); i++) {
+            int newMatchedGroup = newMatchesData.groupsMatched.get(i);
             int position = getInsertPosition(existingMatchesData.groupsMatched, newMatchedGroup);
-            List<List<Integer>> newSequenceMatched = newMatchesData.sequencesMatches.get(k);
+            List<List<Integer>> newSequenceMatched = newMatchesData.sequencesMatches.get(i);
             if (existingMatchesData.groupsMatched.size() > position
                     && existingMatchesData.groupsMatched.get(position) == newMatchedGroup) {
                 existingMatchesData.sequencesMatches.get(position).addAll(newSequenceMatched);
