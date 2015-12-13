@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 
 import com.ampaiva.hlo.cm.ConcernCollection;
 import com.ampaiva.hlo.cm.ConcernMetricNode;
+import com.ampaiva.hlo.cm.ConcernMetricNodes;
 import com.ampaiva.hlo.cm.ICodeSource;
 import com.ampaiva.hlo.cm.IConcernMetric;
 import com.ampaiva.hlo.cm.IMethodCalls;
@@ -109,9 +110,11 @@ public class ConcernCallsManager {
     private List<Method> getMethods(Map<String, Sequence> sequencesMap, List<IMethodCalls> allMethodCalls) {
         List<Method> methodCodes = new ArrayList<Method>();
         for (IMethodCalls methodCall : allMethodCalls) {
+            int callPosition = 0;
             for (int i = 0; i < methodCall.getMethodNames().size(); i++) {
-                Method method = getMethod(sequencesMap, methodCall, i);
+                Method method = getMethod(sequencesMap, methodCall, i, callPosition);
                 methodCodes.add(method);
+                callPosition += method.getCalls().size();
             }
         }
         return methodCodes;
@@ -119,15 +122,17 @@ public class ConcernCallsManager {
 
     private List<Method> getMethods(Unit unit, Map<String, Sequence> sequencesMap, IMethodCalls methodCall) {
         List<Method> methodCodes = new ArrayList<Method>();
+        int callPosition = 0;
         for (int i = 0; i < methodCall.getMethodNames().size(); i++) {
-            Method method = getMethod(sequencesMap, methodCall, i);
+            Method method = getMethod(sequencesMap, methodCall, i, callPosition);
             method.setUnitBean(unit);
             methodCodes.add(method);
+            callPosition += method.getCalls().size();
         }
         return methodCodes;
     }
 
-    private Method getMethod(Map<String, Sequence> sequencesMap, IMethodCalls methodCall, int i) {
+    private Method getMethod(Map<String, Sequence> sequencesMap, IMethodCalls methodCall, int i, int callPosition) {
         Method method = new Method();
         method.setName(methodCall.getMethodNames().get(i));
         method.setSource(methodCall.getMethodSources().get(i));
@@ -137,6 +142,7 @@ public class ConcernCallsManager {
         method.setEndcol(methodCall.getMethodPositions().get(i).get(3));
 
         method.setCalls(new ArrayList<Call>());
+        ConcernMetricNodes nodes = ((ConcernCollection) methodCall).getNodes();
         List<String> seq = methodCall.getSequences().get(i);
         for (int order = 0; order < seq.size(); order++) {
             String sequenceName = seq.get(order);
@@ -145,7 +151,7 @@ public class ConcernCallsManager {
             }
             Call call = new Call();
             call.setPosition(order);
-            ConcernMetricNode concernMetricNode = ((ConcernCollection) methodCall).getNodes().get(order);
+            ConcernMetricNode concernMetricNode = nodes.get(callPosition + order);
             call.setBeglin(concernMetricNode.getBeginLine());
             call.setEndlin(concernMetricNode.getEndLine());
             call.setBegcol(concernMetricNode.getBeginColumn());

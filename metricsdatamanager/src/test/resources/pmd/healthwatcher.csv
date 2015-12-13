@@ -1,0 +1,9 @@
+lines,tokens,occurrences
+20,163,2,80,c:\temp\extracted\HealthWatcher\src\healthwatcher\view\servlets\ServletInsertFoodComplaint.java,73,c:\temp\extracted\HealthWatcher\src\healthwatcher\view\servlets\ServletInsertSpecialComplaint.java
+21,162,2,56,c:\temp\extracted\HealthWatcher\src\healthwatcher\view\servlets\ServletSearchDiseaseData.java,44,c:\temp\extracted\HealthWatcher\src\healthwatcher\view\servlets\ServletSearchHealthUnitsBySpecialty.java
+22,153,2,27,c:\temp\extracted\HealthWatcher\src\healthwatcher\view\servlets\ServletInsertFoodComplaint.java,28,c:\temp\extracted\HealthWatcher\src\healthwatcher\view\servlets\ServletInsertSpecialComplaint.java
+25,123,2,39,c:\temp\extracted\HealthWatcher\src\healthwatcher\view\servlets\ServletInsertAnimalComplaint.java,32,c:\temp\extracted\HealthWatcher\src\healthwatcher\view\servlets\ServletInsertFoodComplaint.java
+22,122,2,39,c:\temp\extracted\HealthWatcher\src\healthwatcher\view\servlets\ServletInsertAnimalComplaint.java,33,c:\temp\extracted\HealthWatcher\src\healthwatcher\view\servlets\ServletInsertSpecialComplaint.java
+15,103,3,62,c:\temp\extracted\HealthWatcher\src\healthwatcher\view\servlets\ServletSearchDiseaseData.java,50,c:\temp\extracted\HealthWatcher\src\healthwatcher\view\servlets\ServletSearchHealthUnitsBySpecialty.java,53,c:\temp\extracted\HealthWatcher\src\healthwatcher\view\servlets\ServletSearchSpecialtiesByHealthUnit.java
+10,102,2,139,c:\temp\extracted\HealthWatcher\src\healthwatcher\data\rdb\ComplaintRepositoryRDB.java,198,c:\temp\extracted\HealthWatcher\src\healthwatcher\data\rdb\ComplaintRepositoryRDB.java
+

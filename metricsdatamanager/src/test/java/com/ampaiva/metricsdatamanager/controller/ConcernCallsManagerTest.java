@@ -23,6 +23,8 @@ import com.ampaiva.hlo.util.view.IProgressReport;
 import com.ampaiva.hlo.util.view.IProgressUpdate;
 import com.ampaiva.hlo.util.view.ProgressReport;
 import com.ampaiva.hlo.util.view.ProgressUpdate;
+import com.ampaiva.metricsdatamanager.model.Call;
+import com.ampaiva.metricsdatamanager.model.Method;
 import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.model.Sequence;
 import com.ampaiva.metricsdatamanager.model.Unit;
@@ -189,6 +191,42 @@ public class ConcernCallsManagerTest extends EasyMockSupport {
         assertEquals(42, concernClone.sequences.get(0).size());
         assertEquals(31, concernClone.sequences.get(1).size());
         //      assertEquals(15, concernClone.duplications.size());
+    }
+
+    @Test
+    public void getConcernClonesZipTest8() throws Exception {
+        replayAll();
+
+        Map<String, Sequence> sequences = new HashMap<>();
+        File file = new File("src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest8.zip");
+        ZipStreamUtil zipStreamUtil = new ZipStreamUtil(Helper.convertFile2InputStream(file));
+        Repository repository = concernCallsManager.createRepository(Arrays.asList(zipStreamUtil), file.getName(),
+                sequences);
+        List<Unit> units = repository.getUnits();
+        assertNotNull(units);
+        for (Unit unit : units) {
+            for (Method method : unit.getMethods()) {
+                for (Call call : method.getCalls()) {
+                    assertTrue(method.getName() + " (" + method.getBeglin() + ">" + call.getBeglin() + ") "
+                            + call.getSequenceBean().getName(), method.getBeglin() <= call.getBeglin());
+                    assertTrue(method.getName() + " (" + method.getBeglin() + "<" + call.getBeglin() + ") "
+                            + call.getSequenceBean().getName(), method.getEndlin() >= call.getEndlin());
+                }
+            }
+        }
+        concernCallsManager = new ConcernCallsManager(new SequencesInt(sequences, units));
+        List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches();
+        List<ConcernClone> duplications = concernCallsManager.getConcernClones(sequenceMatches, units);
+        assertNotNull(duplications);
+        assertEquals(1, duplications.size());
+        ConcernClone concernClone = duplications.get(0);
+        assertNotNull(concernClone);
+        assertEquals(2, concernClone.methods.size());
+        assertEquals(2, concernClone.sequences.size());
+        assertEquals(5, concernClone.sequences.get(0).size());
+        assertEquals(5, concernClone.sequences.get(1).size());
+        assertEquals(5, concernClone.duplications.size());
+
     }
 
     @Test
