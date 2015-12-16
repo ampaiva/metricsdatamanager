@@ -95,15 +95,12 @@ public class Main {
                     String pmdResult = Helper.readFile(csvFile);
                     compareTools.comparePMDxMcSheep(repository, pmdResult);
                     compareTools.compareMcSheepxPMD(repository, pmdResult);
-
-                    BasicConfigurator.resetConfiguration();
-
                 }
             }
         }
         if (LOG.isInfoEnabled()) {
             Date end = new Date();
-            LOG.info(start + " - " + end + " Elapsed " + end.compareTo(start));
+            LOG.info(start + " - " + end + " Elapsed " + (end.getTime() - start.getTime()) + " ms");
         }
         BasicConfigurator.resetConfiguration();
     }
