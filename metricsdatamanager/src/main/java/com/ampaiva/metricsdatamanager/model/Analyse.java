@@ -26,7 +26,7 @@ import org.eclipse.persistence.annotations.CascadeOnDelete;
  */
 @Entity
 @Table(name = "analysis", indexes = {
-        @Index(name = "repository_params_idx", columnList = "repository,minseq,maxdist", unique = true) })
+        @Index(name = "repository_params_idx", columnList = "repository,minseq", unique = true) })
 
 @NamedQueries({ @NamedQuery(name = "Analyse.findAll", query = "SELECT a FROM Analyse a"),
         @NamedQuery(name = "Analyse.findByRepoAndMinseq", query = "SELECT a FROM Analyse a WHERE a.repositoryBean=?1 and a.minSeq=?2") })

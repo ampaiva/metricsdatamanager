@@ -78,7 +78,9 @@ public class ConcernCallsManager {
             codeSourceMaps.add(codeSourceMap);
         }
         for (Map<String, String> codeSourceMap : codeSourceMaps) {
+            IProgressUpdate update = ProgressUpdate.start("Parsing file", codeSourceMap.entrySet().size());
             for (Entry<String, String> entry : codeSourceMap.entrySet()) {
+                update.beginIndex(entry.getKey());
                 Unit unit = new Unit();
                 unit.setRepositoryBean(repository);
                 unit.setName(entry.getKey());
@@ -91,6 +93,7 @@ public class ConcernCallsManager {
             }
         }
         repository.setUnits(units);
+        repository.setAnalysis(new ArrayList<>());
         return repository;
     }
 

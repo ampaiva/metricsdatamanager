@@ -216,9 +216,9 @@ public class CompareTools {
         Logger.getRootLogger().setLevel(Level.INFO);
         final IDataManager dataManager = new ConfigDataManager(config);
         CompareTools compareTools = new CompareTools(dataManager);
-        String pmdCSVFile = "src/test/resources/pmd/healthwatcher.csv";
+        String pmdCSVFile = "src/test/resources/pmd/argouml.csv";
         String pmdResult = Helper.readFile(new File(pmdCSVFile));
-        String repository = "c:\\temp\\extracted\\HealthWatcher";
+        String repository = "c:\\temp\\extracted\\ArgoUml-0.34";
         compareTools.comparePMDxMcSheep(repository, pmdResult);
         compareTools.compareMcSheepxPMD(repository, pmdResult);
 

@@ -1,6 +1,8 @@
 package com.ampaiva.metricsdatamanager;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -9,15 +11,20 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
+import com.ampaiva.hlo.util.Helper;
 import com.ampaiva.metricsdatamanager.controller.ConfigDataManager;
 import com.ampaiva.metricsdatamanager.controller.IDataManager;
+import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.util.Config;
 
 public class Main {
+    private static final Log LOG = LogFactory.getLog(Main.class);
 
     public static void main(String[] args) throws IOException, com.github.javaparser.ParseException {
         // create the command line parser
@@ -61,10 +68,30 @@ public class Main {
         Logger.getRootLogger().setLevel(Level.INFO);
         final IDataManager dataManager = new ConfigDataManager(config);
 
-        PersistDuplications persistDuplications = new PersistDuplications(dataManager,
-                Integer.parseInt(config.get("analysis.minseq")));
-        persistDuplications.run(config.get("analysis.folder"), Boolean.parseBoolean(config.get("analysis.searchzips")),
-                Boolean.parseBoolean(config.get("analysis.deleteall")));
+        if (Boolean.parseBoolean(config.get("analysis.persist"))) {
+            PersistDuplications persistDuplications = new PersistDuplications(dataManager,
+                    Integer.parseInt(config.get("analysis.minseq")));
+            persistDuplications.run(config.get("analysis.folder"),
+                    Boolean.parseBoolean(config.get("analysis.searchzips")),
+                    Boolean.parseBoolean(config.get("analysis.deleteall")));
+        } else {
+            ExtractClones extractClones = new ExtractClones(Integer.parseInt(config.get("analysis.minseq")));
+            List<Repository> repositories = extractClones.run(config.get("analysis.folder"),
+                    Boolean.parseBoolean(config.get("analysis.searchzips")));
+            if (LOG.isInfoEnabled()) {
+                for (Repository repository : repositories) {
+                    LOG.info(repository);
+                    CompareToolsNoDB compareTools = new CompareToolsNoDB();
+                    String pmdCSVFile = config.get("pmd.csvfile");
+                    String pmdResult = Helper.readFile(new File(pmdCSVFile));
+                    compareTools.comparePMDxMcSheep(repository, pmdResult);
+                    compareTools.compareMcSheepxPMD(repository, pmdResult);
+
+                    BasicConfigurator.resetConfiguration();
+
+                }
+            }
+        }
         BasicConfigurator.resetConfiguration();
     }
 
