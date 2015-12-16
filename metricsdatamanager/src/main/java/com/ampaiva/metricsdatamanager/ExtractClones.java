@@ -89,10 +89,8 @@ public class ExtractClones {
             for (Unit unit : units) {
                 methods.addAll(unit.getMethods());
             }
-            IProgressUpdate update4 = ProgressUpdate.start("Saving clones", matchesData.groupsMatched.size());
             final Method method0 = methods.get(matchesData.groupIndex);
             for (int i = 0; i < matchesData.groupsMatched.size(); i++) {
-                update4.beginIndex();
                 final Method method1 = methods.get(matchesData.groupsMatched.get(i));
                 Duplications duplications = new Duplications(matchesData.sequencesMatches.get(i));
                 DuplicationInfo duplicationInfo = duplications.next();
@@ -103,7 +101,6 @@ public class ExtractClones {
                     }
                     duplicationInfo = duplications.next();
                 }
-                update4.endIndex();
             }
         }
     }

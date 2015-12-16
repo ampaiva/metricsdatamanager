@@ -2,6 +2,7 @@ package com.ampaiva.metricsdatamanager;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.cli.CommandLine;
@@ -66,6 +67,7 @@ public class Main {
 
         BasicConfigurator.configure();
         Logger.getRootLogger().setLevel(Level.INFO);
+        Date start = new Date();
         final IDataManager dataManager = new ConfigDataManager(config);
 
         if (Boolean.parseBoolean(config.get("analysis.persist"))) {
@@ -75,6 +77,14 @@ public class Main {
                     Boolean.parseBoolean(config.get("analysis.searchzips")),
                     Boolean.parseBoolean(config.get("analysis.deleteall")));
         } else {
+            String pmdCSVFile = config.get("pmd.csvfile");
+            File csvFile = new File(pmdCSVFile);
+            if (!csvFile.exists()) {
+                if (LOG.isWarnEnabled()) {
+                    LOG.warn("File " + csvFile + " does not exist.");
+                }
+                return;
+            }
             ExtractClones extractClones = new ExtractClones(Integer.parseInt(config.get("analysis.minseq")));
             List<Repository> repositories = extractClones.run(config.get("analysis.folder"),
                     Boolean.parseBoolean(config.get("analysis.searchzips")));
@@ -82,8 +92,7 @@ public class Main {
                 for (Repository repository : repositories) {
                     LOG.info(repository);
                     CompareToolsNoDB compareTools = new CompareToolsNoDB();
-                    String pmdCSVFile = config.get("pmd.csvfile");
-                    String pmdResult = Helper.readFile(new File(pmdCSVFile));
+                    String pmdResult = Helper.readFile(csvFile);
                     compareTools.comparePMDxMcSheep(repository, pmdResult);
                     compareTools.compareMcSheepxPMD(repository, pmdResult);
 
@@ -91,6 +100,10 @@ public class Main {
 
                 }
             }
+        }
+        if (LOG.isInfoEnabled()) {
+            Date end = new Date();
+            LOG.info(start + " - " + end + " Elapsed " + end.compareTo(start));
         }
         BasicConfigurator.resetConfiguration();
     }
