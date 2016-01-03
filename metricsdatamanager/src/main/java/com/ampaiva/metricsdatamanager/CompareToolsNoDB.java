@@ -1,7 +1,14 @@
 package com.ampaiva.metricsdatamanager;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import com.ampaiva.metricsdatamanager.model.Analyse;
 import com.ampaiva.metricsdatamanager.model.Call;
@@ -13,6 +20,9 @@ import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone.PmdOcurrency;
 import com.ampaiva.metricsdatamanager.util.Conventions;
 
 public class CompareToolsNoDB {
+    private static final String COMMA = ",";
+    private static final String EOL = "\r\n";
+
     /*
      * Finds all McSheeps clones that are inside pmdClone
      * 
@@ -48,7 +58,8 @@ public class CompareToolsNoDB {
         return results;
     }
 
-    public void comparePMDxMcSheep(Repository repository, String pmdResult) {
+    public void comparePMDxMcSheep(Repository repository, String pmdResult, List<PmdClone> pmdFound,
+            List<PmdClone> pmdNotFound) {
         List<PmdClone> pmdClones = Pmd.parse(repository.getLocation(), pmdResult);
         int found = 0, notFound = 0;
         for (PmdClone pmdClone : pmdClones) {
@@ -72,18 +83,19 @@ public class CompareToolsNoDB {
                 System.out.println("=============================================");
             }
             if (!hasAllOcurrencies) {
+                pmdNotFound.add(pmdClone);
                 System.err.println("Clone not found by McSheep: " + pmdClone);
                 notFound++;
             } else {
+                pmdFound.add(pmdClone);
                 System.out.println("Clone found by McSheep: " + pmdClone);
                 found++;
             }
         }
-        System.err.println("Not found: " + notFound);
-        System.out.println("Found: " + found);
     }
 
-    public void compareMcSheepxPMD(Repository repository, String pmdResult) {
+    public void compareMcSheepxPMD(Repository repository, String pmdResult, List<Clone> mcsheepFound,
+            List<Clone> mcsheepNotFound) {
         List<PmdClone> pmdClones = Pmd.parse(repository.getLocation(), pmdResult);
         int found = 0, notFound = 0;
         for (Analyse analyse : repository.getAnalysis()) {
@@ -143,9 +155,11 @@ public class CompareToolsNoDB {
                 String cloneStr = unit1 + ":[" + beglinCopy + "-" + endlinCopy + "] " + unit2 + ":[" + beglinPaste + "-"
                         + endlinPaste + "] " + clone;
                 if (!pmdCloneFound) {
+                    mcsheepNotFound.add(clone);
                     System.err.println("Clone not found by PMD: " + cloneStr);
                     notFound++;
                 } else {
+                    mcsheepFound.add(clone);
                     System.out.println("Clone found by PMD: " + cloneStr);
                     found++;
                 }
@@ -154,5 +168,82 @@ public class CompareToolsNoDB {
 
         System.err.println("Not found: " + notFound);
         System.out.println("Found: " + found);
+    }
+
+    private void writePmdClone(FileWriter fileWriter, PmdClone pmdClone, boolean found) throws IOException {
+        for (int i = 0; i < pmdClone.ocurrencies.size(); i++) {
+            PmdOcurrency copy = pmdClone.ocurrencies.get(i);
+            for (int j = i + 1; j < pmdClone.ocurrencies.size(); j++) {
+                PmdOcurrency paste = pmdClone.ocurrencies.get(j);
+                fileWriter.write((found ? "+" : "-") + COMMA + pmdClone.lines + COMMA + copy.file + COMMA + copy.line
+                        + COMMA + paste.file + COMMA + paste.line + EOL);
+
+            }
+
+        }
+    }
+
+    private void writeMcSheepClone(FileWriter fileWriter, ClonePair clone, boolean found) throws IOException {
+        int beglinCopy = clone.copy.beglin;
+        int endlinCopy = clone.copy.endlin;
+        int beglinPaste = clone.paste.beglin;
+        int endlinPaste = clone.paste.endlin;
+        fileWriter.write((found ? "+" : "-") + COMMA + beglinCopy + COMMA + endlinCopy + COMMA + clone.copy.name + COMMA
+                + beglinPaste + COMMA + endlinPaste + COMMA + clone.paste.name + EOL);
+    }
+
+    private void writeMcSheepClones(FileWriter fileWriter, List<Clone> mcsheepFound, boolean found) throws IOException {
+        Set<ClonePair> clonesData = Collections.synchronizedSortedSet(new TreeSet<>());
+        for (Clone clone : mcsheepFound) {
+            clonesData.add(new ClonePair(clone));
+        }
+        Set<String> hash = new HashSet<>();
+        for (ClonePair cloneData : clonesData) {
+            if (!hash.contains(cloneData.getKey())) {
+                writeMcSheepClone(fileWriter, cloneData, found);
+                hash.add(cloneData.getKey());
+            }
+        }
+    }
+
+    public void savePMD(String folderName, String fileName, List<PmdClone> pmdFound, List<PmdClone> pmdNotFound)
+            throws IOException {
+        File folder = new File(folderName);
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+        FileWriter fileWriter = null;
+        try {
+            fileWriter = new FileWriter(new File(folderName + File.separator + fileName));
+            for (PmdClone pmdClone : pmdFound) {
+                writePmdClone(fileWriter, pmdClone, true);
+            }
+            for (PmdClone pmdClone : pmdNotFound) {
+                writePmdClone(fileWriter, pmdClone, false);
+            }
+        } finally {
+            if (fileWriter != null) {
+                fileWriter.close();
+            }
+        }
+
+    }
+
+    public void saveMcSheep(String folderName, String fileName, List<Clone> mcsheepFound, List<Clone> mcsheepNotFound)
+            throws IOException {
+        File folder = new File(folderName);
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+        FileWriter fileWriter = null;
+        try {
+            fileWriter = new FileWriter(new File(folderName + File.separator + fileName));
+            writeMcSheepClones(fileWriter, mcsheepFound, true);
+            writeMcSheepClones(fileWriter, mcsheepNotFound, false);
+        } finally {
+            if (fileWriter != null) {
+                fileWriter.close();
+            }
+        }
     }
 }

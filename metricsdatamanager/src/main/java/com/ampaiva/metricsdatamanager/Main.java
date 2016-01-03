@@ -1,7 +1,12 @@
 package com.ampaiva.metricsdatamanager;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -21,11 +26,33 @@ import org.apache.log4j.Logger;
 import com.ampaiva.hlo.util.Helper;
 import com.ampaiva.metricsdatamanager.controller.ConfigDataManager;
 import com.ampaiva.metricsdatamanager.controller.IDataManager;
+import com.ampaiva.metricsdatamanager.model.Clone;
 import com.ampaiva.metricsdatamanager.model.Repository;
+import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone;
 import com.ampaiva.metricsdatamanager.util.Config;
 
 public class Main {
     private static final Log LOG = LogFactory.getLog(Main.class);
+
+    private static void runPMD(String cpdFile, int minimumTokens, String projectFile, File csvFile) throws IOException {
+        String[] strings = new String[] { "-classpath * net.sourceforge.pmd.cpd.CPD",
+                "--minimum-tokens " + minimumTokens, " --files " + projectFile, " --format csv" };
+        String command = cpdFile;
+        for (String string : strings) {
+            command += " " + string;
+        }
+        Process process = Runtime.getRuntime().exec(command, new String[0], new File("C:\\tools\\pmd-bin-5.4.0\\lib"));
+
+        InputStream is = process.getInputStream();
+        InputStreamReader isr = new InputStreamReader(is);
+        BufferedReader br = new BufferedReader(isr);
+        FileWriter fileWriter = new FileWriter(csvFile);
+        String line;
+        while ((line = br.readLine()) != null) {
+            fileWriter.write(line + "\r\n");
+        }
+        fileWriter.close();
+    }
 
     public static void main(String[] args) throws IOException, com.github.javaparser.ParseException {
         // create the command line parser
@@ -70,31 +97,57 @@ public class Main {
         Date start = new Date();
         final IDataManager dataManager = new ConfigDataManager(config);
 
+        String rootFolder = config.get("analysis.folder");
         if (Boolean.parseBoolean(config.get("analysis.persist"))) {
             PersistDuplications persistDuplications = new PersistDuplications(dataManager,
                     Integer.parseInt(config.get("analysis.minseq")));
-            persistDuplications.run(config.get("analysis.folder"),
-                    Boolean.parseBoolean(config.get("analysis.searchzips")),
+            persistDuplications.run(rootFolder, Boolean.parseBoolean(config.get("analysis.searchzips")),
                     Boolean.parseBoolean(config.get("analysis.deleteall")));
         } else {
-            String pmdCSVFile = config.get("pmd.csvfile");
-            File csvFile = new File(pmdCSVFile);
-            if (!csvFile.exists()) {
-                if (LOG.isWarnEnabled()) {
-                    LOG.warn("File " + csvFile + " does not exist.");
+            File file = new File(rootFolder);
+            for (File projectFile : file.listFiles()) {
+                if (!projectFile.isDirectory()) {
+                    continue;
                 }
-                return;
-            }
-            ExtractClones extractClones = new ExtractClones(Integer.parseInt(config.get("analysis.minseq")));
-            List<Repository> repositories = extractClones.run(config.get("analysis.folder"),
-                    Boolean.parseBoolean(config.get("analysis.searchzips")));
-            if (LOG.isInfoEnabled()) {
-                for (Repository repository : repositories) {
-                    LOG.info(repository);
-                    CompareToolsNoDB compareTools = new CompareToolsNoDB();
-                    String pmdResult = Helper.readFile(csvFile);
-                    compareTools.comparePMDxMcSheep(repository, pmdResult);
-                    compareTools.compareMcSheepxPMD(repository, pmdResult);
+                if (LOG.isInfoEnabled()) {
+                    LOG.info("Project: " + projectFile);
+                }
+                String pmdCSVFile = config.get("pmd.results") + File.separator + projectFile.getName() + ".csv";
+                File csvFile = new File(pmdCSVFile);
+                if (csvFile.exists()) {
+                    csvFile.delete();
+                }
+                csvFile.getParentFile().mkdirs();
+                runPMD(config.get("pmd.cpdfile"), Integer.parseInt(config.get("pmd.minimumtokens")),
+                        projectFile.getAbsolutePath(), csvFile);
+                if (!csvFile.exists()) {
+                    if (LOG.isWarnEnabled()) {
+                        LOG.warn("File " + csvFile + " does not exist.");
+                    }
+                    return;
+                }
+                ExtractClones extractClones = new ExtractClones(Integer.parseInt(config.get("analysis.minseq")));
+                List<Repository> repositories = extractClones.run(projectFile.getAbsolutePath(),
+                        Boolean.parseBoolean(config.get("analysis.searchzips")));
+                if (LOG.isInfoEnabled()) {
+                    for (Repository repository : repositories) {
+                        LOG.info(repository);
+                        CompareToolsNoDB compareTools = new CompareToolsNoDB();
+                        String pmdResult = Helper.readFile(csvFile);
+                        List<PmdClone> pmdFound = new ArrayList<>();
+                        List<PmdClone> pmdNotFound = new ArrayList<>();
+                        compareTools.comparePMDxMcSheep(repository, pmdResult, pmdFound, pmdNotFound);
+                        System.out.println("Found: " + pmdFound.size());
+                        System.err.println();
+                        System.err.println("Not found: " + pmdNotFound.size());
+                        compareTools.savePMD(config.get("analysis.results"), "pmd-" + csvFile.getName(), pmdFound,
+                                pmdNotFound);
+                        List<Clone> mcsheepFound = new ArrayList<>();
+                        List<Clone> mcsheepNotFound = new ArrayList<>();
+                        compareTools.compareMcSheepxPMD(repository, pmdResult, mcsheepFound, mcsheepNotFound);
+                        compareTools.saveMcSheep(config.get("analysis.results"), "mcsheep-" + csvFile.getName(),
+                                mcsheepFound, mcsheepNotFound);
+                    }
                 }
             }
         }
