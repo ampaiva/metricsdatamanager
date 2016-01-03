@@ -16,14 +16,19 @@ public class CloneSide implements Comparable<CloneSide> {
     @Override
     public int compareTo(CloneSide other) {
         int compare = name.compareTo(other.name);
-        if (compare == 0) {
-            if (compare == 0) {
-                compare = beglin - other.beglin;
-                if (compare == 0) {
-                    compare = endlin - other.endlin;
-                }
-            }
-        }
+        //        if (compare == 0) {
+        //            if (compare == 0) {
+        //                compare = beglin - other.beglin;
+        //                if (compare == 0) {
+        //                    compare = endlin - other.endlin;
+        //                }
+        //            }
+        //        }
         return compare;
+    }
+
+    @Override
+    public String toString() {
+        return "CloneSide [name=" + name + ", beglin=" + beglin + ", endlin=" + endlin + "]";
     }
 }

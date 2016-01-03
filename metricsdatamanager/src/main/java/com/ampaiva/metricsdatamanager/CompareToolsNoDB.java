@@ -4,11 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import com.ampaiva.metricsdatamanager.model.Analyse;
 import com.ampaiva.metricsdatamanager.model.Call;
@@ -183,30 +179,31 @@ public class CompareToolsNoDB {
         }
     }
 
-    private void writeMcSheepClone(FileWriter fileWriter, ClonePair clone, boolean found) throws IOException {
+    private void writeClonePair(FileWriter fileWriter, ClonePair clone) throws IOException {
         int beglinCopy = clone.copy.beglin;
         int endlinCopy = clone.copy.endlin;
         int beglinPaste = clone.paste.beglin;
         int endlinPaste = clone.paste.endlin;
-        fileWriter.write((found ? "+" : "-") + COMMA + beglinCopy + COMMA + endlinCopy + COMMA + clone.copy.name + COMMA
-                + beglinPaste + COMMA + endlinPaste + COMMA + clone.paste.name + EOL);
+        fileWriter.write((clone.found ? "+" : "-") + COMMA + beglinCopy + COMMA + endlinCopy + COMMA + clone.copy.name
+                + COMMA + beglinPaste + COMMA + endlinPaste + COMMA + clone.paste.name + EOL);
     }
 
-    private void writeMcSheepClones(FileWriter fileWriter, List<Clone> mcsheepFound, boolean found) throws IOException {
-        Set<ClonePair> clonesData = Collections.synchronizedSortedSet(new TreeSet<>());
-        for (Clone clone : mcsheepFound) {
-            clonesData.add(new ClonePair(clone));
+    private <T> void writeClones(FileWriter fileWriter, List<T> clonesFound, List<T> clonesNotFound)
+            throws IOException {
+        List<ClonePair> clones = new ArrayList<>();
+        for (T clone : clonesFound) {
+            clones.addAll(ClonePair.getClonePairs(clone, true));
         }
-        Set<String> hash = new HashSet<>();
-        for (ClonePair cloneData : clonesData) {
-            if (!hash.contains(cloneData.getKey())) {
-                writeMcSheepClone(fileWriter, cloneData, found);
-                hash.add(cloneData.getKey());
-            }
+        for (T clone : clonesNotFound) {
+            clones.addAll(ClonePair.getClonePairs(clone, false));
+        }
+        List<ClonePair> result = FilterClonePair.getClonePairs(clones);
+        for (ClonePair cloneData : result) {
+            writeClonePair(fileWriter, cloneData);
         }
     }
 
-    public void savePMD(String folderName, String fileName, List<PmdClone> pmdFound, List<PmdClone> pmdNotFound)
+    private void savePMD(String folderName, String fileName, List<PmdClone> pmdFound, List<PmdClone> pmdNotFound)
             throws IOException {
         File folder = new File(folderName);
         if (!folder.exists()) {
@@ -229,7 +226,7 @@ public class CompareToolsNoDB {
 
     }
 
-    public void saveMcSheep(String folderName, String fileName, List<Clone> mcsheepFound, List<Clone> mcsheepNotFound)
+    public <T> void saveClones(String folderName, String fileName, List<T> mcsheepFound, List<T> mcsheepNotFound)
             throws IOException {
         File folder = new File(folderName);
         if (!folder.exists()) {
@@ -238,8 +235,7 @@ public class CompareToolsNoDB {
         FileWriter fileWriter = null;
         try {
             fileWriter = new FileWriter(new File(folderName + File.separator + fileName));
-            writeMcSheepClones(fileWriter, mcsheepFound, true);
-            writeMcSheepClones(fileWriter, mcsheepNotFound, false);
+            writeClones(fileWriter, mcsheepFound, mcsheepNotFound);
         } finally {
             if (fileWriter != null) {
                 fileWriter.close();

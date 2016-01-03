@@ -140,12 +140,12 @@ public class Main {
                         System.out.println("Found: " + pmdFound.size());
                         System.err.println();
                         System.err.println("Not found: " + pmdNotFound.size());
-                        compareTools.savePMD(config.get("analysis.results"), "pmd-" + csvFile.getName(), pmdFound,
+                        compareTools.saveClones(config.get("analysis.results"), "pmd-" + csvFile.getName(), pmdFound,
                                 pmdNotFound);
                         List<Clone> mcsheepFound = new ArrayList<>();
                         List<Clone> mcsheepNotFound = new ArrayList<>();
                         compareTools.compareMcSheepxPMD(repository, pmdResult, mcsheepFound, mcsheepNotFound);
-                        compareTools.saveMcSheep(config.get("analysis.results"), "mcsheep-" + csvFile.getName(),
+                        compareTools.saveClones(config.get("analysis.results"), "mcsheep-" + csvFile.getName(),
                                 mcsheepFound, mcsheepNotFound);
                     }
                 }
