@@ -188,8 +188,7 @@ public class CompareToolsNoDB {
                 + COMMA + beglinPaste + COMMA + endlinPaste + COMMA + clone.paste.name + EOL);
     }
 
-    private <T> void writeClones(FileWriter fileWriter, List<T> clonesFound, List<T> clonesNotFound)
-            throws IOException {
+    private <T> List<ClonePair> getClones(List<T> clonesFound, List<T> clonesNotFound) throws IOException {
         List<ClonePair> clones = new ArrayList<>();
         for (T clone : clonesFound) {
             clones.addAll(ClonePair.getClonePairs(clone, true));
@@ -197,7 +196,10 @@ public class CompareToolsNoDB {
         for (T clone : clonesNotFound) {
             clones.addAll(ClonePair.getClonePairs(clone, false));
         }
-        List<ClonePair> result = FilterClonePair.getClonePairs(clones);
+        return FilterClonePair.getClonePairs(clones);
+    }
+
+    private <T> void writeClones(FileWriter fileWriter, List<ClonePair> result) throws IOException {
         for (ClonePair cloneData : result) {
             writeClonePair(fileWriter, cloneData);
         }
@@ -226,8 +228,8 @@ public class CompareToolsNoDB {
 
     }
 
-    public <T> void saveClones(String folderName, String fileName, List<T> mcsheepFound, List<T> mcsheepNotFound)
-            throws IOException {
+    public <T> List<ClonePair> saveClones(String folderName, String fileName, List<T> mcsheepFound,
+            List<T> mcsheepNotFound) throws IOException {
         File folder = new File(folderName);
         if (!folder.exists()) {
             folder.mkdirs();
@@ -235,7 +237,9 @@ public class CompareToolsNoDB {
         FileWriter fileWriter = null;
         try {
             fileWriter = new FileWriter(new File(folderName + File.separator + fileName));
-            writeClones(fileWriter, mcsheepFound, mcsheepNotFound);
+            List<ClonePair> result = getClones(mcsheepFound, mcsheepNotFound);
+            writeClones(fileWriter, result);
+            return result;
         } finally {
             if (fileWriter != null) {
                 fileWriter.close();

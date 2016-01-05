@@ -1,0 +1,6 @@
+lines,tokens,occurrences
+193,992,2,53,c:\temp\extracted\facebook-android-sdk-master\samples\RPSSample\src\com\facebook\samples\rps\usersettings\UserSettingsFragment.java,53,c:\temp\extracted\facebook-android-sdk-master\samples\Scrumptious\src\com\facebook\scrumptious\usersettings\UserSettingsFragment.java
+29,164,2,48,c:\temp\extracted\facebook-android-sdk-master\facebook\src\com\facebook\share\internal\LegacyNativeDialogParameters.java,49,c:\temp\extracted\facebook-android-sdk-master\facebook\src\com\facebook\share\internal\NativeDialogParameters.java
+34,122,2,131,c:\temp\extracted\facebook-android-sdk-master\facebook\src\com\facebook\share\widget\CreateAppGroupDialog.java,130,c:\temp\extracted\facebook-android-sdk-master\facebook\src\com\facebook\share\widget\JoinAppGroupDialog.java
+28,100,3,153,c:\temp\extracted\facebook-android-sdk-master\facebook\src\com\facebook\share\widget\AppInviteDialog.java,132,c:\temp\extracted\facebook-android-sdk-master\facebook\src\com\facebook\share\widget\CreateAppGroupDialog.java,131,c:\temp\extracted\facebook-android-sdk-master\facebook\src\com\facebook\share\widget\JoinAppGroupDialog.java
+

@@ -145,8 +145,8 @@ public class Main {
                         List<Clone> mcsheepFound = new ArrayList<>();
                         List<Clone> mcsheepNotFound = new ArrayList<>();
                         compareTools.compareMcSheepxPMD(repository, pmdResult, mcsheepFound, mcsheepNotFound);
-                        compareTools.saveClones(config.get("analysis.results"), "mcsheep-" + csvFile.getName(),
-                                mcsheepFound, mcsheepNotFound);
+                        List<ClonePair> result = compareTools.saveClones(config.get("analysis.results"),
+                                "mcsheep-" + csvFile.getName(), mcsheepFound, mcsheepNotFound);
                     }
                 }
             }
