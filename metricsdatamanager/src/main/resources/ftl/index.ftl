@@ -5,7 +5,8 @@
 <body>
   <h1>McSheep - Clones Visualization</h1>
 	<#list repositories as repository>
-  		<p><a href="${repository.location}.html">${repository.location}</a>!
+	<p>Repositories:
+  		<p><a href="${repository.location?keep_after_last("\\")}.html">${repository.location?keep_after_last("\\")}</a>
 	<#else>
 	    Nor repositories processed!
 	</#list>

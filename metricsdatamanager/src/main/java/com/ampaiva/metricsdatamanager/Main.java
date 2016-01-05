@@ -2,13 +2,18 @@ package com.ampaiva.metricsdatamanager;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -30,6 +35,9 @@ import com.ampaiva.metricsdatamanager.model.Clone;
 import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone;
 import com.ampaiva.metricsdatamanager.util.Config;
+import com.ampaiva.metricsdatamanager.util.FreeMarker;
+
+import freemarker.template.TemplateException;
 
 public class Main {
     private static final Log LOG = LogFactory.getLog(Main.class);
@@ -54,7 +62,7 @@ public class Main {
         fileWriter.close();
     }
 
-    public static void main(String[] args) throws IOException, com.github.javaparser.ParseException {
+    public static void main(String[] args) throws IOException, com.github.javaparser.ParseException, TemplateException {
         // create the command line parser
         CommandLineParser parser = new DefaultParser();
         // create the Options
@@ -129,6 +137,7 @@ public class Main {
                 ExtractClones extractClones = new ExtractClones(Integer.parseInt(config.get("analysis.minseq")));
                 List<Repository> repositories = extractClones.run(projectFile.getAbsolutePath(),
                         Boolean.parseBoolean(config.get("analysis.searchzips")));
+                saveRepositoriesToHTML(repositories);
                 if (LOG.isInfoEnabled()) {
                     for (Repository repository : repositories) {
                         LOG.info(repository);
@@ -145,8 +154,9 @@ public class Main {
                         List<Clone> mcsheepFound = new ArrayList<>();
                         List<Clone> mcsheepNotFound = new ArrayList<>();
                         compareTools.compareMcSheepxPMD(repository, pmdResult, mcsheepFound, mcsheepNotFound);
-                        List<ClonePair> result = compareTools.saveClones(config.get("analysis.results"),
+                        List<ClonePair> clones = compareTools.saveClones(config.get("analysis.results"),
                                 "mcsheep-" + csvFile.getName(), mcsheepFound, mcsheepNotFound);
+                        saveClonesToHTML(repository, clones);
                     }
                 }
             }
@@ -158,4 +168,35 @@ public class Main {
         BasicConfigurator.resetConfiguration();
     }
 
+    private static void saveRepositoriesToHTML(List<Repository> repositories) throws IOException, TemplateException {
+        Map<String, Object> root = new HashMap<>();
+        root.put("repositories", repositories);
+        FreeMarker.configure("target/classes/ftl");
+        File htmlFolder = new File("/temp/html");
+        htmlFolder.mkdirs();
+        Writer out = new OutputStreamWriter(new FileOutputStream(htmlFolder + File.separator + "index.html"));
+        FreeMarker.run("index.ftl", root, out);
+        out.close();
+    }
+
+    private static void saveClonesToHTML(Repository repository, List<ClonePair> clones)
+            throws IOException, TemplateException {
+        Map<String, Object> root = new HashMap<>();
+        root.put("repository", repository);
+        root.put("clones", clones);
+        File htmlFolder = new File("/temp/html");
+        Writer out2 = new OutputStreamWriter(new FileOutputStream(
+                htmlFolder + File.separator + new File(repository.getLocation()).getName() + ".html"));
+        FreeMarker.run("clones.ftl", root, out2);
+        for (ClonePair clone : clones) {
+            root.put("clone", clone);
+            root.put("copy", "public void x();");
+            root.put("paste", "public void y();");
+            Writer out3 = new OutputStreamWriter(new FileOutputStream(htmlFolder + File.separator
+                    + new File(repository.getLocation()).getName() + "-" + clone + ".html"));
+            FreeMarker.run("clone.ftl", root, out3);
+            out3.close();
+        }
+        out2.close();
+    }
 }
