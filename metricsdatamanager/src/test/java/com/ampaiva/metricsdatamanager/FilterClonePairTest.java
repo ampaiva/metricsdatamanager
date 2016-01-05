@@ -13,10 +13,10 @@ public class FilterClonePairTest {
 
     @Test
     public void testGetClonePairs() {
-        ClonePair clone1 = new ClonePair(new CloneSide("B", 1, 2), new CloneSide("A", 1, 2), true);
-        ClonePair clone2 = new ClonePair(new CloneSide("A", 1, 2), new CloneSide("B", 1, 2), true);
-        ClonePair clone3 = new ClonePair(new CloneSide("C", 1, 2), new CloneSide("D", 1, 2), false);
-        ClonePair clone4 = new ClonePair(new CloneSide("C", 3, 4), new CloneSide("D", 3, 4), true);
+        ClonePair clone1 = new ClonePair(new CloneSide("B", 1, 2, ""), new CloneSide("A", 1, 2, ""), true);
+        ClonePair clone2 = new ClonePair(new CloneSide("A", 1, 2, ""), new CloneSide("B", 1, 2, ""), true);
+        ClonePair clone3 = new ClonePair(new CloneSide("C", 1, 2, ""), new CloneSide("D", 1, 2, ""), false);
+        ClonePair clone4 = new ClonePair(new CloneSide("C", 3, 4, ""), new CloneSide("D", 3, 4, ""), true);
         List<ClonePair> clones = Arrays.asList(clone1, clone2, clone3, clone4);
         List<ClonePair> result = FilterClonePair.getClonePairs(clones);
         assertNotNull(result);

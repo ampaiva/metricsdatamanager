@@ -190,8 +190,8 @@ public class Main {
         FreeMarker.run("clones.ftl", root, out2);
         for (ClonePair clone : clones) {
             root.put("clone", clone);
-            root.put("copy", "public void x();");
-            root.put("paste", "public void y();");
+            root.put("copy", clone.copy.source);
+            root.put("paste", clone.paste.source);
             Writer out3 = new OutputStreamWriter(new FileOutputStream(htmlFolder + File.separator
                     + new File(repository.getLocation()).getName() + "-" + clone + ".html"));
             FreeMarker.run("clone.ftl", root, out3);

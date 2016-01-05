@@ -9,8 +9,8 @@ import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone;
 import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone.PmdOcurrency;
 
 public class ClonePair implements Comparable<ClonePair> {
-    final CloneSide copy;
-    final CloneSide paste;
+    public final CloneSide copy;
+    public final CloneSide paste;
     final boolean found;
 
     public ClonePair(CloneSide side1, CloneSide side2, boolean found) {
@@ -49,7 +49,7 @@ public class ClonePair implements Comparable<ClonePair> {
             int beglinCopy = ocurrency_i.line;
             int endlinCopy = ocurrency_i.line + clone.lines;
             String copyName = getFileName(ocurrency_i.file);
-            CloneSide side1 = new CloneSide(copyName, beglinCopy, endlinCopy);
+            CloneSide side1 = new CloneSide(copyName, beglinCopy, endlinCopy, ocurrency_i.file);
             clones.add(side1);
         }
         return clones.toArray(new CloneSide[clones.size()]);
@@ -64,8 +64,9 @@ public class ClonePair implements Comparable<ClonePair> {
                 .get(clone.getPaste().getPosition() + clone.getAnalyseBean().getMinSeq() - 1).getEndlin();
         String copyName = getFileName(clone.getCopy().getMethodBean().getUnitBean().getName());
         String pasteName = getFileName(clone.getPaste().getMethodBean().getUnitBean().getName());
-        CloneSide side1 = new CloneSide(copyName, beglinCopy, endlinCopy);
-        CloneSide side2 = new CloneSide(pasteName, beglinPaste, endlinPaste);
+        CloneSide side1 = new CloneSide(copyName, beglinCopy, endlinCopy, clone.getCopy().getMethodBean().getSource());
+        CloneSide side2 = new CloneSide(pasteName, beglinPaste, endlinPaste,
+                clone.getPaste().getMethodBean().getSource());
         return new CloneSide[] { side1, side2 };
 
     }

@@ -7,10 +7,13 @@ public class CloneSide implements Comparable<CloneSide> {
 
     final int endlin;
 
-    public CloneSide(String name, int beglin, int endlin) {
+    public final String source;
+
+    public CloneSide(String name, int beglin, int endlin, String source) {
         this.name = name;
         this.beglin = beglin;
         this.endlin = endlin;
+        this.source = source;
     }
 
     @Override

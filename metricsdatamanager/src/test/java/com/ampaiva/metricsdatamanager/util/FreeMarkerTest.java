@@ -35,7 +35,8 @@ public class FreeMarkerTest {
         Writer out = new OutputStreamWriter(new FileOutputStream(htmlFolder + File.separator + "index.html"));
         FreeMarker.run("index.ftl", root, out);
         out.close();
-        ClonePair clonePair = new ClonePair(new CloneSide("file1", 11, 12), new CloneSide("file2", 15, 16), true);
+        ClonePair clonePair = new ClonePair(new CloneSide("file1", 11, 12, "public void x();"),
+                new CloneSide("file2", 15, 16, "public void y();"), true);
         List<ClonePair> clones = Arrays.asList(clonePair);
         root.put("repository", repositories.get(0));
         root.put("clones", clones);
@@ -43,11 +44,12 @@ public class FreeMarkerTest {
                 htmlFolder + File.separator + new File(repositories.get(0).getLocation()).getName() + ".html"));
         FreeMarker.run("clones.ftl", root, out2);
         out2.close();
-        root.put("clone", clones.get(0));
-        root.put("copy", "public void x();");
-        root.put("paste", "public void y();");
+        ClonePair clone = clones.get(0);
+        root.put("clone", clone);
+        root.put("copy", clone.copy.source);
+        root.put("paste", clone.paste.source);
         Writer out3 = new OutputStreamWriter(new FileOutputStream(htmlFolder + File.separator
-                + new File(repositories.get(0).getLocation()).getName() + "-" + clones.get(0) + ".html"));
+                + new File(repositories.get(0).getLocation()).getName() + "-" + clone + ".html"));
         FreeMarker.run("clone.ftl", root, out3);
         out3.close();
         BasicConfigurator.resetConfiguration();
