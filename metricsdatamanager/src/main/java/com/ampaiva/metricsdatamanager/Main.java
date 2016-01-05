@@ -113,6 +113,8 @@ public class Main {
                     Boolean.parseBoolean(config.get("analysis.deleteall")));
         } else {
             File file = new File(rootFolder);
+            FreeMarker.configure("target/classes/ftl");
+            List<Repository> repositories2 = new ArrayList<>();
             for (File projectFile : file.listFiles()) {
                 if (!projectFile.isDirectory()) {
                     continue;
@@ -137,7 +139,7 @@ public class Main {
                 ExtractClones extractClones = new ExtractClones(Integer.parseInt(config.get("analysis.minseq")));
                 List<Repository> repositories = extractClones.run(projectFile.getAbsolutePath(),
                         Boolean.parseBoolean(config.get("analysis.searchzips")));
-                saveRepositoriesToHTML(repositories);
+                repositories2.addAll(repositories);
                 if (LOG.isInfoEnabled()) {
                     for (Repository repository : repositories) {
                         LOG.info(repository);
@@ -160,6 +162,7 @@ public class Main {
                     }
                 }
             }
+            saveRepositoriesToHTML(repositories2);
         }
         if (LOG.isInfoEnabled()) {
             Date end = new Date();
@@ -171,7 +174,6 @@ public class Main {
     private static void saveRepositoriesToHTML(List<Repository> repositories) throws IOException, TemplateException {
         Map<String, Object> root = new HashMap<>();
         root.put("repositories", repositories);
-        FreeMarker.configure("target/classes/ftl");
         File htmlFolder = new File("/temp/html");
         htmlFolder.mkdirs();
         Writer out = new OutputStreamWriter(new FileOutputStream(htmlFolder + File.separator + "index.html"));
