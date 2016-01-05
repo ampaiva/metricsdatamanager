@@ -43,6 +43,13 @@ public class FreeMarkerTest {
                 new FileOutputStream(htmlFolder + File.separator + repositories.get(0).getLocation() + ".html"));
         FreeMarker.run("clones.ftl", root, out2);
         out2.close();
+        root.put("clone", clones.get(0));
+        root.put("copy", "public void x();");
+        root.put("paste", "public void y();");
+        Writer out3 = new OutputStreamWriter(new FileOutputStream(
+                htmlFolder + File.separator + repositories.get(0).getLocation() + "-" + clones.get(0) + ".html"));
+        FreeMarker.run("clone.ftl", root, out3);
+        out3.close();
         BasicConfigurator.resetConfiguration();
 
     }
