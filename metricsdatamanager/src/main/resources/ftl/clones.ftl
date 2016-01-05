@@ -5,9 +5,10 @@
 <body>
   <h1>McSheep - Clones of ${repository}</h1>
 	<#list clones as clone>
-  		<p><a href="${clone}.html">${clone}</a>!
+  		<p><a href="${repository.location}-${clone}.html">${clone}</a>!
 	<#else>
 	    Nor clones found!
 	</#list>
+  	<p><a href="index.html">Back</a>!
 </body>
 </html>
