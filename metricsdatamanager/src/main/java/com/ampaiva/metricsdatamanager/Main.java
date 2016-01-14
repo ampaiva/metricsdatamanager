@@ -192,8 +192,10 @@ public class Main {
         FreeMarker.run("clones.ftl", root, out2);
         for (ClonePair clone : clones) {
             root.put("clone", clone);
-            root.put("copy", clone.copy.source);
-            root.put("paste", clone.paste.source);
+            root.put("copydiff", FreeMarker.format(clone.copy.source, clone.copy.beglin, clone.copy.endlin, true));
+            root.put("pastediff", FreeMarker.format(clone.paste.source, clone.paste.beglin, clone.paste.endlin, true));
+            root.put("copy", FreeMarker.format(clone.copy.source, clone.copy.beglin, clone.copy.endlin, false));
+            root.put("paste", FreeMarker.format(clone.paste.source, clone.paste.beglin, clone.paste.endlin, false));
             Writer out3 = new OutputStreamWriter(new FileOutputStream(htmlFolder + File.separator
                     + new File(repository.getLocation()).getName() + "-" + clone + ".html"));
             FreeMarker.run("clone.ftl", root, out3);

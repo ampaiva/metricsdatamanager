@@ -16,6 +16,7 @@ import com.ampaiva.hlo.cm.IConcernMetric;
 import com.ampaiva.hlo.cm.IMethodCalls;
 import com.ampaiva.hlo.cm.IMetricsSource;
 import com.ampaiva.hlo.cm.MetricsColector;
+import com.ampaiva.hlo.util.SourceHandler;
 import com.ampaiva.hlo.util.view.IProgressUpdate;
 import com.ampaiva.hlo.util.view.ProgressUpdate;
 import com.ampaiva.metricsdatamanager.model.Call;
@@ -138,7 +139,7 @@ public class ConcernCallsManager {
     private Method getMethod(Map<String, Sequence> sequencesMap, IMethodCalls methodCall, int i, int callPosition) {
         Method method = new Method();
         method.setName(methodCall.getMethodNames().get(i));
-        method.setSource(methodCall.getMethodSources().get(i));
+        method.setSource(methodCall.getMethodSources().get(i).getSource());
         method.setBeglin(methodCall.getMethodPositions().get(i).get(0));
         method.setBegcol(methodCall.getMethodPositions().get(i).get(1));
         method.setEndlin(methodCall.getMethodPositions().get(i).get(2));
@@ -192,8 +193,8 @@ public class ConcernCallsManager {
                 ConcernClone clone = new ConcernClone();
                 clone.methods = Arrays.asList(methodCodes.get(matchesData.groupIndex).getName(),
                         methodCodes.get(matchedIndex).getName());
-                clone.sources = Arrays.asList(methodCodes.get(matchesData.groupIndex).getSource(),
-                        methodCodes.get(matchedIndex).getSource());
+                clone.sources = Arrays.asList(new SourceHandler(methodCodes.get(matchesData.groupIndex).getSource()),
+                        new SourceHandler(methodCodes.get(matchedIndex).getSource()));
                 clone.sequences = Arrays.asList(
                         SequencesInt.callsToStringList(methodCodes.get(matchesData.groupIndex).getCalls()),
                         SequencesInt.callsToStringList(methodCodes.get(matchedIndex).getCalls()));

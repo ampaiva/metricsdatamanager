@@ -13,6 +13,7 @@ import java.util.Map;
 import org.apache.log4j.BasicConfigurator;
 import org.junit.Test;
 
+import com.ampaiva.hlo.util.Helper;
 import com.ampaiva.metricsdatamanager.ClonePair;
 import com.ampaiva.metricsdatamanager.CloneSide;
 import com.ampaiva.metricsdatamanager.model.Repository;
@@ -35,8 +36,9 @@ public class FreeMarkerTest {
         Writer out = new OutputStreamWriter(new FileOutputStream(htmlFolder + File.separator + "index.html"));
         FreeMarker.run("index.ftl", root, out);
         out.close();
-        ClonePair clonePair = new ClonePair(new CloneSide("file1", 11, 12, "public void x();"),
-                new CloneSide("file2", 15, 16, "public void y();"), true);
+        String source = Helper.convertFile2String(new File("target/test-classes/snippet/SalesDetailReportView.java"));
+        ClonePair clonePair = new ClonePair(new CloneSide("file1", 1, 3, "public void x(){\na();\n\nb();\n}"),
+                new CloneSide("file2", 46, 66, source), true);
         List<ClonePair> clones = Arrays.asList(clonePair);
         root.put("repository", repositories.get(0));
         root.put("clones", clones);
@@ -46,8 +48,10 @@ public class FreeMarkerTest {
         out2.close();
         ClonePair clone = clones.get(0);
         root.put("clone", clone);
-        root.put("copy", clone.copy.source);
-        root.put("paste", clone.paste.source);
+        root.put("copydiff", FreeMarker.format(clone.copy.source, clone.copy.beglin, clone.copy.endlin, true));
+        root.put("pastediff", FreeMarker.format(clone.paste.source, clone.paste.beglin, clone.paste.endlin, true));
+        root.put("copy", FreeMarker.format(clone.copy.source, clone.copy.beglin, clone.copy.endlin, false));
+        root.put("paste", FreeMarker.format(clone.paste.source, clone.paste.beglin, clone.paste.endlin, false));
         Writer out3 = new OutputStreamWriter(new FileOutputStream(htmlFolder + File.separator
                 + new File(repositories.get(0).getLocation()).getName() + "-" + clone + ".html"));
         FreeMarker.run("clone.ftl", root, out3);

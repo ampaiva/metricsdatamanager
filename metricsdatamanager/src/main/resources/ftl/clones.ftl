@@ -5,7 +5,7 @@
 <body>
   <h1>McSheep - Clones of ${repository}</h1>
 	<#list clones as clone>
-  		<p><a href="${repository.location?keep_after_last("\\")}-${clone}.html">${clone}</a>!
+  		<br><a href="${repository.location?keep_after_last("\\")}-${clone}.html">${clone}</a>!
 	<#else>
 	    Nor clones found!
 	</#list>

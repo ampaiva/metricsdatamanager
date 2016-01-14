@@ -1,11 +1,11 @@
 package com.ampaiva.metricsdatamanager;
 
 public class CloneSide implements Comparable<CloneSide> {
-    final String name;
+    public final String name;
 
-    final int beglin;
+    public final int beglin;
 
-    final int endlin;
+    public final int endlin;
 
     public final String source;
 

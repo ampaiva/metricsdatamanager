@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 
+import com.ampaiva.hlo.util.SourceHandler;
+
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -47,6 +49,29 @@ public class FreeMarker {
         temp.process(root, out);
         // Note: Depending on what `out` is, you may need to call `out.close()`.
         // This is usually the case for file output, but not for servlet output.
+    }
+
+    public static String format(String source, int beglin, int endlin, boolean onlyDiff) {
+        SourceHandler sourceHandler = new SourceHandler(source, beglin, 0, endlin, 0);
+        String[] lines = sourceHandler.getLines();
+        StringBuilder sb = new StringBuilder();
+        for (int line = 0; line < lines.length; line++) {
+            boolean lineBetween = sourceHandler.isLineBetween(beglin, endlin, line + 1);
+            if (onlyDiff && !lineBetween) {
+                continue;
+            }
+            sb.append("<font color=\"");
+            sb.append(lineBetween ? "red" : "black");
+            sb.append("\">");
+            sb.append("<b>");
+            for (int j = 0; j < (int) (4 - Math.log10(line + 2)); j++) {
+                sb.append("&nbsp;");
+            }
+            sb.append((line + 1) + ".</b>&nbsp;&nbsp;&nbsp;&nbsp;"
+                    + lines[line].replace(" ", "&nbsp;").replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;") + "</br>");
+            sb.append("</font>");
+        }
+        return sb.toString();
     }
 
 }
