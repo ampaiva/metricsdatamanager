@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -112,6 +113,7 @@ public class Main {
             persistDuplications.run(rootFolder, Boolean.parseBoolean(config.get("analysis.searchzips")),
                     Boolean.parseBoolean(config.get("analysis.deleteall")));
         } else {
+            String htmlFolderPath = config.get("html.folderpath");
             File file = new File(rootFolder);
             FreeMarker.configure("target/classes/ftl");
             List<Repository> repositories2 = new ArrayList<>();
@@ -158,11 +160,11 @@ public class Main {
                         compareTools.compareMcSheepxPMD(repository, pmdResult, mcsheepFound, mcsheepNotFound);
                         List<ClonePair> clones = compareTools.saveClones(config.get("analysis.results"),
                                 "mcsheep-" + csvFile.getName(), mcsheepFound, mcsheepNotFound);
-                        saveClonesToHTML(repository, clones);
+                        saveClonesToHTML(htmlFolderPath, repository, clones);
                     }
                 }
             }
-            saveRepositoriesToHTML(repositories2);
+            saveRepositoriesToHTML(htmlFolderPath, repositories2);
         }
         if (LOG.isInfoEnabled()) {
             Date end = new Date();
@@ -171,33 +173,43 @@ public class Main {
         BasicConfigurator.resetConfiguration();
     }
 
-    private static void saveRepositoriesToHTML(List<Repository> repositories) throws IOException, TemplateException {
+    private static void saveRepositoriesToHTML(String htmlFolderPath, List<Repository> repositories)
+            throws IOException, TemplateException {
         Map<String, Object> root = new HashMap<>();
         root.put("repositories", repositories);
-        File htmlFolder = new File("/temp/html");
+        File htmlFolder = new File(htmlFolderPath);
         htmlFolder.mkdirs();
         Writer out = new OutputStreamWriter(new FileOutputStream(htmlFolder + File.separator + "index.html"));
         FreeMarker.run("index.ftl", root, out);
         out.close();
     }
 
-    private static void saveClonesToHTML(Repository repository, List<ClonePair> clones)
+    private static void saveClonesToHTML(String htmlFolderPath, Repository repository, List<ClonePair> clones)
             throws IOException, TemplateException {
         Map<String, Object> root = new HashMap<>();
         root.put("repository", repository);
-        root.put("clones", clones);
-        File htmlFolder = new File("/temp/html");
+        List<String> clonesList = new ArrayList<>();
+        for (ClonePair clone : clones) {
+            clonesList.add(FreeMarker.ToString(clone));
+        }
+        root.put("clones", clonesList);
+        File htmlFolder = new File(htmlFolderPath);
+        htmlFolder.mkdirs();
+        File cssFile = new File("target/classes/ftl/clones.css");
+        Files.copy(cssFile.toPath(),
+                new File(htmlFolder.getAbsolutePath() + File.separator + cssFile.getName()).toPath(),
+                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         Writer out2 = new OutputStreamWriter(new FileOutputStream(
                 htmlFolder + File.separator + new File(repository.getLocation()).getName() + ".html"));
         FreeMarker.run("clones.ftl", root, out2);
         for (ClonePair clone : clones) {
-            root.put("clone", clone);
+            root.put("clone", FreeMarker.ToString(clone));
             root.put("copydiff", FreeMarker.format(clone.copy.source, clone.copy.beglin, clone.copy.endlin, true));
             root.put("pastediff", FreeMarker.format(clone.paste.source, clone.paste.beglin, clone.paste.endlin, true));
             root.put("copy", FreeMarker.format(clone.copy.source, clone.copy.beglin, clone.copy.endlin, false));
             root.put("paste", FreeMarker.format(clone.paste.source, clone.paste.beglin, clone.paste.endlin, false));
             Writer out3 = new OutputStreamWriter(new FileOutputStream(htmlFolder + File.separator
-                    + new File(repository.getLocation()).getName() + "-" + clone + ".html"));
+                    + new File(repository.getLocation()).getName() + "-" + FreeMarker.ToString(clone) + ".html"));
             FreeMarker.run("clone.ftl", root, out3);
             out3.close();
         }

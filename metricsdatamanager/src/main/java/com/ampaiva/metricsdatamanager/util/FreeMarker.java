@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.Writer;
 
 import com.ampaiva.hlo.util.SourceHandler;
+import com.ampaiva.metricsdatamanager.ClonePair;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -72,6 +73,11 @@ public class FreeMarker {
             sb.append("</font>");
         }
         return sb.toString();
+    }
+
+    public static String ToString(ClonePair clone) {
+        return String.format("%s-%d-%d-%s-%d-%d", clone.copy.name, clone.copy.beglin, clone.copy.endlin,
+                clone.paste.name, clone.paste.beglin, clone.paste.endlin);
     }
 
 }

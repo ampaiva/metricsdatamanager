@@ -1,0 +1,23 @@
+@CHARSET "ISO-8859-1";
+
+#tableid {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+}
+
+#tableid td, #tableid th {
+    border: 1px solid #ddd;
+    text-align: left;
+    padding: 8px;
+}
+
+#tableid tr:nth-child(even){background-color: #f2f2f2}
+
+#tableid tr:hover {background-color: #ddd;}
+
+#tableid th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    background-color: #4CAF50;
+    color: white;
+}
