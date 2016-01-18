@@ -76,8 +76,8 @@ public class FreeMarker {
     }
 
     public static String ToString(ClonePair clone) {
-        return String.format("%s-%d-%d-%s-%d-%d", clone.copy.name, clone.copy.beglin, clone.copy.endlin,
-                clone.paste.name, clone.paste.beglin, clone.paste.endlin);
+        return String.format("%s-%d-%d-%s-%d-%d-%s", clone.copy.name, clone.copy.beglin, clone.copy.endlin,
+                clone.paste.name, clone.paste.beglin, clone.paste.endlin, clone.found);
     }
 
 }

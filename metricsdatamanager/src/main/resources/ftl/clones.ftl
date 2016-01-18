@@ -14,14 +14,15 @@
 		    <th>Location
 		  </tr>
     		<#items as clone>
-	      		<tr class="${clone?item_parity}Row">
+		   <tr>
 	        	<td>${clone?counter}
 	        	<td><a href="${repository.location?keep_after_last("\\")}-${clone}.html">${clone}</a>
+		  </tr>
     		</#items>
   		</table>
   		</div>
 	<#else>
-	    Nor clones found!
+	    No clones found!
 	</#list>
   	<p><a href="index.html">Back</a>
 </body>

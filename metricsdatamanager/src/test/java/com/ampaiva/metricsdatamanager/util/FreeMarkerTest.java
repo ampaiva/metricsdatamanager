@@ -29,7 +29,7 @@ public class FreeMarkerTest {
         BasicConfigurator.configure();
         Repository repositoryA = new Repository();
         repositoryA.setLocation("\\B\\A");
-        List<Repository> repositories = Arrays.asList(repositoryA);
+        List<Repository> repositories = Arrays.asList(repositoryA, repositoryA, repositoryA);
         Map<String, Object> root = new HashMap<>();
         root.put("repositories", repositories);
         FreeMarker.configure("target/classes/ftl");

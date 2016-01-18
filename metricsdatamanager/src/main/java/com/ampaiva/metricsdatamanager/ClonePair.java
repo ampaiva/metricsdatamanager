@@ -11,7 +11,7 @@ import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone.PmdOcurrency;
 public class ClonePair implements Comparable<ClonePair> {
     public final CloneSide copy;
     public final CloneSide paste;
-    final boolean found;
+    public final boolean found;
 
     public ClonePair(CloneSide side1, CloneSide side2, boolean found) {
         int compare = side1.compareTo(side2);
