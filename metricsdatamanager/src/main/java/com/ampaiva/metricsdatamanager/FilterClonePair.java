@@ -2,7 +2,6 @@ package com.ampaiva.metricsdatamanager;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -15,13 +14,14 @@ public class FilterClonePair {
             clonesData.add(clone);
         }
         List<ClonePair> result = new ArrayList<>();
-        Set<String> hash = new HashSet<>();
-        for (ClonePair cloneData : clonesData) {
-            if (!hash.contains(cloneData.getKey())) {
-                hash.add(cloneData.getKey());
-                result.add(cloneData);
-            }
-        }
+        result.addAll(clonesData);
+        //        Set<String> hash = new HashSet<>();
+        //        for (ClonePair cloneData : clonesData) {
+        //            if (!hash.contains(cloneData.getKey())) {
+        //                hash.add(cloneData.getKey());
+        //                result.add(cloneData);
+        //            }
+        //        }
         return result;
     }
 

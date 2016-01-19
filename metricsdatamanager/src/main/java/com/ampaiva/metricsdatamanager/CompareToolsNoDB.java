@@ -54,9 +54,10 @@ public class CompareToolsNoDB {
         return results;
     }
 
-    public void comparePMDxMcSheep(Repository repository, String pmdResult, List<PmdClone> pmdFound,
-            List<PmdClone> pmdNotFound) {
+    public List<ClonePair> comparePMDxMcSheep(Repository repository, String pmdResult) {
         List<PmdClone> pmdClones = Pmd.parse(repository.getLocation(), pmdResult);
+        List<PmdClone> pmdFound = new ArrayList<>();
+        List<PmdClone> pmdNotFound = new ArrayList<>();
         int found = 0, notFound = 0;
         for (PmdClone pmdClone : pmdClones) {
             boolean hasAllOcurrencies = true;
@@ -88,11 +89,13 @@ public class CompareToolsNoDB {
                 found++;
             }
         }
+        return getClones(pmdFound, pmdNotFound);
     }
 
-    public void compareMcSheepxPMD(Repository repository, String pmdResult, List<Clone> mcsheepFound,
-            List<Clone> mcsheepNotFound) {
+    public List<ClonePair> compareMcSheepxPMD(Repository repository, String pmdResult) {
         List<PmdClone> pmdClones = Pmd.parse(repository.getLocation(), pmdResult);
+        List<Clone> mcsheepFound = new ArrayList<>();
+        List<Clone> mcsheepNotFound = new ArrayList<>();
         int found = 0, notFound = 0;
         for (Analyse analyse : repository.getAnalysis()) {
             for (Clone clone : analyse.getClones()) {
@@ -164,6 +167,7 @@ public class CompareToolsNoDB {
 
         System.err.println("Not found: " + notFound);
         System.out.println("Found: " + found);
+        return getClones(mcsheepFound, mcsheepNotFound);
     }
 
     private void writePmdClone(FileWriter fileWriter, PmdClone pmdClone, boolean found) throws IOException {
@@ -188,7 +192,7 @@ public class CompareToolsNoDB {
                 + COMMA + beglinPaste + COMMA + endlinPaste + COMMA + clone.paste.name + EOL);
     }
 
-    private <T> List<ClonePair> getClones(List<T> clonesFound, List<T> clonesNotFound) throws IOException {
+    private <T> List<ClonePair> getClones(List<T> clonesFound, List<T> clonesNotFound) {
         List<ClonePair> clones = new ArrayList<>();
         for (T clone : clonesFound) {
             clones.addAll(ClonePair.getClonePairs(clone, true));
@@ -228,8 +232,7 @@ public class CompareToolsNoDB {
 
     }
 
-    public <T> List<ClonePair> saveClones(String folderName, String fileName, List<T> mcsheepFound,
-            List<T> mcsheepNotFound) throws IOException {
+    public void saveClones(String folderName, String fileName, List<ClonePair> clones) throws IOException {
         File folder = new File(folderName);
         if (!folder.exists()) {
             folder.mkdirs();
@@ -237,9 +240,7 @@ public class CompareToolsNoDB {
         FileWriter fileWriter = null;
         try {
             fileWriter = new FileWriter(new File(folderName + File.separator + fileName));
-            List<ClonePair> result = getClones(mcsheepFound, mcsheepNotFound);
-            writeClones(fileWriter, result);
-            return result;
+            writeClones(fileWriter, clones);
         } finally {
             if (fileWriter != null) {
                 fileWriter.close();

@@ -32,9 +32,7 @@ import org.apache.log4j.Logger;
 import com.ampaiva.hlo.util.Helper;
 import com.ampaiva.metricsdatamanager.controller.ConfigDataManager;
 import com.ampaiva.metricsdatamanager.controller.IDataManager;
-import com.ampaiva.metricsdatamanager.model.Clone;
 import com.ampaiva.metricsdatamanager.model.Repository;
-import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone;
 import com.ampaiva.metricsdatamanager.util.Config;
 import com.ampaiva.metricsdatamanager.util.FreeMarker;
 
@@ -147,20 +145,12 @@ public class Main {
                         LOG.info(repository);
                         CompareToolsNoDB compareTools = new CompareToolsNoDB();
                         String pmdResult = Helper.readFile(csvFile);
-                        List<PmdClone> pmdFound = new ArrayList<>();
-                        List<PmdClone> pmdNotFound = new ArrayList<>();
-                        compareTools.comparePMDxMcSheep(repository, pmdResult, pmdFound, pmdNotFound);
-                        System.out.println("Found: " + pmdFound.size());
-                        System.err.println();
-                        System.err.println("Not found: " + pmdNotFound.size());
-                        compareTools.saveClones(config.get("analysis.results"), "pmd-" + csvFile.getName(), pmdFound,
-                                pmdNotFound);
-                        List<Clone> mcsheepFound = new ArrayList<>();
-                        List<Clone> mcsheepNotFound = new ArrayList<>();
-                        compareTools.compareMcSheepxPMD(repository, pmdResult, mcsheepFound, mcsheepNotFound);
-                        List<ClonePair> clones = compareTools.saveClones(config.get("analysis.results"),
-                                "mcsheep-" + csvFile.getName(), mcsheepFound, mcsheepNotFound);
-                        saveClonesToHTML(htmlFolderPath, repository, clones);
+                        List<ClonePair> clonesPMD = compareTools.comparePMDxMcSheep(repository, pmdResult);
+                        compareTools.saveClones(config.get("analysis.results"), "pmd-" + csvFile.getName(), clonesPMD);
+                        List<ClonePair> clonesMcSheep = compareTools.compareMcSheepxPMD(repository, pmdResult);
+                        compareTools.saveClones(config.get("analysis.results"), "mcsheep-" + csvFile.getName(),
+                                clonesMcSheep);
+                        saveClonesToHTML(htmlFolderPath, repository, clonesMcSheep);
                     }
                 }
             }
