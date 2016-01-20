@@ -1,11 +1,10 @@
 <html>
 <head>
-  <title>McSheep - View of ${clone}</title>
+  <title>${tool} - View of ${clone}</title>
 </head>
 <body>
-  <h1>McSheep - View of ${clone}</h1>
-  	<p><a href="${repository.location?keep_after_last("\\")}.html">Back</a>
-	<div id="diff1">
+  <h1>${tool} - View of ${clone}</h1>
+ 	<div id="diff1">
   	<h2>Copy</h2>
 	${copydiff}
 	</div>
@@ -25,6 +24,5 @@
   	<h2>Source of Paste</h2>
 	${paste}
 	</div>
-  	<p><a href="${repository.location?keep_after_last("\\")}.html">Back</a>
 </body>
 </html>

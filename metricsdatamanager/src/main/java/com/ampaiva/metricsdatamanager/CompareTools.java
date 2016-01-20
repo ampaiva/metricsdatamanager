@@ -100,7 +100,7 @@ public class CompareTools {
         return results;
     }
 
-    public void comparePMDxMcSheep(String repository, String pmdResult) throws SQLException {
+    public void comparePMDxMcSheep(String repository, String pmdResult) throws SQLException, IOException {
         List<PmdClone> pmdClones = Pmd.parse(repository, pmdResult);
         int found = 0, notFound = 0;
         for (PmdClone pmdClone : pmdClones) {
@@ -135,7 +135,7 @@ public class CompareTools {
         System.out.println("Found: " + found);
     }
 
-    public void compareMcSheepxPMD(String repository, String pmdResult) throws SQLException {
+    public void compareMcSheepxPMD(String repository, String pmdResult) throws SQLException, IOException {
         List<PmdClone> pmdClones = Pmd.parse(repository, pmdResult);
         int found = 0, notFound = 0;
         List<Integer> mcSheepClones = getMcSheepClonesbyRepository(repository);

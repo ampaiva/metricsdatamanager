@@ -1,7 +1,7 @@
 <html>
 <head>
  <title>McSheep - Clones Visualization</title>
-  <link rel="stylesheet" type="text/css" href="clones.css">
+  <link rel="stylesheet" type="text/css" href="stylesheets/clones.css">
  </head>
 <body>
 	<h1>McSheep - Clones Visualization</h1>
@@ -11,12 +11,14 @@
 		  <table id="tableid">
 		   <tr>
 		       <th>#
-		       <th>Location
+		       <th>McSheep
+		       <th>PMD
 		   </tr>
     	   <#items as repository>
 		  <tr>
 	        	<td>${repository?counter}
-	        	<td><a href="${repository.location?keep_after_last("\\")}.html">${repository.location?keep_after_last("\\")}</a>
+	        	<td><a href="${repository.name}/McSheep.html">${repository.name}</a>
+	        	<td><a href="${repository.name}/PMD.html">${repository.name}</a>
 		  </tr>
     		</#items>
   		</table>

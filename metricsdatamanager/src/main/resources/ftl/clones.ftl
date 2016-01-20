@@ -1,11 +1,10 @@
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="clones.css">
-	<title>McSheep - Clones of ${repository}</title>
+	<link rel="stylesheet" type="text/css" href="../stylesheets/clones.css">
+	<title>${tool} - Clones of ${repository.location?keep_after_last("\\")}</title>
 </head>
 <body>
-  <h1>McSheep - Clones of ${repository}</h1>
-  	<a href="index.html">Back</a><br>
+  <h1>${tool} - Clones of ${repository.location?keep_after_last("\\")}</h1>
   	<br><#list clones>
 		<div style="overflow-x:auto;">
 		  <table id="tableid">
@@ -16,7 +15,7 @@
     		<#items as clone>
 		   <tr>
 	        	<td>${clone?counter}
-	        	<td><a href="${repository.location?keep_after_last("\\")}-${clone}.html">${clone}</a>
+	        	<td><a href="${tool}/${clone}.html">${clone}</a>
 		  </tr>
     		</#items>
   		</table>
@@ -24,6 +23,5 @@
 	<#else>
 	    No clones found!
 	</#list>
-  	<p><a href="index.html">Back</a>
 </body>
 </html>

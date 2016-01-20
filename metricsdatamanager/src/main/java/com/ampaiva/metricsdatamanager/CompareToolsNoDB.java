@@ -54,7 +54,7 @@ public class CompareToolsNoDB {
         return results;
     }
 
-    public List<ClonePair> comparePMDxMcSheep(Repository repository, String pmdResult) {
+    public List<ClonePair> comparePMDxMcSheep(Repository repository, String pmdResult) throws IOException {
         List<PmdClone> pmdClones = Pmd.parse(repository.getLocation(), pmdResult);
         List<PmdClone> pmdFound = new ArrayList<>();
         List<PmdClone> pmdNotFound = new ArrayList<>();
@@ -92,7 +92,7 @@ public class CompareToolsNoDB {
         return getClones(pmdFound, pmdNotFound);
     }
 
-    public List<ClonePair> compareMcSheepxPMD(Repository repository, String pmdResult) {
+    public List<ClonePair> compareMcSheepxPMD(Repository repository, String pmdResult) throws IOException {
         List<PmdClone> pmdClones = Pmd.parse(repository.getLocation(), pmdResult);
         List<Clone> mcsheepFound = new ArrayList<>();
         List<Clone> mcsheepNotFound = new ArrayList<>();
@@ -170,19 +170,6 @@ public class CompareToolsNoDB {
         return getClones(mcsheepFound, mcsheepNotFound);
     }
 
-    private void writePmdClone(FileWriter fileWriter, PmdClone pmdClone, boolean found) throws IOException {
-        for (int i = 0; i < pmdClone.ocurrencies.size(); i++) {
-            PmdOcurrency copy = pmdClone.ocurrencies.get(i);
-            for (int j = i + 1; j < pmdClone.ocurrencies.size(); j++) {
-                PmdOcurrency paste = pmdClone.ocurrencies.get(j);
-                fileWriter.write((found ? "+" : "-") + COMMA + pmdClone.lines + COMMA + copy.file + COMMA + copy.line
-                        + COMMA + paste.file + COMMA + paste.line + EOL);
-
-            }
-
-        }
-    }
-
     private void writeClonePair(FileWriter fileWriter, ClonePair clone) throws IOException {
         int beglinCopy = clone.copy.beglin;
         int endlinCopy = clone.copy.endlin;
@@ -207,29 +194,6 @@ public class CompareToolsNoDB {
         for (ClonePair cloneData : result) {
             writeClonePair(fileWriter, cloneData);
         }
-    }
-
-    private void savePMD(String folderName, String fileName, List<PmdClone> pmdFound, List<PmdClone> pmdNotFound)
-            throws IOException {
-        File folder = new File(folderName);
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-        FileWriter fileWriter = null;
-        try {
-            fileWriter = new FileWriter(new File(folderName + File.separator + fileName));
-            for (PmdClone pmdClone : pmdFound) {
-                writePmdClone(fileWriter, pmdClone, true);
-            }
-            for (PmdClone pmdClone : pmdNotFound) {
-                writePmdClone(fileWriter, pmdClone, false);
-            }
-        } finally {
-            if (fileWriter != null) {
-                fileWriter.close();
-            }
-        }
-
     }
 
     public void saveClones(String folderName, String fileName, List<ClonePair> clones) throws IOException {

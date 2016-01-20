@@ -49,7 +49,7 @@ public class ClonePair implements Comparable<ClonePair> {
             int beglinCopy = ocurrency_i.line;
             int endlinCopy = ocurrency_i.line + clone.lines;
             String copyName = getFileName(ocurrency_i.file);
-            CloneSide side1 = new CloneSide(copyName, beglinCopy, endlinCopy, ocurrency_i.file);
+            CloneSide side1 = new CloneSide(copyName, beglinCopy, endlinCopy, ocurrency_i.source);
             clones.add(side1);
         }
         return clones.toArray(new CloneSide[clones.size()]);
