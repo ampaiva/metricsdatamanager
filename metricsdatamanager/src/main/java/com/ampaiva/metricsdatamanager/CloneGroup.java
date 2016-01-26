@@ -120,12 +120,12 @@ public class CloneGroup implements Comparable<CloneGroup> {
 
     public String toId() {
         StringBuilder sb = new StringBuilder();
+        sb.append(found ? "+" : "-");
         for (CloneSnippet cloneSnippet : snippets) {
-            if (sb.length() > 0) {
+            if (sb.length() > 1) {
                 sb.append(ID_SEPARATOR);
             }
             sb.append(cloneSnippet.toId());
-
         }
         return sb.toString();
     }

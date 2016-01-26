@@ -28,7 +28,7 @@ public class CompareToolsNoDB {
                 for (Clone mcSheepOcurrency : mcSheepClone.getClones()) {
                     final String file1 = Conventions.fileNameInRepository(
                             mcSheepClone.getRepositoryBean().getLocation(),
-                            mcSheepOcurrency.getBegin().getMethodBean().getName());
+                            mcSheepOcurrency.getBegin().getMethodBean().getUnitBean().getName());
                     if (file1.equals(cloneSnippet.name) && //
                             mcSheepOcurrency.getBegin().getBeglin() <= cloneSnippet.endlin
                             && mcSheepOcurrency.getBegin().getMethodBean().getCalls()
@@ -38,6 +38,7 @@ public class CompareToolsNoDB {
                         if (snippets.isEmpty()) {
                             return true;
                         }
+                        break;
                     }
                 }
             }
@@ -86,6 +87,7 @@ public class CompareToolsNoDB {
                         if (snippets.isEmpty()) {
                             return true;
                         }
+                        break;
                     }
                 }
             }

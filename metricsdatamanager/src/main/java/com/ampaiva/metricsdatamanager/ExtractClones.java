@@ -145,6 +145,8 @@ public class ExtractClones {
                 analyse.setClones(new ArrayList<Clone>());
                 analyse.getClones().add(clone0);
                 analyse.getClones().add(clone1);
+                clone0.setAnalyseBean(analyse);
+                clone1.setAnalyseBean(analyse);
                 hash.put(clone0, analyse);
                 hash.put(clone1, analyse);
             }
