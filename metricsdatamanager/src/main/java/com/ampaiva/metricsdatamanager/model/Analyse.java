@@ -28,8 +28,7 @@ import org.eclipse.persistence.annotations.CascadeOnDelete;
 @Table(name = "analysis", indexes = {
         @Index(name = "repository_params_idx", columnList = "repository,minseq", unique = true) })
 
-@NamedQueries({ @NamedQuery(name = "Analyse.findAll", query = "SELECT a FROM Analyse a"),
-        @NamedQuery(name = "Analyse.findByRepoAndMinseq", query = "SELECT a FROM Analyse a WHERE a.repositoryBean=?1 and a.minSeq=?2") })
+@NamedQueries({ @NamedQuery(name = "Analyse.findAll", query = "SELECT a FROM Analyse a") })
 public class Analyse implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -42,9 +41,6 @@ public class Analyse implements Serializable {
     @GeneratedValue(strategy = GenerationType.TABLE)
     @Column(unique = true, nullable = false)
     private int id;
-
-    @Column(nullable = false)
-    private Integer minSeq;
 
     @OneToMany(mappedBy = "analyseBean", orphanRemoval = true, cascade = { CascadeType.ALL }, fetch = FetchType.LAZY)
     @CascadeOnDelete
@@ -61,24 +57,12 @@ public class Analyse implements Serializable {
     public Analyse() {
     }
 
-    public Analyse(int minSeq) {
-        this.minSeq = minSeq;
-    }
-
     public int getId() {
         return this.id;
     }
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public Integer getMinSeq() {
-        return minSeq;
-    }
-
-    public void setMinSeq(Integer minSeq) {
-        this.minSeq = minSeq;
     }
 
     public Repository getRepositoryBean() {
@@ -91,7 +75,7 @@ public class Analyse implements Serializable {
 
     @Override
     public String toString() {
-        return "Analyse [id=" + id + ", minSeq=" + minSeq + ", repository=" + repositoryBean + "]";
+        return "Analyse [id=" + id + ", repository=" + repositoryBean + "]";
     }
 
 }

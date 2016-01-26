@@ -9,8 +9,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.ampaiva.metricsdatamanager.util.Duplications.DuplicationInfo;
-
 public class DuplicationsTest {
 
     @Test

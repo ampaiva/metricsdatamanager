@@ -9,8 +9,8 @@ import org.apache.log4j.BasicConfigurator;
 import org.junit.Test;
 
 import com.ampaiva.hlo.util.Helper;
-import com.ampaiva.metricsdatamanager.ClonePair;
-import com.ampaiva.metricsdatamanager.CloneSide;
+import com.ampaiva.metricsdatamanager.CloneGroup;
+import com.ampaiva.metricsdatamanager.CloneSnippet;
 import com.ampaiva.metricsdatamanager.model.Repository;
 
 import freemarker.template.TemplateException;
@@ -25,13 +25,23 @@ public class FreeMarkerTest {
         FreeMarker.configure("target/classes/ftl");
         String htmlFolderPath = "/temp/html";
         String source = Helper.convertFile2String(new File("target/test-classes/snippet/SalesDetailReportView.java"));
-        ClonePair clonePair = new ClonePair(new CloneSide("file1", 1, 3, "public void x(){\na();\n\nb();\n}"),
-                new CloneSide("file2", 46, 66, source), true);
-        List<ClonePair> clones = Arrays.asList(clonePair, clonePair, clonePair);
+        CloneGroup clonePair = new CloneGroup(
+                new CloneSnippet[] { new CloneSnippet("file1", 1, 3, "public void x(){\na();\n\nb();\n}"),
+                        new CloneSnippet(generateLongName(), 46, 66, source) },
+                true);
+        List<CloneGroup> clones = Arrays.asList(clonePair, clonePair, clonePair);
         FreeMarker.saveClonesToHTML(htmlFolderPath, repositoryA, "McSheep", clones);
         FreeMarker.saveClonesToHTML(htmlFolderPath, repositoryA, "PMD", clones);
         FreeMarker.saveIndex(htmlFolderPath);
 
         BasicConfigurator.resetConfiguration();
+    }
+
+    private String generateLongName() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 300; i++) {
+            sb.append("X");
+        }
+        return sb.toString();
     }
 }

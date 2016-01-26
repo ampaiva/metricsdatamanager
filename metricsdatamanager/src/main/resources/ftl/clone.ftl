@@ -1,28 +1,34 @@
 <html>
 <head>
+  <link rel="stylesheet" type="text/css" href="stylesheets/clones.css">
   <title>${tool} - View of ${clone}</title>
 </head>
 <body>
   <h1>${tool} - View of ${clone}</h1>
- 	<div id="diff1">
-  	<h2>Copy</h2>
-	${copydiff}
-	</div>
-	<br>
-	<div id="diff2">
-  	<h2>Paste</h2>
-	${pastediff}
-	</div>
-	<br>
-	<br>
-	<div id="source1">
-  	<h2>Source of Copy</h2>
-	${copy}
-	</div>
-	<br>
-	<div id="source2">
-  	<h2>Source of Paste</h2>
-	${paste}
-	</div>
+   	<br><div style="overflow-x:auto">
+		<table id="tableid">
+		  	<tr>
+		   		<#list snippets>
+    	   		<#items as snippet>
+		    		<th>${snippet.getShortName()}
+    			</#items>
+				</#list>
+		  </tr>
+		  <tr valign="top">
+    	    <#list formattedSnippet>
+			<#items as sn>
+	        	<td>${sn}
+    		</#items>
+		    </#list>
+		  </tr>
+		  <tr valign="top">
+    	    <#list formattedSource>
+			<#items as sn>
+	        	<td>${sn}
+    		</#items>
+		    </#list>
+		  </tr>
+  		</table>
+  		</div>
 </body>
 </html>

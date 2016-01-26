@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.ampaiva.hlo.cm.ICodeSource;
 import com.ampaiva.hlo.util.Helper;
@@ -22,8 +23,8 @@ import com.ampaiva.metricsdatamanager.model.Method;
 import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.model.Sequence;
 import com.ampaiva.metricsdatamanager.model.Unit;
+import com.ampaiva.metricsdatamanager.util.DuplicationInfo;
 import com.ampaiva.metricsdatamanager.util.Duplications;
-import com.ampaiva.metricsdatamanager.util.Duplications.DuplicationInfo;
 import com.ampaiva.metricsdatamanager.util.FolderUtil;
 import com.ampaiva.metricsdatamanager.util.MatchesData;
 import com.ampaiva.metricsdatamanager.util.SequencesInt;
@@ -38,7 +39,7 @@ public class ExtractClones {
         this.minSeq = minSeq;
     }
 
-    private List<Repository> createRepositories(List<File> files, Map<String, Sequence> sequencesMap)
+    protected List<Repository> createRepositories(List<File> files, Map<String, Sequence> sequencesMap)
             throws FileNotFoundException, IOException, ParseException {
         IProgressUpdate update = ProgressUpdate.start("Processing file", files.size());
         List<Repository> repositories = new ArrayList<Repository>();
@@ -68,62 +69,88 @@ public class ExtractClones {
         return repository;
     }
 
-    private Analyse getAnalysisByRepoAndConfig(Repository repository, int size) {
-        for (Analyse analyse : repository.getAnalysis()) {
-            if (analyse.getMinSeq() == size) {
-                return analyse;
-            }
+    protected List<Method> getAllMethods(Repository repository) {
+        List<Method> methods = new ArrayList<>();
+        for (Unit unit : repository.getUnits()) {
+            methods.addAll(unit.getMethods());
         }
-        return null;
+        return methods;
     }
 
     private void processAnalysis(Repository repository, Map<String, Sequence> sequencesMap) {
         SequencesInt sequencesInt = new SequencesInt(sequencesMap, repository.getUnits());
         ConcernCallsManager concernCallsManager = new ConcernCallsManager(sequencesInt);
-        List<MatchesData> matchesDataList = getSequenceMatches(concernCallsManager);
+        List<MatchesData> matchesDataList = concernCallsManager.getSequenceMatches();
         IProgressUpdate update3 = ProgressUpdate.start("Saving matches", matchesDataList.size());
+        List<Method> methods = getAllMethods(repository);
+        Map<Clone, Analyse> hash = new HashMap<>();
         for (MatchesData matchesData : matchesDataList) {
             update3.beginIndex(matchesData);
-            List<Unit> units = repository.getUnits();
-            List<Method> methods = new ArrayList<>();
-            for (Unit unit : units) {
-                methods.addAll(unit.getMethods());
+            final Method method0 = methods.get(matchesData.methodIndex);
+            for (int i = 0; i < matchesData.methodsMatched.size(); i++) {
+                final Method method1 = methods.get(matchesData.methodsMatched.get(i));
+                List<List<Integer>> groupMatched = matchesData.callsMatched.get(i);
+                createAnalysis(hash, method0, method1, groupMatched);
             }
-            final Method method0 = methods.get(matchesData.groupIndex);
-            for (int i = 0; i < matchesData.groupsMatched.size(); i++) {
-                final Method method1 = methods.get(matchesData.groupsMatched.get(i));
-                Duplications duplications = new Duplications(matchesData.sequencesMatches.get(i));
-                DuplicationInfo duplicationInfo = duplications.next();
-                while (duplicationInfo != null) {
-                    if (duplicationInfo.count >= minSeq) {
-                        saveAnalysis(repository, method0, method1, duplicationInfo.count, duplicationInfo.position0,
-                                duplicationInfo.position1);
-                    }
-                    duplicationInfo = duplications.next();
-                }
+        }
+        assignClones(repository, hash);
+    }
+
+    protected void assignClones(Repository repository, Map<Clone, Analyse> hash) {
+        for (Entry<Clone, Analyse> entry : hash.entrySet()) {
+            Analyse analyse = entry.getValue();
+            if (countSize(analyse) >= minSeq) {
+                analyse.setRepositoryBean(repository);
+                repository.getAnalysis().add(analyse);
             }
         }
     }
 
-    public void saveAnalysis(Repository repository, final Method method0, final Method method1, int count,
-            int position0, int position1) {
-        Analyse analyse = getAnalysisByRepoAndConfig(repository, count);
-        if (analyse == null) {
-            analyse = new Analyse(count);
-            analyse.setClones(new ArrayList<Clone>());
-            analyse.setRepositoryBean(repository);
-            repository.getAnalysis().add(analyse);
+    protected int countSize(Analyse analyse) {
+        Clone cloneBase = analyse.getClones().get(0);
+        int total = 0;
+        for (Clone clone : analyse.getClones()) {
+            if (clone.getBegin().getMethodBean().equals(cloneBase.getBegin().getMethodBean())) {
+                total += clone.getSize();
+            }
         }
-        Clone clone = new Clone();
-        clone.setCopy(method0.getCalls().get(position0));
-        clone.setPaste(method1.getCalls().get(position1));
-        clone.setAnalyseBean(analyse);
-        analyse.getClones().add(clone);
+        return total;
     }
 
-    private List<MatchesData> getSequenceMatches(ConcernCallsManager concernCallsManager) {
-        List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches();
-        return sequenceMatches;
+    protected void createAnalysis(Map<Clone, Analyse> hash, final Method method0, final Method method1,
+            List<List<Integer>> groupMatched) {
+        Duplications duplications = new Duplications(groupMatched);
+        DuplicationInfo duplicationInfo = duplications.next();
+        while (duplicationInfo != null) {
+            Clone clone0 = new Clone();
+            clone0.setBegin(method0.getCalls().get(duplicationInfo.position0));
+            clone0.setSize(duplicationInfo.count);
+
+            Clone clone1 = new Clone();
+            clone1.setBegin(method1.getCalls().get(duplicationInfo.position1));
+            clone1.setSize(duplicationInfo.count);
+
+            Analyse analyse0 = hash.get(clone0);
+            Analyse analyse1 = hash.get(clone1);
+            if (analyse0 == null && analyse1 != null) {
+                analyse1.getClones().add(clone0);
+                clone0.setAnalyseBean(analyse1);
+                hash.put(clone0, analyse1);
+            } else if (analyse0 != null && analyse1 == null) {
+                analyse0.getClones().add(clone1);
+                clone1.setAnalyseBean(analyse0);
+                hash.put(clone1, analyse0);
+            } else {
+                Analyse analyse = new Analyse();
+                analyse.setClones(new ArrayList<Clone>());
+                analyse.getClones().add(clone0);
+                analyse.getClones().add(clone1);
+                hash.put(clone0, analyse);
+                hash.put(clone1, analyse);
+            }
+
+            duplicationInfo = duplications.next();
+        }
     }
 
     private void analyseRepositories(Map<String, Sequence> sequencesMap, List<Repository> repositories) {

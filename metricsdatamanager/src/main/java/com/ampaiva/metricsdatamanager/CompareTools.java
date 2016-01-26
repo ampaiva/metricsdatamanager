@@ -16,12 +16,10 @@ import org.apache.log4j.Logger;
 import com.ampaiva.hlo.util.Helper;
 import com.ampaiva.metricsdatamanager.controller.ConfigDataManager;
 import com.ampaiva.metricsdatamanager.controller.IDataManager;
-import com.ampaiva.metricsdatamanager.model.Clone;
 import com.ampaiva.metricsdatamanager.tools.pmd.Pmd;
-import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone;
-import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone.PmdOcurrency;
+import com.ampaiva.metricsdatamanager.tools.pmd.PmdClone;
+import com.ampaiva.metricsdatamanager.tools.pmd.PmdOccurrence;
 import com.ampaiva.metricsdatamanager.util.Config;
-import com.ampaiva.metricsdatamanager.util.Conventions;
 import com.github.javaparser.ParseException;
 
 public class CompareTools {
@@ -106,10 +104,10 @@ public class CompareTools {
         for (PmdClone pmdClone : pmdClones) {
             boolean hasAllOcurrencies = true;
             for (int i = 0; i < pmdClone.ocurrencies.size(); i++) {
-                final PmdOcurrency pmdOcurrency1 = pmdClone.ocurrencies.get(i);
+                final PmdOccurrence pmdOcurrency1 = pmdClone.ocurrencies.get(i);
                 final String file1 = pmdOcurrency1.file;
                 for (int j = i + 1; j < pmdClone.ocurrencies.size(); j++) {
-                    final PmdOcurrency pmdOcurrency2 = pmdClone.ocurrencies.get(j);
+                    final PmdOccurrence pmdOcurrency2 = pmdClone.ocurrencies.get(j);
                     final String file2 = pmdOcurrency2.file;
                     List<Integer> mcSheepClones = getMcSheepClones(file1, pmdOcurrency1.line,
                             pmdOcurrency1.line + pmdClone.lines - 1, file2);
@@ -135,79 +133,6 @@ public class CompareTools {
         System.out.println("Found: " + found);
     }
 
-    public void compareMcSheepxPMD(String repository, String pmdResult) throws SQLException, IOException {
-        List<PmdClone> pmdClones = Pmd.parse(repository, pmdResult);
-        int found = 0, notFound = 0;
-        List<Integer> mcSheepClones = getMcSheepClonesbyRepository(repository);
-        dataManager.open();
-        for (Integer id : mcSheepClones) {
-            Clone clone = dataManager.find(Clone.class, id);
-            String unit1 = clone.getCopy().getMethodBean().getUnitBean().getName();
-            String unit2 = clone.getPaste().getMethodBean().getUnitBean().getName();
-            int beglinCopy = clone.getCopy().getBeglin();
-            int endlinCopy = clone.getCopy().getMethodBean().getCalls()
-                    .get(clone.getCopy().getPosition() + clone.getAnalyseBean().getMinSeq() - 1).getEndlin();
-            int beglinPaste = clone.getPaste().getBeglin();
-            int endlinPaste = clone.getPaste().getMethodBean().getCalls()
-                    .get(clone.getPaste().getPosition() + clone.getAnalyseBean().getMinSeq() - 1).getEndlin();
-            boolean pmdCloneFound = false;
-            for (PmdClone pmdClone : pmdClones) {
-                for (int i = 0; i < pmdClone.ocurrencies.size(); i++) {
-                    final PmdOcurrency pmdOcurrency1 = pmdClone.ocurrencies.get(i);
-                    final String file1 = Conventions.fileNameInRepository(repository, pmdOcurrency1.file);
-                    for (int j = i + 1; j < pmdClone.ocurrencies.size(); j++) {
-                        final PmdOcurrency pmdOcurrency2 = pmdClone.ocurrencies.get(j);
-                        final String file2 = Conventions.fileNameInRepository(repository, pmdOcurrency2.file);
-                        /*
-                         * (u1.name='generic/target/CodeCloneType1.
-                         * java' and
-                         * u2.name='generic/target/CodeCloneType4.
-                         * java' and ca1.beglin <=24 &&
-                         * ca1_end.endlin>=23) or
-                         * (u2.name='generic/target/CodeCloneType1.
-                         * java' and
-                         * u1.name='generic/target/CodeCloneType4.
-                         * java' and ca2.beglin <=24 &&
-                         * ca2_end.endlin>=23)
-                         */
-
-                        if ((file1.equals(unit1) && //
-                                file2.equals(unit2) && //
-                                pmdOcurrency1.line <= endlinCopy
-                                && pmdOcurrency1.line + pmdClone.lines - 1 >= beglinCopy)//
-                                || //
-                                (file2.equals(unit1) && //
-                                        file1.equals(unit2) && //
-                                        pmdOcurrency2.line <= endlinPaste
-                                        && pmdOcurrency2.line + pmdClone.lines - 1 >= beglinPaste)) {
-                            pmdCloneFound = true;
-                        }
-                    }
-
-                }
-            }
-            if (found + notFound == 0) {
-                System.out.println();
-                System.out.println("Results found by McSheep and not found by PMD");
-                System.out.println("=============================================");
-            }
-
-            String cloneStr = unit1 + ":[" + beglinCopy + "-" + endlinCopy + "] " + unit2 + ":[" + beglinPaste + "-"
-                    + endlinPaste + "] " + clone;
-            if (!pmdCloneFound) {
-                System.err.println("Clone not found by PMD: " + cloneStr);
-                notFound++;
-            } else {
-                System.out.println("Clone found by PMD: " + cloneStr);
-                found++;
-            }
-        }
-        dataManager.close();
-
-        System.err.println("Not found: " + notFound);
-        System.out.println("Found: " + found);
-    }
-
     public static void main(String[] args) throws IOException, ParseException, SQLException {
         String propertiesFile = "target/classes/config.properties";
         Config config = new Config(propertiesFile);
@@ -220,7 +145,7 @@ public class CompareTools {
         String pmdResult = Helper.readFile(new File(pmdCSVFile));
         String repository = "c:\\temp\\extracted\\ArgoUml-0.34";
         compareTools.comparePMDxMcSheep(repository, pmdResult);
-        compareTools.compareMcSheepxPMD(repository, pmdResult);
+        // compareTools.compareMcSheepxPMD(repository, pmdResult);
 
         BasicConfigurator.resetConfiguration();
     }

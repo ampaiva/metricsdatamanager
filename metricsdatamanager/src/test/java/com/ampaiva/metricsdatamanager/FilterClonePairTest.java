@@ -1,6 +1,7 @@
 package com.ampaiva.metricsdatamanager;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -12,18 +13,25 @@ import org.junit.Test;
 public class FilterClonePairTest {
 
     @Test
-    public void testGetClonePairs() {
-        ClonePair clone1 = new ClonePair(new CloneSide("B", 1, 2, ""), new CloneSide("A", 1, 2, ""), true);
-        ClonePair clone2 = new ClonePair(new CloneSide("A", 1, 2, ""), new CloneSide("B", 1, 2, ""), true);
-        ClonePair clone3 = new ClonePair(new CloneSide("C", 1, 2, ""), new CloneSide("D", 1, 2, ""), false);
-        ClonePair clone4 = new ClonePair(new CloneSide("C", 3, 4, ""), new CloneSide("D", 3, 4, ""), true);
-        List<ClonePair> clones = Arrays.asList(clone1, clone2, clone3, clone4);
-        List<ClonePair> result = FilterClonePair.getClonePairs(clones);
+    public void testGetCloneGroups() {
+        CloneGroup clone1 = new CloneGroup(
+                new CloneSnippet[] { new CloneSnippet("B", 1, 2, ""), new CloneSnippet("A", 1, 2, "") }, true);
+        CloneGroup clone2 = new CloneGroup(
+                new CloneSnippet[] { new CloneSnippet("A", 1, 2, ""), new CloneSnippet("B", 1, 2, "") }, true);
+        CloneGroup clone3 = new CloneGroup(
+                new CloneSnippet[] { new CloneSnippet("C", 1, 2, ""), new CloneSnippet("D", 1, 2, "") }, false);
+        CloneGroup clone4 = new CloneGroup(
+                new CloneSnippet[] { new CloneSnippet("C", 3, 4, ""), new CloneSnippet("D", 3, 4, "") }, true);
+        List<CloneGroup> clones = Arrays.asList(clone1, clone2, clone3, clone4);
+        List<CloneGroup> result = FilterClonePair.getClonePairs(clones);
         assertNotNull(result);
-        assertEquals(2, result.size());
-        ClonePair result1 = result.get(1);
-        assertEquals("C", result1.copy.name);
-        assertTrue(result1.found);
+        assertEquals(3, result.size());
+        CloneGroup result1 = result.get(1);
+        assertEquals("C", result1.snippets[0].name);
+        assertFalse(result1.found);
+        CloneGroup result2 = result.get(2);
+        assertEquals("C", result1.snippets[0].name);
+        assertTrue(result2.found);
     }
 
 }

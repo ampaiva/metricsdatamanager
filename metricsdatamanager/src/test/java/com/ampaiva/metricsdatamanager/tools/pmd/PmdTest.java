@@ -10,8 +10,6 @@ import java.util.List;
 import org.junit.Test;
 
 import com.ampaiva.hlo.util.Helper;
-import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone;
-import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone.PmdOcurrency;
 
 public class PmdTest {
 
@@ -29,11 +27,11 @@ public class PmdTest {
         assertEquals(98, clone0.tokens);
         assertNotNull(clone0.ocurrencies);
         assertEquals(2, clone0.ocurrencies.size());
-        final PmdOcurrency ocurrency0_0 = clone0.ocurrencies.get(0);
+        final PmdOccurrence ocurrency0_0 = clone0.ocurrencies.get(0);
         assertNotNull(ocurrency0_0);
         assertEquals(13, ocurrency0_0.line);
         assertEquals("generic/target/CodeCloneType1.java", ocurrency0_0.file);
-        final PmdOcurrency ocurrency0_1 = clone0.ocurrencies.get(1);
+        final PmdOccurrence ocurrency0_1 = clone0.ocurrencies.get(1);
         assertNotNull(ocurrency0_1);
         assertEquals(13, ocurrency0_1.line);
         assertEquals("generic/target/OriginalCode.java", ocurrency0_1.file);

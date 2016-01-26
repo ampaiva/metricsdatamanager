@@ -15,11 +15,11 @@ import com.github.javaparser.ParseException;
 
 public class CompareToolsNoDBTest {
 
-    private void assertListValues(List<ClonePair> clonePairs, int expectedFound, int expectedNotFound) {
+    private void assertListValues(List<CloneGroup> clonePairs, int expectedFound, int expectedNotFound) {
         assertNotNull(clonePairs);
         assertEquals(expectedFound + expectedNotFound, clonePairs.size());
         int found = 0, notFound = 0;
-        for (ClonePair clonePair : clonePairs) {
+        for (CloneGroup clonePair : clonePairs) {
             if (clonePair.found) {
                 found++;
             } else {
@@ -39,18 +39,18 @@ public class CompareToolsNoDBTest {
         CompareToolsNoDB compareTools = new CompareToolsNoDB();
         Repository repository = repositories.get(0);
         repository.setLocation("c:/temp/extracted/" + folder);
-        List<ClonePair> clonesPMD = compareTools.comparePMDxMcSheep(repository, pmdResult);
+        List<CloneGroup> clonesPMD = compareTools.comparePMDxMcSheep(repository, pmdResult);
         assertListValues(clonesPMD, expectedPMDFound, expectedPMDNotFound);
-        List<ClonePair> clonesMcSheep = compareTools.compareMcSheepxPMD(repository, pmdResult);
+        List<CloneGroup> clonesMcSheep = compareTools.compareMcSheepxPMD(repository, pmdResult);
         assertListValues(clonesMcSheep, expectedMcSheepFound, expectedMcSheepNotFound);
         System.out.println("PMD");
-        for (ClonePair clonePair : clonesPMD) {
+        for (CloneGroup clonePair : clonesPMD) {
             if (clonePair.found) {
                 System.out.println(clonePair);
             }
         }
         System.out.println("McSheep");
-        for (ClonePair clonePair : clonesMcSheep) {
+        for (CloneGroup clonePair : clonesMcSheep) {
             if (clonePair.found) {
                 System.out.println(clonePair);
             }
@@ -60,7 +60,7 @@ public class CompareToolsNoDBTest {
     @Test
     public void testCompareMcSheepxPMD02_ecommerce() throws IOException, ParseException {
         //testCompareMcSheepxPMD02("Petstore", "PetStore-petstore-1.3.1_02", 3, 25, 3, 3);
-        testCompareMcSheepxPMD02("maven", "maven-master", 10, 42, 9, 6);
+        //testCompareMcSheepxPMD02("maven", "maven-master", 10, 42, 9, 6);
         //testCompareMcSheepxPMD02("02-ecommerce", "02-ecommerce", 45, 64, 41, 68);
     }
 

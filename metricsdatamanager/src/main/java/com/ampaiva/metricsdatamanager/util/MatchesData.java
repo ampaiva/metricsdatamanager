@@ -4,17 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MatchesData {
-    // Index of groups where copy was found
-    public int groupIndex;
-    // Indexes of groups where paste was found
-    public List<Integer> groupsMatched;
-    // Sequences for each group matched
-    public List<List<List<Integer>>> sequencesMatches;
+    // Index of method where copy was found
+    public int methodIndex;
+    // Indexes of methods where paste was found
+    public List<Integer> methodsMatched;
+    // Pair of calls matched for each method matched. 
+    public List<List<List<Integer>>> callsMatched;
 
-    public MatchesData(int groupIndex, List<Integer> groupsMatched, List<List<List<Integer>>> sequencesMatches) {
-        this.groupIndex = groupIndex;
-        this.groupsMatched = groupsMatched;
-        this.sequencesMatches = sequencesMatches;
+    // methodsMatched.size() == callsMatched.size()
+    // callsMatched.get(n).size() == # of coincident calls between methods[methodIndex] and methods[methodsMatched.get(n)]
+    // callsMatched.get(n).get(0).size() == 2
+    public MatchesData(int groupIndex, List<Integer> groupsMatched, List<List<List<Integer>>> callsMatched) {
+        this.methodIndex = groupIndex;
+        this.methodsMatched = groupsMatched;
+        this.callsMatched = callsMatched;
     }
 
     public MatchesData(int groupIndex) {
@@ -25,9 +28,9 @@ public class MatchesData {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + groupIndex;
-        result = prime * result + ((groupsMatched == null) ? 0 : groupsMatched.hashCode());
-        result = prime * result + ((sequencesMatches == null) ? 0 : sequencesMatches.hashCode());
+        result = prime * result + methodIndex;
+        result = prime * result + ((methodsMatched == null) ? 0 : methodsMatched.hashCode());
+        result = prime * result + ((callsMatched == null) ? 0 : callsMatched.hashCode());
         return result;
     }
 
@@ -43,21 +46,21 @@ public class MatchesData {
             return false;
         }
         MatchesData other = (MatchesData) obj;
-        if (groupIndex != other.groupIndex) {
+        if (methodIndex != other.methodIndex) {
             return false;
         }
-        if (groupsMatched == null) {
-            if (other.groupsMatched != null) {
+        if (methodsMatched == null) {
+            if (other.methodsMatched != null) {
                 return false;
             }
-        } else if (!groupsMatched.equals(other.groupsMatched)) {
+        } else if (!methodsMatched.equals(other.methodsMatched)) {
             return false;
         }
-        if (sequencesMatches == null) {
-            if (other.sequencesMatches != null) {
+        if (callsMatched == null) {
+            if (other.callsMatched != null) {
                 return false;
             }
-        } else if (!sequencesMatches.equals(other.sequencesMatches)) {
+        } else if (!callsMatched.equals(other.callsMatched)) {
             return false;
         }
         return true;
@@ -65,7 +68,7 @@ public class MatchesData {
 
     @Override
     public String toString() {
-        return "MatchesData [groupIndex=" + groupIndex + ", groupsMatched=" + groupsMatched + ", sequencesMatches="
-                + sequencesMatches + "]";
+        return "MatchesData [groupIndex=" + methodIndex + ", groupsMatched=" + methodsMatched + ", sequencesMatches="
+                + callsMatched + "]";
     }
 }

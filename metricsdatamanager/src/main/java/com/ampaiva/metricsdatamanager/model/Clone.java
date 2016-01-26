@@ -36,12 +36,11 @@ public class Clone implements Serializable {
     private Analyse analyseBean;
 
     @ManyToOne(cascade = { CascadeType.ALL })
-    @JoinColumn(name = "copy", nullable = false)
-    private Call copy;
+    @JoinColumn(name = "begin", nullable = false)
+    private Call begin;
 
-    @ManyToOne(cascade = { CascadeType.ALL })
-    @JoinColumn(name = "paste", nullable = false)
-    private Call paste;
+    @Column(nullable = false)
+    private Integer size;
 
     public Clone() {
     }
@@ -62,25 +61,63 @@ public class Clone implements Serializable {
         this.analyseBean = analyse;
     }
 
-    public Call getCopy() {
-        return this.copy;
+    public Call getBegin() {
+        return begin;
     }
 
-    public void setCopy(Call copy) {
-        this.copy = copy;
+    public void setBegin(Call begin) {
+        this.begin = begin;
     }
 
-    public Call getPaste() {
-        return this.paste;
+    public Integer getSize() {
+        return size;
     }
 
-    public void setPaste(Call paste) {
-        this.paste = paste;
+    public void setSize(Integer size) {
+        this.size = size;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((begin == null) ? 0 : begin.hashCode());
+        result = prime * result + ((size == null) ? 0 : size.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Clone other = (Clone) obj;
+        if (begin == null) {
+            if (other.begin != null) {
+                return false;
+            }
+        } else if (!begin.equals(other.begin)) {
+            return false;
+        }
+        if (size == null) {
+            if (other.size != null) {
+                return false;
+            }
+        } else if (!size.equals(other.size)) {
+            return false;
+        }
+        return true;
     }
 
     @Override
     public String toString() {
-        return "Clone [id=" + id + ", analyseBean=" + analyseBean + ", copy=" + copy + ", paste=" + paste + "]";
+        return "Clone [id=" + id + ", analyseBean=" + analyseBean + ", begin=" + begin + ", size=" + size + "]";
     }
 
 }

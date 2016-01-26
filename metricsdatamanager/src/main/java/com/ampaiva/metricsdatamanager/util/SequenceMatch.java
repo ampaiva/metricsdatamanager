@@ -46,14 +46,14 @@ public class SequenceMatch {
                 List<List<Integer>> pastes = listMatches.subList(i, listMatches.size());
                 MatchesData matchesData = getMatches(copy, pastes);
                 if (matchesData != null) {
-                    MatchesData existingMatchesData = mapMerge.get(matchesData.groupIndex);
+                    MatchesData existingMatchesData = mapMerge.get(matchesData.methodIndex);
                     if (existingMatchesData == null) {
                         if (LOG.isDebugEnabled()) {
-                            LOG.debug("getMatches() entry: " + entry + " put " + matchesData.groupIndex + ", "
+                            LOG.debug("getMatches() entry: " + entry + " put " + matchesData.methodIndex + ", "
                                     + matchesData);
                         }
-                        existingMatchesData = new MatchesData(matchesData.groupIndex);
-                        mapMerge.put(existingMatchesData.groupIndex, existingMatchesData);
+                        existingMatchesData = new MatchesData(matchesData.methodIndex);
+                        mapMerge.put(existingMatchesData.methodIndex, existingMatchesData);
                         result.add(existingMatchesData);
                     }
                     mergeMatchedData(existingMatchesData, matchesData);
@@ -71,7 +71,7 @@ public class SequenceMatch {
 
     private void filterResults(List<MatchesData> result) {
         for (MatchesData matchesData : result) {
-            for (List<List<Integer>> matches : matchesData.sequencesMatches) {
+            for (List<List<Integer>> matches : matchesData.callsMatched) {
                 Collections.sort(matches, new Comparator<List<Integer>>() {
                     @Override
                     public int compare(List<Integer> match1, List<Integer> match2) {
@@ -192,19 +192,19 @@ public class SequenceMatch {
         if (LOG.isDebugEnabled()) {
             LOG.debug("mergeMatchedData(" + existingMatchesData + ", " + newMatchesData + ")");
         }
-        for (int i = 0; i < newMatchesData.groupsMatched.size(); i++) {
-            int newMatchedGroup = newMatchesData.groupsMatched.get(i);
-            int position = getInsertPosition(existingMatchesData.groupsMatched, newMatchedGroup);
-            List<List<Integer>> newSequenceMatched = newMatchesData.sequencesMatches.get(i);
-            if (existingMatchesData.groupsMatched.size() > position
-                    && existingMatchesData.groupsMatched.get(position) == newMatchedGroup) {
-                existingMatchesData.sequencesMatches.get(position).addAll(newSequenceMatched);
+        for (int i = 0; i < newMatchesData.methodsMatched.size(); i++) {
+            int newMatchedGroup = newMatchesData.methodsMatched.get(i);
+            int position = getInsertPosition(existingMatchesData.methodsMatched, newMatchedGroup);
+            List<List<Integer>> newSequenceMatched = newMatchesData.callsMatched.get(i);
+            if (existingMatchesData.methodsMatched.size() > position
+                    && existingMatchesData.methodsMatched.get(position) == newMatchedGroup) {
+                existingMatchesData.callsMatched.get(position).addAll(newSequenceMatched);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("mergeMatchedData: existing " + existingMatchesData);
                 }
             } else {
-                existingMatchesData.groupsMatched.add(position, newMatchedGroup);
-                existingMatchesData.sequencesMatches.add(position, newSequenceMatched);
+                existingMatchesData.methodsMatched.add(position, newMatchedGroup);
+                existingMatchesData.callsMatched.add(position, newSequenceMatched);
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("mergeMatchedData: new " + existingMatchesData);
                 }

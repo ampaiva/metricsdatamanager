@@ -136,9 +136,9 @@ public class Main {
                         LOG.info(repository);
                         CompareToolsNoDB compareTools = new CompareToolsNoDB();
                         String pmdResult = Helper.readFile(csvFile);
-                        List<ClonePair> clonesPMD = compareTools.comparePMDxMcSheep(repository, pmdResult);
+                        List<CloneGroup> clonesPMD = compareTools.comparePMDxMcSheep(repository, pmdResult);
                         compareTools.saveClones(config.get("analysis.results"), "pmd-" + csvFile.getName(), clonesPMD);
-                        List<ClonePair> clonesMcSheep = compareTools.compareMcSheepxPMD(repository, pmdResult);
+                        List<CloneGroup> clonesMcSheep = compareTools.compareMcSheepxPMD(repository, pmdResult);
                         compareTools.saveClones(config.get("analysis.results"), "mcsheep-" + csvFile.getName(),
                                 clonesMcSheep);
                         FreeMarker.saveClonesToHTML(htmlFolderPath, repository, "McSheep", clonesMcSheep);

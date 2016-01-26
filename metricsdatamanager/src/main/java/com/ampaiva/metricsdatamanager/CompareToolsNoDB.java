@@ -7,196 +7,139 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.ampaiva.metricsdatamanager.model.Analyse;
-import com.ampaiva.metricsdatamanager.model.Call;
 import com.ampaiva.metricsdatamanager.model.Clone;
 import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.tools.pmd.Pmd;
-import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone;
-import com.ampaiva.metricsdatamanager.tools.pmd.Pmd.PmdClone.PmdOcurrency;
+import com.ampaiva.metricsdatamanager.tools.pmd.PmdClone;
+import com.ampaiva.metricsdatamanager.tools.pmd.PmdOccurrence;
 import com.ampaiva.metricsdatamanager.util.Conventions;
 
 public class CompareToolsNoDB {
     private static final String COMMA = ",";
     private static final String EOL = "\r\n";
 
-    /*
-     * Finds all McSheeps clones that are inside pmdClone
-     * 
-     * @return list of McSheeps clone Ids
-     */
-    private List<Clone> getMcSheepClones(Repository repository, String unit1, int unit1beglin, int unit1endlin,
-            String unit2) {
-        String unit1Convention = Conventions.fileNameInRepository(repository.getLocation(), unit1);
-        String unit2Convention = Conventions.fileNameInRepository(repository.getLocation(), unit2);
-        List<Clone> results = new ArrayList<>();
-        for (Analyse analyse : repository.getAnalysis()) {
-            for (Clone clone : analyse.getClones()) {
-                String unit1Clone = clone.getCopy().getMethodBean().getUnitBean().getName();
-                String unit2Clone = clone.getPaste().getMethodBean().getUnitBean().getName();
-                Call copyCall = null;
-                if (unit1Convention.equals(unit1Clone) && unit2Convention.equals(unit2Clone)) {
-                    copyCall = clone.getCopy();
-                } else if (unit2Convention.equals(unit1Clone) && unit1Convention.equals(unit2Clone)) {
-                    copyCall = clone.getPaste();
-                }
-
-                if (copyCall != null) {
-                    int beglinCopy = copyCall.getBeglin();
-                    int endlinCopy = copyCall.getMethodBean().getCalls()
-                            .get(copyCall.getPosition() + clone.getAnalyseBean().getMinSeq() - 1).getEndlin();
-                    if (beglinCopy <= unit1endlin && endlinCopy >= unit1beglin) {
-                        results.add(clone);
+    private boolean hasPmdClone(List<Analyse> mcSheepClones, PmdClone pmdClone) {
+        for (Analyse mcSheepClone : mcSheepClones) {
+            List<PmdOccurrence> snippets = new ArrayList<>();
+            snippets.addAll(pmdClone.ocurrencies);
+            for (PmdOccurrence snippet : pmdClone.ocurrencies) {
+                CloneSnippet cloneSnippet = CloneGroup.getCloneSnippet(mcSheepClone.getRepositoryBean().getLocation(),
+                        snippet);
+                for (Clone mcSheepOcurrency : mcSheepClone.getClones()) {
+                    final String file1 = Conventions.fileNameInRepository(
+                            mcSheepClone.getRepositoryBean().getLocation(),
+                            mcSheepOcurrency.getBegin().getMethodBean().getName());
+                    if (file1.equals(cloneSnippet.name) && //
+                            mcSheepOcurrency.getBegin().getBeglin() <= cloneSnippet.endlin
+                            && mcSheepOcurrency.getBegin().getMethodBean().getCalls()
+                                    .get(mcSheepOcurrency.getBegin().getPosition() + mcSheepOcurrency.getSize() - 1)
+                                    .getEndlin() >= cloneSnippet.beglin) {
+                        snippets.remove(snippet);
+                        if (snippets.isEmpty()) {
+                            return true;
+                        }
                     }
                 }
             }
         }
-
-        return results;
+        return false;
     }
 
-    public List<ClonePair> comparePMDxMcSheep(Repository repository, String pmdResult) throws IOException {
+    public List<CloneGroup> comparePMDxMcSheep(Repository repository, String pmdResult) throws IOException {
         List<PmdClone> pmdClones = Pmd.parse(repository.getLocation(), pmdResult);
         List<PmdClone> pmdFound = new ArrayList<>();
         List<PmdClone> pmdNotFound = new ArrayList<>();
         int found = 0, notFound = 0;
-        for (PmdClone pmdClone : pmdClones) {
-            boolean hasAllOcurrencies = true;
-            for (int i = 0; i < pmdClone.ocurrencies.size(); i++) {
-                final PmdOcurrency pmdOcurrency1 = pmdClone.ocurrencies.get(i);
-                final String file1 = pmdOcurrency1.file;
-                for (int j = i + 1; j < pmdClone.ocurrencies.size(); j++) {
-                    final PmdOcurrency pmdOcurrency2 = pmdClone.ocurrencies.get(j);
-                    final String file2 = pmdOcurrency2.file;
-                    List<Clone> mcSheepClones = getMcSheepClones(repository, file1, pmdOcurrency1.line,
-                            pmdOcurrency1.line + pmdClone.lines - 1, file2);
-                    if (mcSheepClones.size() == 0) {
-                        hasAllOcurrencies = false;
-                    }
-                }
-            }
-            if (found + notFound == 0) {
-                System.out.println();
-                System.out.println("Results found by PMD and not found by McSheep");
-                System.out.println("=============================================");
-            }
-            if (!hasAllOcurrencies) {
-                pmdNotFound.add(pmdClone);
-                System.err.println("Clone not found by McSheep: " + pmdClone);
-                notFound++;
-            } else {
-                pmdFound.add(pmdClone);
-                System.out.println("Clone found by McSheep: " + pmdClone);
+        System.out.println();
+        System.out.println("Results found by PMD and not found by McSheep");
+        System.out.println("=============================================");
+        List<Analyse> mcSheepClones = repository.getAnalysis();
+        for (PmdClone cloneGroup : pmdClones) {
+            if (hasPmdClone(mcSheepClones, cloneGroup)) {
+                pmdFound.add(cloneGroup);
+                System.out.println("Clone found by PMD: " + cloneGroup);
                 found++;
+            } else {
+                pmdNotFound.add(cloneGroup);
+                System.err.println("Clone not found by PMD: " + cloneGroup);
+                notFound++;
             }
         }
-        return getClones(pmdFound, pmdNotFound);
+        System.err.println("Not found: " + notFound);
+        System.out.println("Found: " + found);
+        return getCloneGroups(pmdFound, pmdNotFound);
     }
 
-    public List<ClonePair> compareMcSheepxPMD(Repository repository, String pmdResult) throws IOException {
-        List<PmdClone> pmdClones = Pmd.parse(repository.getLocation(), pmdResult);
-        List<Clone> mcsheepFound = new ArrayList<>();
-        List<Clone> mcsheepNotFound = new ArrayList<>();
-        int found = 0, notFound = 0;
-        for (Analyse analyse : repository.getAnalysis()) {
-            for (Clone clone : analyse.getClones()) {
-                String unit1 = clone.getCopy().getMethodBean().getUnitBean().getName();
-                String unit2 = clone.getPaste().getMethodBean().getUnitBean().getName();
-                int beglinCopy = clone.getCopy().getBeglin();
-                int endlinCopy = clone.getCopy().getMethodBean().getCalls()
-                        .get(clone.getCopy().getPosition() + clone.getAnalyseBean().getMinSeq() - 1).getEndlin();
-                int beglinPaste = clone.getPaste().getBeglin();
-                int endlinPaste = clone.getPaste().getMethodBean().getCalls()
-                        .get(clone.getPaste().getPosition() + clone.getAnalyseBean().getMinSeq() - 1).getEndlin();
-                boolean pmdCloneFound = false;
-                for (PmdClone pmdClone : pmdClones) {
-                    for (int i = 0; i < pmdClone.ocurrencies.size(); i++) {
-                        final PmdOcurrency pmdOcurrency1 = pmdClone.ocurrencies.get(i);
-                        final String file1 = Conventions.fileNameInRepository(repository.getLocation(),
-                                pmdOcurrency1.file);
-                        for (int j = i + 1; j < pmdClone.ocurrencies.size(); j++) {
-                            final PmdOcurrency pmdOcurrency2 = pmdClone.ocurrencies.get(j);
-                            final String file2 = Conventions.fileNameInRepository(repository.getLocation(),
-                                    pmdOcurrency2.file);
-                            /*
-                             * (u1.name='generic/target/
-                             * CodeCloneType1. java' and
-                             * u2.name='generic/target/CodeCloneType4.
-                             * java' and ca1.beglin <=24 &&
-                             * ca1_end.endlin>=23) or
-                             * (u2.name='generic/target/
-                             * CodeCloneType1. java' and
-                             * u1.name='generic/target/CodeCloneType4.
-                             * java' and ca2.beglin <=24 &&
-                             * ca2_end.endlin>=23)
-                             */
-
-                            if ((file1.equals(unit1) && //
-                                    file2.equals(unit2) && //
-                                    pmdOcurrency1.line <= endlinCopy
-                                    && pmdOcurrency1.line + pmdClone.lines - 1 >= beglinCopy)//
-                                    || //
-                                    (file2.equals(unit1) && //
-                                            file1.equals(unit2) && //
-                                            pmdOcurrency2.line <= endlinPaste
-                                            && pmdOcurrency2.line + pmdClone.lines - 1 >= beglinPaste)) {
-                                pmdCloneFound = true;
-                            }
+    private boolean hasMcSheepClone(List<PmdClone> pmdClones, Analyse mcSheepClone) {
+        for (PmdClone pmdClone : pmdClones) {
+            List<Clone> snippets = new ArrayList<>();
+            snippets.addAll(mcSheepClone.getClones());
+            for (Clone snippet : mcSheepClone.getClones()) {
+                CloneSnippet cloneSnippet = CloneGroup.getCloneSnippet(snippet);
+                for (PmdOccurrence pmdOcurrency : pmdClone.ocurrencies) {
+                    final String file1 = Conventions
+                            .fileNameInRepository(mcSheepClone.getRepositoryBean().getLocation(), pmdOcurrency.file);
+                    if (file1.equals(cloneSnippet.name) && //
+                            pmdOcurrency.line <= cloneSnippet.endlin
+                            && pmdOcurrency.line + pmdClone.lines - 1 >= cloneSnippet.beglin) {
+                        snippets.remove(snippet);
+                        if (snippets.isEmpty()) {
+                            return true;
                         }
-
                     }
                 }
-                if (found + notFound == 0) {
-                    System.out.println();
-                    System.out.println("Results found by McSheep and not found by PMD");
-                    System.out.println("=============================================");
-                }
+            }
+        }
+        return false;
+    }
 
-                String cloneStr = unit1 + ":[" + beglinCopy + "-" + endlinCopy + "] " + unit2 + ":[" + beglinPaste + "-"
-                        + endlinPaste + "] " + clone;
-                if (!pmdCloneFound) {
-                    mcsheepNotFound.add(clone);
-                    System.err.println("Clone not found by PMD: " + cloneStr);
-                    notFound++;
-                } else {
-                    mcsheepFound.add(clone);
-                    System.out.println("Clone found by PMD: " + cloneStr);
-                    found++;
-                }
+    public List<CloneGroup> compareMcSheepxPMD(Repository repository, String pmdResult) throws IOException {
+        List<PmdClone> pmdClones = Pmd.parse(repository.getLocation(), pmdResult);
+        List<Analyse> mcsheepFound = new ArrayList<>();
+        List<Analyse> mcsheepNotFound = new ArrayList<>();
+        int found = 0, notFound = 0;
+        System.out.println();
+        System.out.println("Results found by McSheep and not found by PMD");
+        System.out.println("=============================================");
+        for (Analyse cloneGroup : repository.getAnalysis()) {
+            if (hasMcSheepClone(pmdClones, cloneGroup)) {
+                mcsheepFound.add(cloneGroup);
+                System.out.println("Clone found by PMD: " + cloneGroup);
+                found++;
+            } else {
+                mcsheepNotFound.add(cloneGroup);
+                System.err.println("Clone not found by PMD: " + cloneGroup);
+                notFound++;
             }
         }
 
         System.err.println("Not found: " + notFound);
         System.out.println("Found: " + found);
-        return getClones(mcsheepFound, mcsheepNotFound);
+        return getCloneGroups(mcsheepFound, mcsheepNotFound);
     }
 
-    private void writeClonePair(FileWriter fileWriter, ClonePair clone) throws IOException {
-        int beglinCopy = clone.copy.beglin;
-        int endlinCopy = clone.copy.endlin;
-        int beglinPaste = clone.paste.beglin;
-        int endlinPaste = clone.paste.endlin;
-        fileWriter.write((clone.found ? "+" : "-") + COMMA + beglinCopy + COMMA + endlinCopy + COMMA + clone.copy.name
-                + COMMA + beglinPaste + COMMA + endlinPaste + COMMA + clone.paste.name + EOL);
+    private void writeClonePair(FileWriter fileWriter, CloneGroup clone) throws IOException {
+        fileWriter.write((clone.found ? "+" : "-") + COMMA + clone.toId() + EOL);
     }
 
-    private <T> List<ClonePair> getClones(List<T> clonesFound, List<T> clonesNotFound) {
-        List<ClonePair> clones = new ArrayList<>();
+    private <T> List<CloneGroup> getCloneGroups(List<T> clonesFound, List<T> clonesNotFound) {
+        List<CloneGroup> clones = new ArrayList<>();
         for (T clone : clonesFound) {
-            clones.addAll(ClonePair.getClonePairs(clone, true));
+            clones.addAll(CloneGroup.getCloneGroups(clone, true));
         }
         for (T clone : clonesNotFound) {
-            clones.addAll(ClonePair.getClonePairs(clone, false));
+            clones.addAll(CloneGroup.getCloneGroups(clone, false));
         }
         return FilterClonePair.getClonePairs(clones);
     }
 
-    private <T> void writeClones(FileWriter fileWriter, List<ClonePair> result) throws IOException {
-        for (ClonePair cloneData : result) {
+    private <T> void writeClones(FileWriter fileWriter, List<CloneGroup> result) throws IOException {
+        for (CloneGroup cloneData : result) {
             writeClonePair(fileWriter, cloneData);
         }
     }
 
-    public void saveClones(String folderName, String fileName, List<ClonePair> clones) throws IOException {
+    public void saveClones(String folderName, String fileName, List<CloneGroup> clones) throws IOException {
         File folder = new File(folderName);
         if (!folder.exists()) {
             folder.mkdirs();

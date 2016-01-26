@@ -13,7 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.ampaiva.hlo.util.SourceHandler;
-import com.ampaiva.metricsdatamanager.ClonePair;
+import com.ampaiva.metricsdatamanager.CloneGroup;
+import com.ampaiva.metricsdatamanager.CloneSnippet;
 import com.ampaiva.metricsdatamanager.model.Repository;
 
 import freemarker.template.Configuration;
@@ -77,16 +78,24 @@ public class FreeMarker {
             for (int j = 0; j < (int) (4 - Math.log10(line + 2)); j++) {
                 sb.append("&nbsp;");
             }
-            sb.append((line + 1) + ".</b>&nbsp;&nbsp;&nbsp;&nbsp;"
-                    + lines[line].replace(" ", "&nbsp;").replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;") + "</br>");
+            String linex = lines[line];
+            if (linex.length() > 100) {
+                linex = linex.substring(0, 100) + "...";
+            }
+            String linestr = linex.replace("<", "&lt;").replace(">", "&gt;").replace(" ", "&nbsp;").replace("\t",
+                    "&nbsp;&nbsp;&nbsp;&nbsp;");
+            sb.append((line + 1) + ".</b>&nbsp;&nbsp;&nbsp;&nbsp;" + linestr + "</br>");
             sb.append("</font>");
         }
         return sb.toString();
     }
 
-    public static String ToString(ClonePair clone) {
-        return String.format("%s-%d-%d-%s-%d-%d-%s", clone.copy.name, clone.copy.beglin, clone.copy.endlin,
-                clone.paste.name, clone.paste.beglin, clone.paste.endlin, clone.found);
+    public static String ToString(CloneGroup clone) {
+        String name = clone.toId();
+        if (name.length() >= 80) {
+            name = name.substring(0, 80) + name.hashCode();
+        }
+        return name;
     }
 
     public static void saveIndex(String htmlFolderPath) throws IOException, TemplateException {
@@ -107,7 +116,7 @@ public class FreeMarker {
             }
         };
         root.put("repositories", htmlFolder.listFiles(filter));
-        Writer out = new OutputStreamWriter(new FileOutputStream(htmlFolder + File.separator + "index.html"));
+        Writer out = new OutputStreamWriter(new FileOutputStream(htmlFolder + File.separator + "clones.html"));
         FreeMarker.run("index.ftl", root, out);
         out.close();
         File cssFile = new File("target/classes/ftl/clones.css");
@@ -118,13 +127,26 @@ public class FreeMarker {
                 java.nio.file.StandardCopyOption.REPLACE_EXISTING);
     }
 
+    public static class FormatSnippet {
+        String source;
+    }
+
+    public static List<String> getFormattedSource(CloneSnippet[] snippets, boolean onlyDiff) {
+        List<String> list = new ArrayList<>();
+        for (CloneSnippet snippet : snippets) {
+            list.add(format(snippet.source, snippet.beglin, snippet.endlin, onlyDiff));
+        }
+        return list;
+
+    }
+
     public static void saveClonesToHTML(String htmlFolderPath, Repository repository, String tool,
-            List<ClonePair> clones) throws IOException, TemplateException {
+            List<CloneGroup> clones) throws IOException, TemplateException {
         Map<String, Object> root = new HashMap<>();
         root.put("repository", repository);
         root.put("tool", tool);
         List<String> clonesList = new ArrayList<>();
-        for (ClonePair clone : clones) {
+        for (CloneGroup clone : clones) {
             clonesList.add(FreeMarker.ToString(clone));
         }
         root.put("clones", clonesList);
@@ -134,14 +156,13 @@ public class FreeMarker {
         FreeMarker.run("clones.ftl", root, out2);
         File htmlToolFolder = new File(htmlFolder.getAbsolutePath() + File.separator + tool);
         htmlToolFolder.mkdirs();
-        for (ClonePair clone : clones) {
+        for (CloneGroup clone : clones) {
             root.put("clone", FreeMarker.ToString(clone));
-            root.put("copydiff", FreeMarker.format(clone.copy.source, clone.copy.beglin, clone.copy.endlin, true));
-            root.put("pastediff", FreeMarker.format(clone.paste.source, clone.paste.beglin, clone.paste.endlin, true));
-            root.put("copy", FreeMarker.format(clone.copy.source, clone.copy.beglin, clone.copy.endlin, false));
-            root.put("paste", FreeMarker.format(clone.paste.source, clone.paste.beglin, clone.paste.endlin, false));
-            Writer out3 = new OutputStreamWriter(
-                    new FileOutputStream(htmlToolFolder + File.separator + FreeMarker.ToString(clone) + ".html"));
+            root.put("snippets", clone.snippets);
+            root.put("formattedSnippet", getFormattedSource(clone.snippets, true));
+            root.put("formattedSource", getFormattedSource(clone.snippets, false));
+            String fileName = htmlToolFolder + File.separator + FreeMarker.ToString(clone) + ".html";
+            Writer out3 = new OutputStreamWriter(new FileOutputStream(fileName));
             FreeMarker.run("clone.ftl", root, out3);
             out3.close();
         }

@@ -57,13 +57,9 @@ public class Call implements Serializable {
     @JoinColumn(name = "sequence", nullable = false)
     private Sequence sequenceBean;
 
-    @OneToMany(mappedBy = "copy", orphanRemoval = true, cascade = { CascadeType.ALL })
+    @OneToMany(mappedBy = "begin", orphanRemoval = true, cascade = { CascadeType.ALL })
     @CascadeOnDelete
-    private List<Clone> copies;
-
-    @OneToMany(mappedBy = "paste", orphanRemoval = true, cascade = { CascadeType.ALL })
-    @CascadeOnDelete
-    private List<Clone> pastes;
+    private List<Clone> begins;
 
     public Call() {
     }
@@ -100,20 +96,12 @@ public class Call implements Serializable {
         this.sequenceBean = sequenceBean;
     }
 
-    public List<Clone> getCopies() {
-        return this.copies;
+    public List<Clone> getBegins() {
+        return this.begins;
     }
 
-    public void setCopies(List<Clone> copies) {
-        this.copies = copies;
-    }
-
-    public List<Clone> getPastes() {
-        return this.pastes;
-    }
-
-    public void setPastes(List<Clone> pastes) {
-        this.pastes = pastes;
+    public void setBegins(List<Clone> begins) {
+        this.begins = begins;
     }
 
     public int getBeglin() {
@@ -146,6 +134,56 @@ public class Call implements Serializable {
 
     public void setEndcol(int endcol) {
         this.endcol = endcol;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + begcol;
+        result = prime * result + beglin;
+        result = prime * result + endcol;
+        result = prime * result + endlin;
+        result = prime * result + ((methodBean == null) ? 0 : methodBean.hashCode());
+        result = prime * result + position;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Call other = (Call) obj;
+        if (begcol != other.begcol) {
+            return false;
+        }
+        if (beglin != other.beglin) {
+            return false;
+        }
+        if (endcol != other.endcol) {
+            return false;
+        }
+        if (endlin != other.endlin) {
+            return false;
+        }
+        if (methodBean == null) {
+            if (other.methodBean != null) {
+                return false;
+            }
+        } else if (!methodBean.equals(other.methodBean)) {
+            return false;
+        }
+        if (position != other.position) {
+            return false;
+        }
+        return true;
     }
 
     @Override

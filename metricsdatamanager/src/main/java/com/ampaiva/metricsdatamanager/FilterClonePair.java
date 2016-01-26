@@ -8,20 +8,14 @@ import java.util.TreeSet;
 
 public class FilterClonePair {
 
-    public static List<ClonePair> getClonePairs(List<ClonePair> clones) {
-        Set<ClonePair> clonesData = Collections.synchronizedSortedSet(new TreeSet<>());
-        for (ClonePair clone : clones) {
+    public static List<CloneGroup> getClonePairs(List<CloneGroup> clones) {
+        Set<CloneGroup> clonesData = Collections.synchronizedSortedSet(new TreeSet<>());
+        for (CloneGroup clone : clones) {
             clonesData.add(clone);
         }
-        List<ClonePair> result = new ArrayList<>();
+        List<CloneGroup> result = new ArrayList<>();
         result.addAll(clonesData);
-        //        Set<String> hash = new HashSet<>();
-        //        for (ClonePair cloneData : clonesData) {
-        //            if (!hash.contains(cloneData.getKey())) {
-        //                hash.add(cloneData.getKey());
-        //                result.add(cloneData);
-        //            }
-        //        }
+
         return result;
     }
 

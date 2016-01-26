@@ -188,17 +188,17 @@ public class ConcernCallsManager {
         }
         List<ConcernClone> concernClones = new ArrayList<ConcernClone>();
         for (MatchesData matchesData : sequenceMatches) {
-            for (int i = 0; i < matchesData.groupsMatched.size(); i++) {
-                int matchedIndex = matchesData.groupsMatched.get(i);
+            for (int i = 0; i < matchesData.methodsMatched.size(); i++) {
+                int matchedIndex = matchesData.methodsMatched.get(i);
                 ConcernClone clone = new ConcernClone();
-                clone.methods = Arrays.asList(methodCodes.get(matchesData.groupIndex).getName(),
+                clone.methods = Arrays.asList(methodCodes.get(matchesData.methodIndex).getName(),
                         methodCodes.get(matchedIndex).getName());
-                clone.sources = Arrays.asList(new SourceHandler(methodCodes.get(matchesData.groupIndex).getSource()),
+                clone.sources = Arrays.asList(new SourceHandler(methodCodes.get(matchesData.methodIndex).getSource()),
                         new SourceHandler(methodCodes.get(matchedIndex).getSource()));
                 clone.sequences = Arrays.asList(
-                        SequencesInt.callsToStringList(methodCodes.get(matchesData.groupIndex).getCalls()),
+                        SequencesInt.callsToStringList(methodCodes.get(matchesData.methodIndex).getCalls()),
                         SequencesInt.callsToStringList(methodCodes.get(matchedIndex).getCalls()));
-                clone.duplications = matchesData.sequencesMatches.get(i);
+                clone.duplications = matchesData.callsMatched.get(i);
                 concernClones.add(clone);
             }
         }

@@ -138,6 +138,60 @@ public class Method implements Serializable {
     }
 
     @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + begcol;
+        result = prime * result + beglin;
+        result = prime * result + endcol;
+        result = prime * result + endlin;
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
+        result = prime * result + ((unitBean == null) ? 0 : unitBean.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        Method other = (Method) obj;
+        if (begcol != other.begcol) {
+            return false;
+        }
+        if (beglin != other.beglin) {
+            return false;
+        }
+        if (endcol != other.endcol) {
+            return false;
+        }
+        if (endlin != other.endlin) {
+            return false;
+        }
+        if (name == null) {
+            if (other.name != null) {
+                return false;
+            }
+        } else if (!name.equals(other.name)) {
+            return false;
+        }
+        if (unitBean == null) {
+            if (other.unitBean != null) {
+                return false;
+            }
+        } else if (!unitBean.equals(other.unitBean)) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public String toString() {
         return "Method [id=" + id + ", name=" + name + ", unitBean=" + unitBean + "]";
     }
