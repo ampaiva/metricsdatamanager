@@ -24,6 +24,63 @@ public class MatchesData {
         this(groupIndex, new ArrayList<Integer>(), new ArrayList<List<List<Integer>>>());
     }
 
+    public static List<CloneInfo> merge(List<MatchesData> matchesDatas) {
+        List<CloneInfo> cloneInfos = new ArrayList<>();
+        for (MatchesData matchesData : matchesDatas) {
+            int method0 = matchesData.methodIndex;
+            for (int j = 0; j < matchesData.methodsMatched.size(); j++) {
+                Integer method1 = matchesData.methodsMatched.get(j);
+                List<Integer> calls0 = new ArrayList<>();
+                List<Integer> calls1 = new ArrayList<>();
+                for (List<Integer> callIndex : matchesData.callsMatched.get(j)) {
+                    calls0.add(callIndex.get(0));
+                    calls1.add(callIndex.get(1));
+                }
+                CloneInfo cloneInfo0 = getCloneInfo(cloneInfos, method0, calls0);
+                CloneInfo cloneInfo1 = getCloneInfo(cloneInfos, method1, calls1);
+                if (cloneInfo0 != null && cloneInfo1 == null) {
+                    merge(cloneInfo0, method1, calls1);
+                } else if (cloneInfo0 == null && cloneInfo1 != null) {
+                    merge(cloneInfo1, method0, calls0);
+                } else if (cloneInfo0 == null && cloneInfo1 == null) {
+                    CloneInfo cloneInfo = new CloneInfo();
+                    merge(cloneInfo, method0, calls0);
+                    merge(cloneInfo, method1, calls1);
+                    cloneInfos.add(cloneInfo);
+                }
+            }
+        }
+        return cloneInfos;
+    }
+
+    private static void merge(CloneInfo cloneInfo, Integer method, List<Integer> calls) {
+        cloneInfo.methods.add(method);
+        cloneInfo.calls.add(calls);
+    }
+
+    private static CloneInfo getCloneInfo(List<CloneInfo> cloneInfos, int method, List<Integer> calls) {
+        for (CloneInfo cloneInfo : cloneInfos) {
+            for (int i = 0; i < cloneInfo.methods.size(); i++) {
+                if (cloneInfo.methods.get(i) == method) {
+                    if (cloneInfo.calls.get(i).size() == calls.size()) {
+                        boolean hasAllCalls = true;
+                        for (int j = 0; j < cloneInfo.calls.get(i).size(); j++) {
+                            if (cloneInfo.calls.get(i).get(j).intValue() != calls.get(j).intValue()) {
+                                hasAllCalls = false;
+                                break;
+                            }
+                        }
+                        if (hasAllCalls) {
+                            return cloneInfo;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        return null;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
