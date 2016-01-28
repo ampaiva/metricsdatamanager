@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import com.ampaiva.hlo.cm.ICodeSource;
 import com.ampaiva.hlo.util.Helper;
@@ -18,13 +17,13 @@ import com.ampaiva.hlo.util.view.ProgressReport;
 import com.ampaiva.hlo.util.view.ProgressUpdate;
 import com.ampaiva.metricsdatamanager.controller.ConcernCallsManager;
 import com.ampaiva.metricsdatamanager.model.Analyse;
+import com.ampaiva.metricsdatamanager.model.Call;
 import com.ampaiva.metricsdatamanager.model.Clone;
 import com.ampaiva.metricsdatamanager.model.Method;
 import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.model.Sequence;
 import com.ampaiva.metricsdatamanager.model.Unit;
-import com.ampaiva.metricsdatamanager.util.DuplicationInfo;
-import com.ampaiva.metricsdatamanager.util.Duplications;
+import com.ampaiva.metricsdatamanager.util.CloneInfo;
 import com.ampaiva.metricsdatamanager.util.FolderUtil;
 import com.ampaiva.metricsdatamanager.util.MatchesData;
 import com.ampaiva.metricsdatamanager.util.SequencesInt;
@@ -81,27 +80,42 @@ public class ExtractClones {
         SequencesInt sequencesInt = new SequencesInt(sequencesMap, repository.getUnits());
         ConcernCallsManager concernCallsManager = new ConcernCallsManager(sequencesInt);
         List<MatchesData> matchesDataList = concernCallsManager.getSequenceMatches();
-        IProgressUpdate update3 = ProgressUpdate.start("Saving matches", matchesDataList.size());
         List<Method> methods = getAllMethods(repository);
-        Map<Clone, Analyse> hash = new HashMap<>();
-        for (MatchesData matchesData : matchesDataList) {
-            update3.beginIndex(matchesData);
-            final Method method0 = methods.get(matchesData.methodIndex);
-            for (int i = 0; i < matchesData.methodsMatched.size(); i++) {
-                final Method method1 = methods.get(matchesData.methodsMatched.get(i));
-                List<List<Integer>> groupMatched = matchesData.callsMatched.get(i);
-                createAnalysis(hash, method0, method1, groupMatched);
-            }
-        }
-        assignClones(repository, hash);
+        List<CloneInfo> cloneInfos = MatchesData.merge(matchesDataList);
+        saveClones(repository, methods, cloneInfos);
     }
 
-    protected void assignClones(Repository repository, Map<Clone, Analyse> hash) {
-        for (Entry<Clone, Analyse> entry : hash.entrySet()) {
-            Analyse analyse = entry.getValue();
-            if (countSize(analyse) >= minSeq) {
-                analyse.setRepositoryBean(repository);
-                repository.getAnalysis().add(analyse);
+    protected void saveClones(Repository repository, List<Method> methods, List<CloneInfo> cloneInfos) {
+        IProgressUpdate update3 = ProgressUpdate.start("Saving matches", cloneInfos.size());
+        for (CloneInfo cloneInfo : cloneInfos) {
+            update3.beginIndex(cloneInfo);
+            Analyse analyse = new Analyse();
+            analyse.setRepositoryBean(repository);
+            repository.getAnalysis().add(analyse);
+            analyse.setClones(new ArrayList<Clone>());
+            for (int i = 0; i < cloneInfo.methods.size(); i++) {
+                final Method method = methods.get(cloneInfo.methods.get(i));
+                for (List<Integer> calls : cloneInfo.calls) {
+                    Call begin = method.getCalls().get(calls.get(0));
+                    int size = 1;
+                    for (int j = 1; j < calls.size(); j++) {
+                        if (calls.get(j) == begin.getPosition() + size) {
+                            size++;
+                        } else {
+                            Clone clone = new Clone();
+                            clone.setBegin(begin);
+                            clone.setSize(size);
+                            analyse.getClones().add(clone);
+
+                            begin = method.getCalls().get(calls.get(j));
+                            size = 1;
+                        }
+                    }
+                    Clone clone = new Clone();
+                    clone.setBegin(begin);
+                    clone.setSize(size);
+                    analyse.getClones().add(clone);
+                }
             }
         }
     }
@@ -115,44 +129,6 @@ public class ExtractClones {
             }
         }
         return total;
-    }
-
-    protected void createAnalysis(Map<Clone, Analyse> hash, final Method method0, final Method method1,
-            List<List<Integer>> groupMatched) {
-        Duplications duplications = new Duplications(groupMatched);
-        DuplicationInfo duplicationInfo = duplications.next();
-        while (duplicationInfo != null) {
-            Clone clone0 = new Clone();
-            clone0.setBegin(method0.getCalls().get(duplicationInfo.position0));
-            clone0.setSize(duplicationInfo.count);
-
-            Clone clone1 = new Clone();
-            clone1.setBegin(method1.getCalls().get(duplicationInfo.position1));
-            clone1.setSize(duplicationInfo.count);
-
-            Analyse analyse0 = hash.get(clone0);
-            Analyse analyse1 = hash.get(clone1);
-            if (analyse0 == null && analyse1 != null) {
-                analyse1.getClones().add(clone0);
-                clone0.setAnalyseBean(analyse1);
-                hash.put(clone0, analyse1);
-            } else if (analyse0 != null && analyse1 == null) {
-                analyse0.getClones().add(clone1);
-                clone1.setAnalyseBean(analyse0);
-                hash.put(clone1, analyse0);
-            } else {
-                Analyse analyse = new Analyse();
-                analyse.setClones(new ArrayList<Clone>());
-                analyse.getClones().add(clone0);
-                analyse.getClones().add(clone1);
-                clone0.setAnalyseBean(analyse);
-                clone1.setAnalyseBean(analyse);
-                hash.put(clone0, analyse);
-                hash.put(clone1, analyse);
-            }
-
-            duplicationInfo = duplications.next();
-        }
     }
 
     private void analyseRepositories(Map<String, Sequence> sequencesMap, List<Repository> repositories) {

@@ -6,6 +6,7 @@ public class CloneSnippet implements Comparable<CloneSnippet> {
     public static final String ID_SEPARATOR = "-";
 
     public final String name;
+    public final String key;
 
     public final int beglin;
 
@@ -13,8 +14,9 @@ public class CloneSnippet implements Comparable<CloneSnippet> {
 
     public final String source;
 
-    public CloneSnippet(String name, int beglin, int endlin, String source) {
+    public CloneSnippet(String name, String key, int beglin, int endlin, String source) {
         this.name = name;
+        this.key = key;
         this.beglin = beglin;
         this.endlin = endlin;
         this.source = source;

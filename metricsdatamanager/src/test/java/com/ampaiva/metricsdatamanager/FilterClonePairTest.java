@@ -15,13 +15,17 @@ public class FilterClonePairTest {
     @Test
     public void testGetCloneGroups() {
         CloneGroup clone1 = new CloneGroup(
-                new CloneSnippet[] { new CloneSnippet("B", 1, 2, ""), new CloneSnippet("A", 1, 2, "") }, true);
+                new CloneSnippet[] { new CloneSnippet("B", "B", 1, 2, ""), new CloneSnippet("A", "A", 1, 2, "") },
+                true);
         CloneGroup clone2 = new CloneGroup(
-                new CloneSnippet[] { new CloneSnippet("A", 1, 2, ""), new CloneSnippet("B", 1, 2, "") }, true);
+                new CloneSnippet[] { new CloneSnippet("A", "A", 1, 2, ""), new CloneSnippet("B", "B", 1, 2, "") },
+                true);
         CloneGroup clone3 = new CloneGroup(
-                new CloneSnippet[] { new CloneSnippet("C", 1, 2, ""), new CloneSnippet("D", 1, 2, "") }, false);
+                new CloneSnippet[] { new CloneSnippet("C", "C", 1, 2, ""), new CloneSnippet("D", "D", 1, 2, "") },
+                false);
         CloneGroup clone4 = new CloneGroup(
-                new CloneSnippet[] { new CloneSnippet("C", 3, 4, ""), new CloneSnippet("D", 3, 4, "") }, true);
+                new CloneSnippet[] { new CloneSnippet("C", "C", 3, 4, ""), new CloneSnippet("D", "D", 3, 4, "") },
+                true);
         List<CloneGroup> clones = Arrays.asList(clone1, clone2, clone3, clone4);
         List<CloneGroup> result = FilterClonePair.getClonePairs(clones);
         assertNotNull(result);

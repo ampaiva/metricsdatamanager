@@ -62,15 +62,23 @@ public class FreeMarker {
         // This is usually the case for file output, but not for servlet output.
     }
 
-    public static String format(String source, int beglin, int endlin, boolean onlyDiff) {
+    public static String format(List<CloneSnippet> fileSnippets, String source, int beglin, int endlin,
+            boolean onlyDiff) {
         SourceHandler sourceHandler = new SourceHandler(source, beglin, 0, endlin, 0);
         String[] lines = sourceHandler.getLines();
         StringBuilder sb = new StringBuilder();
+        int fileSnippetsIndex = 0;
         for (int line = 0; line < lines.length; line++) {
             boolean lineBetween = sourceHandler.isLineBetween(beglin, endlin, line + 1);
             if (onlyDiff && !lineBetween) {
                 continue;
             }
+            CloneSnippet currentSnippet = fileSnippets.get(fileSnippetsIndex);
+            while (fileSnippetsIndex + 1 < fileSnippets.size() && currentSnippet.endlin < line + 1) {
+                currentSnippet = fileSnippets.get(++fileSnippetsIndex);
+            }
+            lineBetween = currentSnippet.endlin < line + 1 ? false
+                    : sourceHandler.isLineBetween(currentSnippet.beglin, currentSnippet.endlin, line + 1);
             sb.append("<font color=\"");
             sb.append(lineBetween ? "red" : "black");
             sb.append("\">");
@@ -133,9 +141,46 @@ public class FreeMarker {
 
     public static List<String> getFormattedSource(CloneSnippet[] snippets, boolean onlyDiff) {
         List<String> list = new ArrayList<>();
-        for (CloneSnippet snippet : snippets) {
-            list.add(format(snippet.source, snippet.beglin, snippet.endlin, onlyDiff));
+        String filePath = snippets[0].key;
+        String source = snippets[0].source;
+        int beglin = snippets[0].beglin;
+        int endlin = snippets[0].endlin;
+        List<CloneSnippet> fileSnippets = new ArrayList<>();
+        fileSnippets.add(snippets[0]);
+        for (int i = 1; i < snippets.length; i++) {
+            CloneSnippet snippet = snippets[i];
+            if (!snippet.key.equals(filePath)) {
+                list.add(format(fileSnippets, source, beglin, endlin, onlyDiff));
+
+                filePath = snippet.key;
+                source = snippet.source;
+                beglin = snippet.beglin;
+                fileSnippets.clear();
+            }
+            fileSnippets.add(snippet);
+            endlin = snippet.endlin;
         }
+        list.add(format(fileSnippets, source, beglin, endlin, onlyDiff));
+        return list;
+
+    }
+
+    public static List<CloneSnippet> getUniqueNames(CloneSnippet[] snippets) {
+        List<CloneSnippet> list = new ArrayList<>();
+        String filePath = snippets[0].key;
+        List<CloneSnippet> fileSnippets = new ArrayList<>();
+        fileSnippets.add(snippets[0]);
+        for (int i = 1; i < snippets.length; i++) {
+            CloneSnippet snippet = snippets[i];
+            if (!snippet.key.equals(filePath)) {
+                list.add(snippet);
+
+                filePath = snippet.key;
+                fileSnippets.clear();
+            }
+            fileSnippets.add(snippet);
+        }
+        list.add(fileSnippets.get(0));
         return list;
 
     }
@@ -158,7 +203,7 @@ public class FreeMarker {
         htmlToolFolder.mkdirs();
         for (CloneGroup clone : clones) {
             root.put("clone", FreeMarker.ToString(clone));
-            root.put("snippets", clone.snippets);
+            root.put("snippets", getUniqueNames(clone.snippets));
             root.put("formattedSnippet", getFormattedSource(clone.snippets, true));
             root.put("formattedSource", getFormattedSource(clone.snippets, false));
             String fileName = htmlToolFolder + File.separator + FreeMarker.ToString(clone) + ".html";

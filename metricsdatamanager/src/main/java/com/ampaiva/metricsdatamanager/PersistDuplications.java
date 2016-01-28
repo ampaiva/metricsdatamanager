@@ -17,11 +17,11 @@ import com.ampaiva.metricsdatamanager.controller.ConcernCallsManager;
 import com.ampaiva.metricsdatamanager.controller.IDataManager;
 import com.ampaiva.metricsdatamanager.model.Analyse;
 import com.ampaiva.metricsdatamanager.model.Call;
-import com.ampaiva.metricsdatamanager.model.Clone;
 import com.ampaiva.metricsdatamanager.model.Method;
 import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.model.Sequence;
 import com.ampaiva.metricsdatamanager.model.Unit;
+import com.ampaiva.metricsdatamanager.util.CloneInfo;
 import com.ampaiva.metricsdatamanager.util.MatchesData;
 import com.ampaiva.metricsdatamanager.util.SequencesInt;
 import com.github.javaparser.ParseException;
@@ -83,17 +83,8 @@ public class PersistDuplications extends ExtractClones {
             dataManager.open();
             Repository repository = dataManager.getSingleResult(Repository.class, "Repository.findById", repositoryId);
             List<Method> methods = getAllMethods(repository);
-            IProgressUpdate update4 = ProgressUpdate.start("Saving clones", matchesData.methodsMatched.size());
-            final Method method0 = methods.get(matchesData.methodIndex);
-            Map<Clone, Analyse> hash = new HashMap<>();
-            for (int i = 0; i < matchesData.methodsMatched.size(); i++) {
-                update4.beginIndex();
-                final Method method1 = methods.get(matchesData.methodsMatched.get(i));
-                List<List<Integer>> groupMatched = matchesData.callsMatched.get(i);
-                createAnalysis(hash, method0, method1, groupMatched);
-                update4.endIndex();
-            }
-            assignClones(repository, hash);
+            List<CloneInfo> cloneInfos = MatchesData.merge(matchesDataList);
+            saveClones(repository, methods, cloneInfos);
             dataManager.close();
         }
     }

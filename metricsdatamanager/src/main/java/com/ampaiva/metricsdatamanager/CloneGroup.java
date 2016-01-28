@@ -50,8 +50,8 @@ public class CloneGroup implements Comparable<CloneGroup> {
         List<CloneSnippet> clones = new ArrayList<>();
         for (int i = 0; i < clone.ocurrencies.size(); i++) {
             PmdOccurrence ocurrency_i = clone.ocurrencies.get(i);
-            clones.add(new CloneSnippet(ocurrency_i.file, ocurrency_i.line, ocurrency_i.line + clone.lines,
-                    ocurrency_i.source));
+            clones.add(new CloneSnippet(ocurrency_i.file, ocurrency_i.file, ocurrency_i.line,
+                    ocurrency_i.line + clone.lines, ocurrency_i.source));
         }
         return clones.toArray(new CloneSnippet[clones.size()]);
     }
@@ -74,7 +74,7 @@ public class CloneGroup implements Comparable<CloneGroup> {
         int beglin = call.getBeglin();
         int endlin = method.getCalls().get(call.getPosition() + snippet.getSize() - 1).getEndlin();
 
-        CloneSnippet cloneSnippet = new CloneSnippet(unit, beglin, endlin, method.getSource());
+        CloneSnippet cloneSnippet = new CloneSnippet(unit, method.getName(), beglin, endlin, method.getSource());
         return cloneSnippet;
     }
 
@@ -84,7 +84,7 @@ public class CloneGroup implements Comparable<CloneGroup> {
         int endlin = snippet.line + snippet.pmdClone.lines;
         String source = snippet.source;
 
-        CloneSnippet cloneSnippet = new CloneSnippet(unit, beglin, endlin, source);
+        CloneSnippet cloneSnippet = new CloneSnippet(unit, unit, beglin, endlin, source);
         return cloneSnippet;
     }
 
