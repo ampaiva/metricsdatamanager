@@ -167,20 +167,16 @@ public class FreeMarker {
 
     public static List<CloneSnippet> getUniqueNames(CloneSnippet[] snippets) {
         List<CloneSnippet> list = new ArrayList<>();
-        String filePath = snippets[0].key;
-        List<CloneSnippet> fileSnippets = new ArrayList<>();
-        fileSnippets.add(snippets[0]);
+        CloneSnippet current = snippets[0];
         for (int i = 1; i < snippets.length; i++) {
             CloneSnippet snippet = snippets[i];
-            if (!snippet.key.equals(filePath)) {
-                list.add(snippet);
+            if (!snippet.key.equals(current.key)) {
+                list.add(current);
 
-                filePath = snippet.key;
-                fileSnippets.clear();
+                current = snippet;
             }
-            fileSnippets.add(snippet);
         }
-        list.add(fileSnippets.get(0));
+        list.add(current);
         return list;
 
     }

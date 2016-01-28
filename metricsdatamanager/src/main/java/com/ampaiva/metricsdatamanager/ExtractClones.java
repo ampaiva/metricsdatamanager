@@ -95,27 +95,26 @@ public class ExtractClones {
             analyse.setClones(new ArrayList<Clone>());
             for (int i = 0; i < cloneInfo.methods.size(); i++) {
                 final Method method = methods.get(cloneInfo.methods.get(i));
-                for (List<Integer> calls : cloneInfo.calls) {
-                    Call begin = method.getCalls().get(calls.get(0));
-                    int size = 1;
-                    for (int j = 1; j < calls.size(); j++) {
-                        if (calls.get(j) == begin.getPosition() + size) {
-                            size++;
-                        } else {
-                            Clone clone = new Clone();
-                            clone.setBegin(begin);
-                            clone.setSize(size);
-                            analyse.getClones().add(clone);
+                final List<Integer> calls = cloneInfo.calls.get(i);
+                Call begin = method.getCalls().get(calls.get(0));
+                int size = 1;
+                for (int j = 1; j < calls.size(); j++) {
+                    if (calls.get(j) == begin.getPosition() + size) {
+                        size++;
+                    } else {
+                        Clone clone = new Clone();
+                        clone.setBegin(begin);
+                        clone.setSize(size);
+                        analyse.getClones().add(clone);
 
-                            begin = method.getCalls().get(calls.get(j));
-                            size = 1;
-                        }
+                        begin = method.getCalls().get(calls.get(j));
+                        size = 1;
                     }
-                    Clone clone = new Clone();
-                    clone.setBegin(begin);
-                    clone.setSize(size);
-                    analyse.getClones().add(clone);
                 }
+                Clone clone = new Clone();
+                clone.setBegin(begin);
+                clone.setSize(size);
+                analyse.getClones().add(clone);
             }
         }
     }
