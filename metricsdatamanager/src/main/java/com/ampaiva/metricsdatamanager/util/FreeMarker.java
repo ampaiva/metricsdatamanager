@@ -178,7 +178,6 @@ public class FreeMarker {
         }
         list.add(current);
         return list;
-
     }
 
     public static void saveClonesToHTML(String htmlFolderPath, Repository repository, String tool,

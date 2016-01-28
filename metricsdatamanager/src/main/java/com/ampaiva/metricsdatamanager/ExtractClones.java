@@ -90,7 +90,7 @@ public class ExtractClones {
         for (CloneInfo cloneInfo : cloneInfos) {
             update3.beginIndex(cloneInfo);
             Analyse analyse = getClone(methods, cloneInfo);
-            if (countSize(analyse) > 0 /* minSeq */) {
+            if (countSize(analyse) > minSeq) {
                 analyse.setRepositoryBean(repository);
                 repository.getAnalysis().add(analyse);
             }

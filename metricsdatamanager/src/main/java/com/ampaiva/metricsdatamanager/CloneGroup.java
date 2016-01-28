@@ -50,8 +50,8 @@ public class CloneGroup implements Comparable<CloneGroup> {
         List<CloneSnippet> clones = new ArrayList<>();
         for (int i = 0; i < clone.ocurrencies.size(); i++) {
             PmdOccurrence ocurrency_i = clone.ocurrencies.get(i);
-            clones.add(new CloneSnippet(ocurrency_i.file, ocurrency_i.file, clone.tokens, ocurrency_i.line,
-                    ocurrency_i.line + clone.lines, ocurrency_i.source));
+            clones.add(new CloneSnippet(ocurrency_i.file, String.valueOf(ocurrency_i.hashCode()), clone.tokens,
+                    ocurrency_i.line, ocurrency_i.line + clone.lines, ocurrency_i.source));
         }
         return clones.toArray(new CloneSnippet[clones.size()]);
     }

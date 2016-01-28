@@ -8,6 +8,7 @@ import java.util.List;
 
 import com.ampaiva.metricsdatamanager.model.Analyse;
 import com.ampaiva.metricsdatamanager.model.Clone;
+import com.ampaiva.metricsdatamanager.model.Method;
 import com.ampaiva.metricsdatamanager.model.Repository;
 import com.ampaiva.metricsdatamanager.tools.pmd.Pmd;
 import com.ampaiva.metricsdatamanager.tools.pmd.PmdClone;
@@ -71,6 +72,18 @@ public class CompareToolsNoDB {
         return getCloneGroups(pmdFound, pmdNotFound);
     }
 
+    private void removeAll(List<Clone> snippets, Method method) {
+        List<Clone> toBeRemoved = new ArrayList<>();
+        for (Clone clone : snippets) {
+            if (clone.getBegin().getMethodBean().equals(method)) {
+                toBeRemoved.add(clone);
+            }
+        }
+        for (Clone clone : toBeRemoved) {
+            snippets.remove(clone);
+        }
+    }
+
     private boolean hasMcSheepClone(List<PmdClone> pmdClones, Analyse mcSheepClone) {
         for (PmdClone pmdClone : pmdClones) {
             List<Clone> snippets = new ArrayList<>();
@@ -83,7 +96,7 @@ public class CompareToolsNoDB {
                     if (file1.equals(cloneSnippet.name) && //
                             pmdOcurrency.line <= cloneSnippet.endlin
                             && pmdOcurrency.line + pmdClone.lines - 1 >= cloneSnippet.beglin) {
-                        snippets.remove(snippet);
+                        removeAll(snippets, snippet.getBegin().getMethodBean());
                         if (snippets.isEmpty()) {
                             return true;
                         }
