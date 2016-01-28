@@ -205,15 +205,15 @@ public class MethodCallsManager {
         return concernClones;
     }
 
-    public ConcernClone getConcernClone(IMethodCalls concernCollectionA, IMethodCalls concernCollectionB,
+    public ConcernClone getMCClone(IMethodCalls methodCallsA, IMethodCalls methodCallsB,
             int methodAIndex, int methodBIndex, int[] indexes) {
         ConcernClone clone = new ConcernClone();
-        clone.methods = Arrays.asList(concernCollectionA.getMethodNames().get(methodAIndex),
-                concernCollectionB.getMethodNames().get(methodBIndex));
-        clone.sources = Arrays.asList(concernCollectionA.getMethodSources().get(methodAIndex),
-                concernCollectionB.getMethodSources().get(methodBIndex));
-        clone.sequences = Arrays.asList(concernCollectionA.getSequences().get(methodAIndex),
-                concernCollectionB.getSequences().get(methodBIndex));
+        clone.methods = Arrays.asList(methodCallsA.getMethodNames().get(methodAIndex),
+                methodCallsB.getMethodNames().get(methodBIndex));
+        clone.sources = Arrays.asList(methodCallsA.getMethodSources().get(methodAIndex),
+                methodCallsB.getMethodSources().get(methodBIndex));
+        clone.sequences = Arrays.asList(methodCallsA.getSequences().get(methodAIndex),
+                methodCallsB.getSequences().get(methodBIndex));
         clone.duplications = null; //indexes;
         return clone;
     }

@@ -78,8 +78,8 @@ public class ExtractClones {
 
     private void processAnalysis(Repository repository, Map<String, Sequence> sequencesMap) {
         SequencesInt sequencesInt = new SequencesInt(sequencesMap, repository.getUnits());
-        MethodCallsManager concernCallsManager = new MethodCallsManager(sequencesInt);
-        List<MatchesData> matchesDataList = concernCallsManager.getSequenceMatches();
+        MethodCallsManager methodCallsManager = new MethodCallsManager(sequencesInt);
+        List<MatchesData> matchesDataList = methodCallsManager.getSequenceMatches();
         List<Method> methods = getAllMethods(repository);
         List<CloneInfo> cloneInfos = MatchesData.merge(matchesDataList);
         saveClones(repository, methods, cloneInfos);
@@ -89,34 +89,41 @@ public class ExtractClones {
         IProgressUpdate update3 = ProgressUpdate.start("Saving matches", cloneInfos.size());
         for (CloneInfo cloneInfo : cloneInfos) {
             update3.beginIndex(cloneInfo);
-            Analyse analyse = new Analyse();
-            analyse.setRepositoryBean(repository);
-            repository.getAnalysis().add(analyse);
-            analyse.setClones(new ArrayList<Clone>());
-            for (int i = 0; i < cloneInfo.methods.size(); i++) {
-                final Method method = methods.get(cloneInfo.methods.get(i));
-                final List<Integer> calls = cloneInfo.calls.get(i);
-                Call begin = method.getCalls().get(calls.get(0));
-                int size = 1;
-                for (int j = 1; j < calls.size(); j++) {
-                    if (calls.get(j) == begin.getPosition() + size) {
-                        size++;
-                    } else {
-                        Clone clone = new Clone();
-                        clone.setBegin(begin);
-                        clone.setSize(size);
-                        analyse.getClones().add(clone);
-
-                        begin = method.getCalls().get(calls.get(j));
-                        size = 1;
-                    }
-                }
-                Clone clone = new Clone();
-                clone.setBegin(begin);
-                clone.setSize(size);
-                analyse.getClones().add(clone);
+            Analyse analyse = getClone(methods, cloneInfo);
+            if (countSize(analyse) > 0 /* minSeq */) {
+                analyse.setRepositoryBean(repository);
+                repository.getAnalysis().add(analyse);
             }
         }
+    }
+
+    private Analyse getClone(List<Method> methods, CloneInfo cloneInfo) {
+        Analyse analyse = new Analyse();
+        analyse.setClones(new ArrayList<Clone>());
+        for (int i = 0; i < cloneInfo.methods.size(); i++) {
+            final Method method = methods.get(cloneInfo.methods.get(i));
+            final List<Integer> calls = cloneInfo.calls.get(i);
+            Call begin = method.getCalls().get(calls.get(0));
+            int size = 1;
+            for (int j = 1; j < calls.size(); j++) {
+                if (calls.get(j) == begin.getPosition() + size) {
+                    size++;
+                } else {
+                    Clone clone = new Clone();
+                    clone.setBegin(begin);
+                    clone.setSize(size);
+                    analyse.getClones().add(clone);
+
+                    begin = method.getCalls().get(calls.get(j));
+                    size = 1;
+                }
+            }
+            Clone clone = new Clone();
+            clone.setBegin(begin);
+            clone.setSize(size);
+            analyse.getClones().add(clone);
+        }
+        return analyse;
     }
 
     protected int countSize(Analyse analyse) {

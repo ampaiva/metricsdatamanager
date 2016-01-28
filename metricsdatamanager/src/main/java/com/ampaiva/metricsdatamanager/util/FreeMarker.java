@@ -187,8 +187,8 @@ public class FreeMarker {
         root.put("repository", repository);
         root.put("tool", tool);
         List<String> clonesList = new ArrayList<>();
-        for (CloneGroup clone : clones) {
-            clonesList.add(FreeMarker.ToString(clone));
+        for (CloneGroup cloneGroup : clones) {
+            clonesList.add(FreeMarker.ToString(cloneGroup));
         }
         root.put("clones", clonesList);
         File htmlFolder = new File(htmlFolderPath + File.separator + new File(repository.getLocation()).getName());

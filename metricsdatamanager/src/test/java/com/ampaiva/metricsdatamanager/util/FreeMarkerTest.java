@@ -38,9 +38,9 @@ public class FreeMarkerTest {
         String source = Helper.convertFile2String(new File("target/test-classes/snippet/SalesDetailReportView.java"));
         String source2 = "public void x(){\na();\n\nb();\nc();\nd();\n}";
         CloneGroup cloneGroup = new CloneGroup(new CloneSnippet[] { //
-                new CloneSnippet("file1", "file1", 2, 4, source2), //
-                new CloneSnippet("file1", "file1", 6, 6, source2), //
-                new CloneSnippet(generateLongName(), generateLongName(), 46, 66, source) }, true);
+                new CloneSnippet("file1", "file1", 2, 2, 4, source2), //
+                new CloneSnippet("file1", "file1", 1, 6, 6, source2), //
+                new CloneSnippet(generateLongName(), generateLongName(), 20, 46, 66, source) }, true);
         List<CloneGroup> clones = Arrays.asList(cloneGroup, cloneGroup, cloneGroup);
         FreeMarker.saveClonesToHTML(htmlFolderPath, repositoryA, "McSheep", clones);
         FreeMarker.saveClonesToHTML(htmlFolderPath, repositoryA, "PMD", clones);
@@ -58,10 +58,10 @@ public class FreeMarkerTest {
         String htmlFolderPath = "/temp/html";
         String source = "public void x(){\na();\n\nb();\nc();\nd();\n}";
         CloneGroup cloneGroup = new CloneGroup(new CloneSnippet[] { //
-                new CloneSnippet("file1", "file1", 2, 4, source), //
-                new CloneSnippet("file1", "file1", 6, 6, source), //
-                new CloneSnippet("file2", "file2", 2, 4, source), //
-                new CloneSnippet("file2", "file2", 6, 6, source) //
+                new CloneSnippet("file1", "file1", 2, 2, 4, source), //
+                new CloneSnippet("file1", "file1", 1, 6, 6, source), //
+                new CloneSnippet("file2", "file2", 2, 2, 4, source), //
+                new CloneSnippet("file2", "file2", 1, 6, 6, source) //
         }, true);
         List<CloneGroup> clones = Arrays.asList(cloneGroup, cloneGroup, cloneGroup);
         FreeMarker.saveClonesToHTML(htmlFolderPath, repositoryB, "McSheep", clones);
@@ -75,10 +75,10 @@ public class FreeMarkerTest {
     public void testgetUniqueNames() throws IOException, TemplateException {
         String source = "public void x(){\na();\n\nb();\nc();\nd();\n}";
         CloneSnippet[] snippets = new CloneSnippet[] { //
-                new CloneSnippet("file1", "file1", 2, 4, source), //
-                new CloneSnippet("file1", "file1", 6, 6, source), //
-                new CloneSnippet("file2", "file2", 2, 4, source), //
-                new CloneSnippet("file2", "file2", 6, 6, source) //
+                new CloneSnippet("file1", "file1", 2, 2, 4, source), //
+                new CloneSnippet("file1", "file1", 1, 6, 6, source), //
+                new CloneSnippet("file2", "file2", 2, 2, 4, source), //
+                new CloneSnippet("file2", "file2", 1, 6, 6, source) //
         };
         List<CloneSnippet> names = FreeMarker.getUniqueNames(snippets);
         assertNotNull(names);
@@ -97,8 +97,8 @@ public class FreeMarkerTest {
         String source1 = "public boolean x(){\n return Constants.isPersistent();\n}";
         String source2 = "public void y(){\nif(Constants.isPersistent())\nb();\n}";
         CloneGroup cloneGroup = new CloneGroup(new CloneSnippet[] { //
-                new CloneSnippet("file1", "file1", 2, 2, source1), //
-                new CloneSnippet("file2", "file2", 2, 2, source2) //
+                new CloneSnippet("file1", "file1", 1, 2, 2, source1), //
+                new CloneSnippet("file2", "file2", 1, 2, 2, source2) //
         }, true);
         List<CloneGroup> clones = Arrays.asList(cloneGroup);
         FreeMarker.saveClonesToHTML(htmlFolderPath, repositoryB, "McSheep", clones);

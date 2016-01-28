@@ -50,7 +50,7 @@ public class CloneGroup implements Comparable<CloneGroup> {
         List<CloneSnippet> clones = new ArrayList<>();
         for (int i = 0; i < clone.ocurrencies.size(); i++) {
             PmdOccurrence ocurrency_i = clone.ocurrencies.get(i);
-            clones.add(new CloneSnippet(ocurrency_i.file, ocurrency_i.file, ocurrency_i.line,
+            clones.add(new CloneSnippet(ocurrency_i.file, ocurrency_i.file, clone.tokens, ocurrency_i.line,
                     ocurrency_i.line + clone.lines, ocurrency_i.source));
         }
         return clones.toArray(new CloneSnippet[clones.size()]);
@@ -74,7 +74,8 @@ public class CloneGroup implements Comparable<CloneGroup> {
         int beglin = call.getBeglin();
         int endlin = method.getCalls().get(call.getPosition() + snippet.getSize() - 1).getEndlin();
 
-        CloneSnippet cloneSnippet = new CloneSnippet(unit, method.getName(), beglin, endlin, method.getSource());
+        CloneSnippet cloneSnippet = new CloneSnippet(unit, String.valueOf(method.hashCode()), snippet.getSize(), beglin,
+                endlin, method.getSource());
         return cloneSnippet;
     }
 
@@ -84,7 +85,7 @@ public class CloneGroup implements Comparable<CloneGroup> {
         int endlin = snippet.line + snippet.pmdClone.lines;
         String source = snippet.source;
 
-        CloneSnippet cloneSnippet = new CloneSnippet(unit, unit, beglin, endlin, source);
+        CloneSnippet cloneSnippet = new CloneSnippet(unit, unit, snippet.tokens, beglin, endlin, source);
         return cloneSnippet;
     }
 
@@ -121,6 +122,8 @@ public class CloneGroup implements Comparable<CloneGroup> {
     public String toId() {
         StringBuilder sb = new StringBuilder();
         sb.append(found ? "+" : "-");
+        sb.append("[" + filesCount() + "]");
+        sb.append("[" + sizeCount() + "]");
         for (CloneSnippet cloneSnippet : snippets) {
             if (sb.length() > 1) {
                 sb.append(ID_SEPARATOR);
@@ -128,6 +131,32 @@ public class CloneGroup implements Comparable<CloneGroup> {
             sb.append(cloneSnippet.toId());
         }
         return sb.toString();
+    }
+
+    private int filesCount() {
+        CloneSnippet cloneBase = snippets[0];
+        int total = 1;
+        for (int i = 1; i < snippets.length; i++) {
+            if (!cloneBase.key.equals(snippets[i].key)) {
+                total++;
+                cloneBase = snippets[i];
+            }
+        }
+        return total;
+    }
+
+    private int sizeCount() {
+        CloneSnippet cloneBase = snippets[0];
+        int total = cloneBase.size;
+        for (int i = 1; i < snippets.length; i++) {
+            if (!cloneBase.key.equals(snippets[i].key)) {
+                break;
+            }
+
+            total += snippets[i].size;
+            cloneBase = snippets[i];
+        }
+        return total;
     }
 
     @Override

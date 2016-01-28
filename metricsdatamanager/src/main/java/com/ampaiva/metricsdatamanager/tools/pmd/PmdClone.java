@@ -9,6 +9,6 @@ public class PmdClone {
 
     @Override
     public String toString() {
-        return "PmdClone [lines=" + lines + ", tokens=" + tokens + ", ocurrencies=" + ocurrencies + "]";
+        return "PmdClone [lines=" + lines + ", tokens=" + tokens + "]";
     }
 }

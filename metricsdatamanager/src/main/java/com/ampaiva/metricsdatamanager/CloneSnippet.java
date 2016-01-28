@@ -7,16 +7,15 @@ public class CloneSnippet implements Comparable<CloneSnippet> {
 
     public final String name;
     public final String key;
-
     public final int beglin;
-
     public final int endlin;
-
+    public final int size;
     public final String source;
 
-    public CloneSnippet(String name, String key, int beglin, int endlin, String source) {
+    public CloneSnippet(String name, String key, int size, int beglin, int endlin, String source) {
         this.name = name;
         this.key = key;
+        this.size = size;
         this.beglin = beglin;
         this.endlin = endlin;
         this.source = source;
@@ -47,11 +46,13 @@ public class CloneSnippet implements Comparable<CloneSnippet> {
     }
 
     public String toId() {
-        return getFileName(name) + ID_SEPARATOR + beglin + ID_SEPARATOR + endlin;
+        return getFileName(name) + "[" + size + "]" + ID_SEPARATOR + beglin + ID_SEPARATOR + endlin;
     }
 
     @Override
     public String toString() {
-        return "CloneSide [name=" + name + ", beglin=" + beglin + ", endlin=" + endlin + "]";
+        return "CloneSnippet [name=" + name + ", size=" + size + ", beglin=" + beglin + ", endlin=" + endlin + ", key="
+                + key + "]";
     }
+
 }
