@@ -30,16 +30,16 @@ import com.ampaiva.metricsdatamanager.util.SequencesInt;
 import com.ampaiva.metricsdatamanager.util.SequencesMap;
 import com.github.javaparser.ParseException;
 
-public class ConcernCallsManager {
+public class MethodCallsManager {
     public static final String SEPARATOR = "#";
     private SequencesMap sequencesMap;
     private final SequencesInt sequencesInt;
 
-    public ConcernCallsManager(SequencesInt sequencesInt) {
+    public MethodCallsManager(SequencesInt sequencesInt) {
         this.sequencesInt = sequencesInt;
     }
 
-    public ConcernCallsManager() {
+    public MethodCallsManager() {
         this(null);
     }
 

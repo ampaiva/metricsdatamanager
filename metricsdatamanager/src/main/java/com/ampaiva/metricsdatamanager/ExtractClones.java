@@ -15,7 +15,7 @@ import com.ampaiva.hlo.util.view.IProgressReport;
 import com.ampaiva.hlo.util.view.IProgressUpdate;
 import com.ampaiva.hlo.util.view.ProgressReport;
 import com.ampaiva.hlo.util.view.ProgressUpdate;
-import com.ampaiva.metricsdatamanager.controller.ConcernCallsManager;
+import com.ampaiva.metricsdatamanager.controller.MethodCallsManager;
 import com.ampaiva.metricsdatamanager.model.Analyse;
 import com.ampaiva.metricsdatamanager.model.Call;
 import com.ampaiva.metricsdatamanager.model.Clone;
@@ -53,7 +53,7 @@ public class ExtractClones {
     private Repository processFile(File file, Map<String, Sequence> sequencesMap)
             throws FileNotFoundException, IOException, ParseException {
         String location = file.isDirectory() ? file.getAbsolutePath() : file.getName();
-        ConcernCallsManager concernCallsManager = new ConcernCallsManager();
+        MethodCallsManager concernCallsManager = new MethodCallsManager();
         List<ICodeSource> codeSources = new ArrayList<ICodeSource>();
         if (file.isDirectory()) {
             FolderUtil folderUtil = new FolderUtil(location);
@@ -78,7 +78,7 @@ public class ExtractClones {
 
     private void processAnalysis(Repository repository, Map<String, Sequence> sequencesMap) {
         SequencesInt sequencesInt = new SequencesInt(sequencesMap, repository.getUnits());
-        ConcernCallsManager concernCallsManager = new ConcernCallsManager(sequencesInt);
+        MethodCallsManager concernCallsManager = new MethodCallsManager(sequencesInt);
         List<MatchesData> matchesDataList = concernCallsManager.getSequenceMatches();
         List<Method> methods = getAllMethods(repository);
         List<CloneInfo> cloneInfos = MatchesData.merge(matchesDataList);

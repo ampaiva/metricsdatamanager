@@ -13,7 +13,7 @@ import com.ampaiva.hlo.util.view.IProgressReport;
 import com.ampaiva.hlo.util.view.IProgressUpdate;
 import com.ampaiva.hlo.util.view.ProgressReport;
 import com.ampaiva.hlo.util.view.ProgressUpdate;
-import com.ampaiva.metricsdatamanager.controller.ConcernCallsManager;
+import com.ampaiva.metricsdatamanager.controller.MethodCallsManager;
 import com.ampaiva.metricsdatamanager.controller.IDataManager;
 import com.ampaiva.metricsdatamanager.model.Analyse;
 import com.ampaiva.metricsdatamanager.model.Call;
@@ -74,7 +74,7 @@ public class PersistDuplications extends ExtractClones {
         Repository repository2 = dataManager.find(Repository.class, repositoryId);
         //        final List<Unit> units2 = dataManager.getResultList(Unit.class, "Unit.findByRepository", repository2);
         SequencesInt sequencesInt = new SequencesInt(sequencesMap, repository2.getUnits());
-        ConcernCallsManager concernCallsManager = new ConcernCallsManager(sequencesInt);
+        MethodCallsManager concernCallsManager = new MethodCallsManager(sequencesInt);
         List<MatchesData> matchesDataList = getSequenceMatches(concernCallsManager);
         dataManager.close();
         IProgressUpdate update3 = ProgressUpdate.start("Saving matches", matchesDataList.size());
@@ -89,7 +89,7 @@ public class PersistDuplications extends ExtractClones {
         }
     }
 
-    private List<MatchesData> getSequenceMatches(ConcernCallsManager concernCallsManager) {
+    private List<MatchesData> getSequenceMatches(MethodCallsManager concernCallsManager) {
         List<MatchesData> sequenceMatches = concernCallsManager.getSequenceMatches();
         return sequenceMatches;
     }
