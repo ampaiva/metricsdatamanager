@@ -13,8 +13,8 @@ import com.ampaiva.hlo.util.view.IProgressReport;
 import com.ampaiva.hlo.util.view.IProgressUpdate;
 import com.ampaiva.hlo.util.view.ProgressReport;
 import com.ampaiva.hlo.util.view.ProgressUpdate;
-import com.ampaiva.metricsdatamanager.controller.MethodCallsManager;
 import com.ampaiva.metricsdatamanager.controller.IDataManager;
+import com.ampaiva.metricsdatamanager.controller.MethodCallsManager;
 import com.ampaiva.metricsdatamanager.model.Analyse;
 import com.ampaiva.metricsdatamanager.model.Call;
 import com.ampaiva.metricsdatamanager.model.Method;
@@ -30,8 +30,8 @@ public class PersistDuplications extends ExtractClones {
 
     final IDataManager dataManager;
 
-    public PersistDuplications(IDataManager dataManager, int minSeq) {
-        super(minSeq);
+    public PersistDuplications(IDataManager dataManager, int totSeq, int minSeq) {
+        super(minSeq, totSeq);
         this.dataManager = dataManager;
     }
 

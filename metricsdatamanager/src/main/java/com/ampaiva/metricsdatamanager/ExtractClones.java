@@ -33,9 +33,11 @@ import com.github.javaparser.ParseException;
 public class ExtractClones {
 
     final int minSeq;
+    final int totSeq;
 
-    public ExtractClones(int minSeq) {
+    public ExtractClones(int minSeq, int totSeq) {
         this.minSeq = minSeq;
+        this.totSeq = totSeq;
     }
 
     protected List<Repository> createRepositories(List<File> files, Map<String, Sequence> sequencesMap)
@@ -90,11 +92,26 @@ public class ExtractClones {
         for (CloneInfo cloneInfo : cloneInfos) {
             update3.beginIndex(cloneInfo);
             Analyse analyse = getClone(methods, cloneInfo);
-            if (countSize(analyse) > minSeq) {
+            if (includeClone(analyse)) {
                 analyse.setRepositoryBean(repository);
                 repository.getAnalysis().add(analyse);
             }
         }
+    }
+
+    private boolean includeClone(Analyse analyse) {
+        return countSize(analyse) >= totSeq && maximumSize(analyse) >= minSeq;
+    }
+
+    private int maximumSize(Analyse analyse) {
+        Clone cloneBase = analyse.getClones().get(0);
+        int total = 0;
+        for (Clone clone : analyse.getClones()) {
+            if (clone.getBegin().getMethodBean().equals(cloneBase.getBegin().getMethodBean())) {
+                total = Math.max(total, clone.getSize());
+            }
+        }
+        return total;
     }
 
     private Analyse getClone(List<Method> methods, CloneInfo cloneInfo) {

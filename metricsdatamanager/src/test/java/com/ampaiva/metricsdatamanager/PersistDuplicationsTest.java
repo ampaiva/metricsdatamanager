@@ -18,7 +18,7 @@ public class PersistDuplicationsTest {
     @Test
     public void testRun() throws IOException, ParseException {
         DataManager dataManager = new DataManager(PU_NAME);
-        PersistDuplications persistDuplications = new PersistDuplications(dataManager, 3);
+        PersistDuplications persistDuplications = new PersistDuplications(dataManager, 3, 3);
         persistDuplications.run("src/test/resources/com/ampaiva/metricsdatamanager/util/ZipTest5.zip", false, false);
         dataManager.open();
         Collection<Analyse> analysis = dataManager.findAll(Analyse.class);

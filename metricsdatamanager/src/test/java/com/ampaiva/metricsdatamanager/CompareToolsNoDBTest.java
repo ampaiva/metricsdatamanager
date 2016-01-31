@@ -32,7 +32,7 @@ public class CompareToolsNoDBTest {
 
     private void testCompareMcSheepxPMD02(String system, String folder, int expectedPMDFound, int expectedPMDNotFound,
             int expectedMcSheepFound, int expectedMcSheepNotFound) throws IOException, ParseException {
-        ExtractClones extractClones = new ExtractClones(10);
+        ExtractClones extractClones = new ExtractClones(10, 10);
         List<Repository> repositories = extractClones.run("target/test-classes/" + system, false);
         File csvFile = new File("target/test-classes/pmd/" + system + ".csv");
         String pmdResult = Helper.readFile(csvFile);

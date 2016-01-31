@@ -100,7 +100,7 @@ public class Main {
         String rootFolder = config.get("analysis.folder");
         if (Boolean.parseBoolean(config.get("analysis.persist"))) {
             PersistDuplications persistDuplications = new PersistDuplications(dataManager,
-                    Integer.parseInt(config.get("analysis.minseq")));
+                    Integer.parseInt(config.get("analysis.minseq")), Integer.parseInt(config.get("analysis.totseq")));
             persistDuplications.run(rootFolder, Boolean.parseBoolean(config.get("analysis.searchzips")),
                     Boolean.parseBoolean(config.get("analysis.deleteall")));
         } else {
@@ -128,7 +128,8 @@ public class Main {
                     }
                     return;
                 }
-                ExtractClones extractClones = new ExtractClones(Integer.parseInt(config.get("analysis.minseq")));
+                ExtractClones extractClones = new ExtractClones(Integer.parseInt(config.get("analysis.minseq")),
+                        Integer.parseInt(config.get("analysis.totseq")));
                 List<Repository> repositories = extractClones.run(projectFile.getAbsolutePath(),
                         Boolean.parseBoolean(config.get("analysis.searchzips")));
                 if (LOG.isInfoEnabled()) {
