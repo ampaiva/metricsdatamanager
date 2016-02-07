@@ -98,13 +98,17 @@ public class Main {
         final IDataManager dataManager = new ConfigDataManager(config);
 
         String rootFolder = config.get("analysis.folder");
+        int minSeq = Integer.parseInt(config.get("analysis.minseq"));
+        int totSeq = Integer.parseInt(config.get("analysis.totseq"));
+        String appendTotMin = File.separator + totSeq + "-" + minSeq;
+        String resultsFolder = config.get("analysis.results") + appendTotMin;
+        String pmdResultsFolder = config.get("pmd.results") + appendTotMin;
+        String htmlFolderPath = config.get("html.folderpath") + appendTotMin;
         if (Boolean.parseBoolean(config.get("analysis.persist"))) {
-            PersistDuplications persistDuplications = new PersistDuplications(dataManager,
-                    Integer.parseInt(config.get("analysis.minseq")), Integer.parseInt(config.get("analysis.totseq")));
+            PersistDuplications persistDuplications = new PersistDuplications(dataManager, minSeq, totSeq);
             persistDuplications.run(rootFolder, Boolean.parseBoolean(config.get("analysis.searchzips")),
                     Boolean.parseBoolean(config.get("analysis.deleteall")));
         } else {
-            String htmlFolderPath = config.get("html.folderpath");
             File file = new File(rootFolder);
             FreeMarker.configure("target/classes/ftl");
             for (File projectFile : file.listFiles()) {
@@ -114,7 +118,7 @@ public class Main {
                 if (LOG.isInfoEnabled()) {
                     LOG.info("Project: " + projectFile);
                 }
-                String pmdCSVFile = config.get("pmd.results") + File.separator + projectFile.getName() + ".csv";
+                String pmdCSVFile = pmdResultsFolder + File.separator + projectFile.getName() + ".csv";
                 File csvFile = new File(pmdCSVFile);
                 if (csvFile.exists()) {
                     csvFile.delete();
@@ -128,8 +132,7 @@ public class Main {
                     }
                     return;
                 }
-                ExtractClones extractClones = new ExtractClones(Integer.parseInt(config.get("analysis.minseq")),
-                        Integer.parseInt(config.get("analysis.totseq")));
+                ExtractClones extractClones = new ExtractClones(minSeq, totSeq);
                 List<Repository> repositories = extractClones.run(projectFile.getAbsolutePath(),
                         Boolean.parseBoolean(config.get("analysis.searchzips")));
                 if (LOG.isInfoEnabled()) {
@@ -138,10 +141,9 @@ public class Main {
                         CompareToolsNoDB compareTools = new CompareToolsNoDB();
                         String pmdResult = Helper.readFile(csvFile);
                         List<CloneGroup> clonesPMD = compareTools.comparePMDxMcSheep(repository, pmdResult);
-                        compareTools.saveClones(config.get("analysis.results"), "pmd-" + csvFile.getName(), clonesPMD);
+                        compareTools.saveClones(resultsFolder, "pmd-" + csvFile.getName(), clonesPMD);
                         List<CloneGroup> clonesMcSheep = compareTools.compareMcSheepxPMD(repository, pmdResult);
-                        compareTools.saveClones(config.get("analysis.results"), "mcsheep-" + csvFile.getName(),
-                                clonesMcSheep);
+                        compareTools.saveClones(resultsFolder, "mcsheep-" + csvFile.getName(), clonesMcSheep);
                         FreeMarker.saveClonesToHTML(htmlFolderPath, repository, "McSheep", clonesMcSheep);
                         FreeMarker.saveClonesToHTML(htmlFolderPath, repository, "PMD", clonesPMD);
                     }
