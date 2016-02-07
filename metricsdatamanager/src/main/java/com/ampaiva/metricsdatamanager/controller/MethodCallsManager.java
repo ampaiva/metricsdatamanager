@@ -150,9 +150,9 @@ public class MethodCallsManager {
         List<String> seq = methodCall.getSequences().get(i);
         for (int order = 0; order < seq.size(); order++) {
             String sequenceName = seq.get(order);
-            if (sequenceName.length() > 255) {
-                continue;
-            }
+            //            if (sequenceName.length() > 255) {
+            //                continue;
+            //            }
             Call call = new Call();
             call.setPosition(order);
             ConcernMetricNode concernMetricNode = nodes.get(callPosition + order);
@@ -205,8 +205,8 @@ public class MethodCallsManager {
         return concernClones;
     }
 
-    public ConcernClone getMCClone(IMethodCalls methodCallsA, IMethodCalls methodCallsB,
-            int methodAIndex, int methodBIndex, int[] indexes) {
+    public ConcernClone getMCClone(IMethodCalls methodCallsA, IMethodCalls methodCallsB, int methodAIndex,
+            int methodBIndex, int[] indexes) {
         ConcernClone clone = new ConcernClone();
         clone.methods = Arrays.asList(methodCallsA.getMethodNames().get(methodAIndex),
                 methodCallsB.getMethodNames().get(methodBIndex));

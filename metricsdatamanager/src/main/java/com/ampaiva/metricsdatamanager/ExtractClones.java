@@ -105,13 +105,18 @@ public class ExtractClones {
 
     private int maximumSize(Analyse analyse) {
         Clone cloneBase = analyse.getClones().get(0);
-        int total = 0;
+        int total = 0, min = Integer.MAX_VALUE;
         for (Clone clone : analyse.getClones()) {
             if (clone.getBegin().getMethodBean().equals(cloneBase.getBegin().getMethodBean())) {
                 total = Math.max(total, clone.getSize());
+            } else {
+                min = Math.min(min, total);
+                cloneBase = clone;
+                total = cloneBase.getSize();
             }
         }
-        return total;
+        min = Math.min(min, total);
+        return min;
     }
 
     private Analyse getClone(List<Method> methods, CloneInfo cloneInfo) {
