@@ -19,6 +19,8 @@ import com.ampaiva.metricsdatamanager.model.Repository;
 import freemarker.template.TemplateException;
 
 public class FreeMarkerTest {
+    private static final String htmlFolderPath = "/temp/html";
+    private static final String htmlClonesFolderPath = htmlFolderPath + "/26-13";
 
     private String generateLongName() {
         StringBuilder sb = new StringBuilder();
@@ -34,7 +36,6 @@ public class FreeMarkerTest {
         Repository repositoryA = new Repository();
         repositoryA.setLocation("\\B\\A");
         FreeMarker.configure("target/classes/ftl");
-        String htmlFolderPath = "/temp/html";
         String source = Helper.convertFile2String(new File("target/test-classes/snippet/SalesDetailReportView.java"));
         String source2 = "public void x(){\na();\n\nb();\nc();\nd();\n}";
         CloneGroup cloneGroup = new CloneGroup(new CloneSnippet[] { //
@@ -42,9 +43,8 @@ public class FreeMarkerTest {
                 new CloneSnippet("file1", "file1", 1, 6, 6, source2), //
                 new CloneSnippet(generateLongName(), generateLongName(), 20, 46, 66, source) }, true);
         List<CloneGroup> clones = Arrays.asList(cloneGroup, cloneGroup, cloneGroup);
-        FreeMarker.saveClonesToHTML(htmlFolderPath, repositoryA, "McSheep", clones);
-        FreeMarker.saveClonesToHTML(htmlFolderPath, repositoryA, "PMD", clones);
-        FreeMarker.saveIndex(htmlFolderPath);
+        FreeMarker.saveClonesToHTML(htmlClonesFolderPath, repositoryA, "McSheep", clones);
+        FreeMarker.saveClonesToHTML(htmlClonesFolderPath, repositoryA, "PMD", clones);
 
         BasicConfigurator.resetConfiguration();
     }
@@ -55,7 +55,6 @@ public class FreeMarkerTest {
         Repository repositoryB = new Repository();
         repositoryB.setLocation("\\B\\B");
         FreeMarker.configure("target/classes/ftl");
-        String htmlFolderPath = "/temp/html";
         String source = "public void x(){\na();\n\nb();\nc();\nd();\n}";
         CloneGroup cloneGroup = new CloneGroup(new CloneSnippet[] { //
                 new CloneSnippet("file1", "file1", 2, 2, 4, source), //
@@ -64,9 +63,8 @@ public class FreeMarkerTest {
                 new CloneSnippet("file2", "file2", 1, 6, 6, source) //
         }, true);
         List<CloneGroup> clones = Arrays.asList(cloneGroup, cloneGroup, cloneGroup);
-        FreeMarker.saveClonesToHTML(htmlFolderPath, repositoryB, "McSheep", clones);
-        FreeMarker.saveClonesToHTML(htmlFolderPath, repositoryB, "PMD", clones);
-        FreeMarker.saveIndex(htmlFolderPath);
+        FreeMarker.saveClonesToHTML(htmlClonesFolderPath, repositoryB, "McSheep", clones);
+        FreeMarker.saveClonesToHTML(htmlClonesFolderPath, repositoryB, "PMD", clones);
 
         BasicConfigurator.resetConfiguration();
     }
@@ -93,7 +91,6 @@ public class FreeMarkerTest {
         Repository repositoryB = new Repository();
         repositoryB.setLocation("\\B\\C");
         FreeMarker.configure("target/classes/ftl");
-        String htmlFolderPath = "/temp/html";
         String source1 = "public boolean x(){\n return Constants.isPersistent();\n}";
         String source2 = "public void y(){\nif(Constants.isPersistent())\nb();\n}";
         CloneGroup cloneGroup = new CloneGroup(new CloneSnippet[] { //
@@ -101,8 +98,8 @@ public class FreeMarkerTest {
                 new CloneSnippet("file2", "file2", 1, 2, 2, source2) //
         }, true);
         List<CloneGroup> clones = Arrays.asList(cloneGroup);
-        FreeMarker.saveClonesToHTML(htmlFolderPath, repositoryB, "McSheep", clones);
-        FreeMarker.saveClonesToHTML(htmlFolderPath, repositoryB, "PMD", clones);
+        FreeMarker.saveClonesToHTML(htmlClonesFolderPath, repositoryB, "McSheep", clones);
+        FreeMarker.saveClonesToHTML(htmlClonesFolderPath, repositoryB, "PMD", clones);
         FreeMarker.saveIndex(htmlFolderPath);
 
         BasicConfigurator.resetConfiguration();

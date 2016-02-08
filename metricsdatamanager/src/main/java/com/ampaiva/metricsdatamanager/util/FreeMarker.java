@@ -106,11 +106,62 @@ public class FreeMarker {
         return name;
     }
 
+    private static File[] getFoldersMatching(String folderPath, final String regEx) {
+        FileFilter filter = new FileFilter() {
+
+            @Override
+            public boolean accept(File pathname) {
+                if (!pathname.isDirectory()) {
+                    return false;
+                }
+                return pathname.getName().matches(regEx);
+            }
+        };
+        return new File(folderPath).listFiles(filter);
+    }
+
+    private static File[] getFilesMatching(String folderPath, final String regEx) {
+        FileFilter filter = new FileFilter() {
+
+            @Override
+            public boolean accept(File pathname) {
+                if (!pathname.isFile()) {
+                    return false;
+                }
+                return pathname.getName().matches(regEx);
+            }
+        };
+        return new File(folderPath).listFiles(filter);
+    }
+
+    private static File[] getResultFolders(String htmlFolderPath) throws IOException, TemplateException {
+        return getFoldersMatching(htmlFolderPath, "\\d+-\\d+");
+    }
+
+    private static int countClones(File resultFolder, File repositoryFolder, int tool, boolean positives) {
+        File folder = getFolder(resultFolder, repositoryFolder.getName());
+        if (folder == null) {
+            return -1;
+        }
+        File toolFolder = getFolder(folder, (tool == 0) ? "McSheep" : "PMD");
+        if (toolFolder == null) {
+            return -1;
+        }
+        return getFilesMatching(toolFolder.getAbsolutePath(), "^" + (positives ? "\\+" : "-") + ".*").length;
+    }
+
+    private static File getFolder(File rootFoolder, String name) {
+        File[] folders = getFoldersMatching(rootFoolder.getAbsolutePath(), name);
+        if (folders.length == 1) {
+            return folders[0];
+        }
+        return null;
+    }
+
     public static void saveIndex(String htmlFolderPath) throws IOException, TemplateException {
         Map<String, Object> root = new HashMap<>();
         File htmlFolder = new File(htmlFolderPath);
-        htmlFolder.mkdirs();
-        FileFilter filter = new FileFilter() {
+        FileFilter filterCloneFolders = new FileFilter() {
 
             @Override
             public boolean accept(File pathname) {
@@ -123,7 +174,34 @@ public class FreeMarker {
                 return true;
             }
         };
-        root.put("repositories", htmlFolder.listFiles(filter));
+        File[] resultFolders = getResultFolders(htmlFolderPath);
+        root.put("resultfolders", resultFolders);
+        List<File> repositoriesList = new ArrayList<>();
+        for (File resultFolder : resultFolders) {
+            File[] repositoryFolder = resultFolder.listFiles(filterCloneFolders);
+            for (File file : repositoryFolder) {
+                boolean found = false;
+                for (File file2 : repositoriesList) {
+                    if (file2.getName().equals(file.getName())) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    repositoriesList.add(file);
+                }
+            }
+        }
+        root.put("repositories", repositoriesList);
+        int[][] values = new int[repositoriesList.size()][];
+        for (int i = 0; i < values.length; i++) {
+            values[i] = new int[resultFolders.length * 2 * 2];
+            for (int j = 0; j < values[i].length; j++) {
+                values[i][j] = countClones(resultFolders[(j % (resultFolders.length * 2)) / 2], repositoriesList.get(i),
+                        j / (resultFolders.length * 2), j % 2 == 0);
+            }
+        }
+        root.put("values", values);
         Writer out = new OutputStreamWriter(new FileOutputStream(htmlFolder + File.separator + "clones.html"));
         FreeMarker.run("index.ftl", root, out);
         out.close();
