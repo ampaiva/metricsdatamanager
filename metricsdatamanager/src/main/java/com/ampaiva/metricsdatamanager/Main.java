@@ -104,10 +104,23 @@ public class Main {
         if (minSeqs.length != totSeqs.length) {
             throw new IllegalArgumentException("analysis.minseq should have the same size of analysis.totseq");
         }
-        for (int i = 0; i < minSeqs.length; i++) {
-            int minSeq = Integer.parseInt(minSeqs[i]);
-            int totSeq = Integer.parseInt(totSeqs[i]);
-            extractClones(config, htmlFolderPath, dataManager, rootFolder, minSeq, totSeq);
+        String pmdResultsFolder = config.get("pmd.results");
+        File file = new File(rootFolder);
+        FreeMarker.configure("target/classes/ftl");
+        for (File projectFile : file.listFiles()) {
+            if (!projectFile.isDirectory()) {
+                continue;
+            }
+            if (LOG.isInfoEnabled()) {
+                LOG.info("Project: " + projectFile);
+            }
+            File csvFile = runPMD(pmdResultsFolder, config.get("pmd.cpdfile"),
+                    Integer.parseInt(config.get("pmd.minimumtokens")), projectFile);
+            for (int i = 0; i < minSeqs.length; i++) {
+                int minSeq = Integer.parseInt(minSeqs[i]);
+                int totSeq = Integer.parseInt(totSeqs[i]);
+                extractClones(config, htmlFolderPath, dataManager, rootFolder, minSeq, totSeq, csvFile, projectFile);
+            }
         }
         FreeMarker.saveIndex(htmlFolderPath);
         if (LOG.isInfoEnabled()) {
@@ -118,57 +131,52 @@ public class Main {
     }
 
     private static void extractClones(Config config, String htmlFolderPath, final IDataManager dataManager,
-            String rootFolder, int minSeq, int totSeq)
+            String rootFolder, int minSeq, int totSeq, File csvFile, File projectFile)
                     throws IOException, com.github.javaparser.ParseException, TemplateException {
         String appendTotMin = File.separator + totSeq + "-" + minSeq;
         String resultsFolder = config.get("analysis.results") + appendTotMin;
-        String pmdResultsFolder = config.get("pmd.results") + appendTotMin;
         String htmlClonesFolderPath = htmlFolderPath + appendTotMin;
         if (Boolean.parseBoolean(config.get("analysis.persist"))) {
             PersistDuplications persistDuplications = new PersistDuplications(dataManager, minSeq, totSeq);
             persistDuplications.run(rootFolder, Boolean.parseBoolean(config.get("analysis.searchzips")),
                     Boolean.parseBoolean(config.get("analysis.deleteall")));
         } else {
-            File file = new File(rootFolder);
-            FreeMarker.configure("target/classes/ftl");
-            for (File projectFile : file.listFiles()) {
-                if (!projectFile.isDirectory()) {
-                    continue;
-                }
-                if (LOG.isInfoEnabled()) {
-                    LOG.info("Project: " + projectFile);
-                }
-                String pmdCSVFile = pmdResultsFolder + File.separator + projectFile.getName() + ".csv";
-                File csvFile = new File(pmdCSVFile);
-                if (csvFile.exists()) {
-                    csvFile.delete();
-                }
-                csvFile.getParentFile().mkdirs();
-                runPMD(config.get("pmd.cpdfile"), Integer.parseInt(config.get("pmd.minimumtokens")),
-                        projectFile.getAbsolutePath(), csvFile);
-                if (!csvFile.exists()) {
-                    if (LOG.isWarnEnabled()) {
-                        LOG.warn("File " + csvFile + " does not exist.");
-                    }
-                    return;
-                }
-                ExtractClones extractClones = new ExtractClones(minSeq, totSeq);
-                List<Repository> repositories = extractClones.run(projectFile.getAbsolutePath(),
-                        Boolean.parseBoolean(config.get("analysis.searchzips")));
-                if (LOG.isInfoEnabled()) {
-                    for (Repository repository : repositories) {
-                        LOG.info(repository);
-                        CompareToolsNoDB compareTools = new CompareToolsNoDB();
-                        String pmdResult = Helper.readFile(csvFile);
-                        List<CloneGroup> clonesPMD = compareTools.comparePMDxMcSheep(repository, pmdResult);
-                        compareTools.saveClones(resultsFolder, "pmd-" + csvFile.getName(), clonesPMD);
-                        List<CloneGroup> clonesMcSheep = compareTools.compareMcSheepxPMD(repository, pmdResult);
-                        compareTools.saveClones(resultsFolder, "mcsheep-" + csvFile.getName(), clonesMcSheep);
-                        FreeMarker.saveClonesToHTML(htmlClonesFolderPath, repository, "McSheep", clonesMcSheep);
-                        FreeMarker.saveClonesToHTML(htmlClonesFolderPath, repository, "PMD", clonesPMD);
-                    }
+            ExtractClones extractClones = new ExtractClones(minSeq, totSeq);
+            List<Repository> repositories = extractClones.run(projectFile.getAbsolutePath(),
+                    Boolean.parseBoolean(config.get("analysis.searchzips")));
+            if (LOG.isInfoEnabled()) {
+                for (Repository repository : repositories) {
+                    LOG.info(repository);
+                    CompareToolsNoDB compareTools = new CompareToolsNoDB();
+                    String pmdResult = Helper.readFile(csvFile);
+                    List<CloneGroup> clonesPMD = compareTools.comparePMDxMcSheep(repository, pmdResult);
+                    compareTools.saveClones(resultsFolder, "pmd-" + csvFile.getName(), clonesPMD);
+                    List<CloneGroup> clonesMcSheep = compareTools.compareMcSheepxPMD(repository, pmdResult);
+                    compareTools.saveClones(resultsFolder, "mcsheep-" + csvFile.getName(), clonesMcSheep);
+                    FreeMarker.saveClonesToHTML(htmlClonesFolderPath, repository, "McSheep", clonesMcSheep);
+                    FreeMarker.saveClonesToHTML(htmlClonesFolderPath, repository, "PMD", clonesPMD);
                 }
             }
         }
+    }
+
+    private static File runPMD(String pmdResultsFolder, String cpdFile, int minimumTokens, File projectFile)
+            throws IOException {
+        String pmdCSVFile = pmdResultsFolder + File.separator + String.valueOf(minimumTokens) + File.separator
+                + projectFile.getName() + ".csv";
+
+        File csvFile = new File(pmdCSVFile);
+        if (csvFile.exists()) {
+            csvFile.delete();
+        }
+        csvFile.getParentFile().mkdirs();
+        runPMD(cpdFile, minimumTokens, projectFile.getAbsolutePath(), csvFile);
+        if (!csvFile.exists()) {
+            if (LOG.isWarnEnabled()) {
+                LOG.warn("File " + csvFile + " does not exist.");
+            }
+            return null;
+        }
+        return csvFile;
     }
 }

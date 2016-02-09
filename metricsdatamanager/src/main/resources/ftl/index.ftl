@@ -49,9 +49,9 @@
 					<#else>
 						<#assign htmlfile="-.html">
 					</#if>                	 
-	        	     <td><a href="${resultfolders[((value?index%(resultfolders?size*tools?size))/(resultfolders?size))?int].name}/${repository.name}/${tool}${htmlfile}">${value}</a>
+	        	     <td><a href="${resultfolders[((value?index%(resultfolders?size*tools?size))/(2))?int].name}/${repository.name}/${tool}${htmlfile}">${value}</a>
 					<#if (value?index%2 == 1)>
-	        	       <td><a href="${resultfolders[((value?index%(resultfolders?size*2))/(resultfolders?size))?int].name}/${repository.name}/${tool}.html">${value+values[repository?index][value?index-1]}</a>
+	        	       <td><a href="${resultfolders[((value?index%(resultfolders?size*tools?size))/(2))?int].name}/${repository.name}/${tool}.html">${value+values[repository?index][value?index-1]}</a>
 					</#if>
 	            </#list>
 		  </tr>
