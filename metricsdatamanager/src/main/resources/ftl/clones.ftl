@@ -1,6 +1,6 @@
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="../stylesheets/clones.css">
+	<link rel="stylesheet" type="text/css" href="../../stylesheets/clones.css">
 	<title>${tool} - Clones of ${repository.location?keep_after_last("\\")}</title>
 </head>
 <body>

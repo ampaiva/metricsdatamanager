@@ -98,12 +98,32 @@ public class Main {
         final IDataManager dataManager = new ConfigDataManager(config);
 
         String rootFolder = config.get("analysis.folder");
-        int minSeq = Integer.parseInt(config.get("analysis.minseq"));
-        int totSeq = Integer.parseInt(config.get("analysis.totseq"));
+        String[] minSeqs = config.get("analysis.minseq").split(",");
+        String[] totSeqs = config.get("analysis.totseq").split(",");
+        String htmlFolderPath = config.get("html.folderpath");
+        if (minSeqs.length != totSeqs.length) {
+            throw new IllegalArgumentException("analysis.minseq should have the same size of analysis.totseq");
+        }
+        for (int i = 0; i < minSeqs.length; i++) {
+            int minSeq = Integer.parseInt(minSeqs[i]);
+            int totSeq = Integer.parseInt(totSeqs[i]);
+            extractClones(config, htmlFolderPath, dataManager, rootFolder, minSeq, totSeq);
+        }
+        FreeMarker.saveIndex(htmlFolderPath);
+        if (LOG.isInfoEnabled()) {
+            Date end = new Date();
+            LOG.info(start + " - " + end + " Elapsed " + (end.getTime() - start.getTime()) + " ms");
+        }
+        BasicConfigurator.resetConfiguration();
+    }
+
+    private static void extractClones(Config config, String htmlFolderPath, final IDataManager dataManager,
+            String rootFolder, int minSeq, int totSeq)
+                    throws IOException, com.github.javaparser.ParseException, TemplateException {
         String appendTotMin = File.separator + totSeq + "-" + minSeq;
         String resultsFolder = config.get("analysis.results") + appendTotMin;
         String pmdResultsFolder = config.get("pmd.results") + appendTotMin;
-        String htmlFolderPath = config.get("html.folderpath") + appendTotMin;
+        String htmlClonesFolderPath = htmlFolderPath + appendTotMin;
         if (Boolean.parseBoolean(config.get("analysis.persist"))) {
             PersistDuplications persistDuplications = new PersistDuplications(dataManager, minSeq, totSeq);
             persistDuplications.run(rootFolder, Boolean.parseBoolean(config.get("analysis.searchzips")),
@@ -144,17 +164,11 @@ public class Main {
                         compareTools.saveClones(resultsFolder, "pmd-" + csvFile.getName(), clonesPMD);
                         List<CloneGroup> clonesMcSheep = compareTools.compareMcSheepxPMD(repository, pmdResult);
                         compareTools.saveClones(resultsFolder, "mcsheep-" + csvFile.getName(), clonesMcSheep);
-                        FreeMarker.saveClonesToHTML(htmlFolderPath, repository, "McSheep", clonesMcSheep);
-                        FreeMarker.saveClonesToHTML(htmlFolderPath, repository, "PMD", clonesPMD);
+                        FreeMarker.saveClonesToHTML(htmlClonesFolderPath, repository, "McSheep", clonesMcSheep);
+                        FreeMarker.saveClonesToHTML(htmlClonesFolderPath, repository, "PMD", clonesPMD);
                     }
                 }
             }
-            FreeMarker.saveIndex(htmlFolderPath);
         }
-        if (LOG.isInfoEnabled()) {
-            Date end = new Date();
-            LOG.info(start + " - " + end + " Elapsed " + (end.getTime() - start.getTime()) + " ms");
-        }
-        BasicConfigurator.resetConfiguration();
     }
 }

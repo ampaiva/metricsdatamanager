@@ -8,25 +8,33 @@
  	<p><h2>Repositories:</h2>
   	<br><#list repositories>
 		<div style="overflow-x:auto;">
+          <#assign pna=3>
 		  <table id="tableid">
 		   <tr>
 		       <th rowspan="3">#
 		       <th rowspan="3">System
-		       <th colspan="${resultfolders?size*2}">McSheep
-		       <th colspan="${resultfolders?size*2}">PMD
+			   <#list tools as tool>
+		          <th title="${tool} results" colspan="${resultfolders?size*pna}">${tool}
+			   </#list>
 		   </tr>
 		   <tr>
-		       <#list 1..2 as i>
+			   <#list tools as tool>
 			       <#list resultfolders as resultfolder>
-			           <th colspan="2">${resultfolder.name}
+						<#if tool == "McSheep">
+							<#assign name=resultfolder.name>
+						<#else>
+							<#assign name="100">
+						</#if>                	 
+			           <th title="Configuration used by ${tool}" colspan="${pna}">${name}
 	               </#list>
                </#list>
 		   </tr>
 		   <tr>
-		       <#list 1..2 as i>
+			   <#list tools as tool>
 			       <#list resultfolders as resultfolder>
-				       <th>+
-				       <th>-
+				       <th title="Clones found by all tools">+
+				       <th title="Clones found by only by ${tool}">-
+				       <th title="All clones found by ${tool}">*
 	               </#list>
                </#list>
 		   </tr>
@@ -35,12 +43,16 @@
 	        	<td>${repository?index}
 	        	<td>${repository.name} 
                 <#list values[repository?index] as value>
-					<#if (value?index/(resultfolders?size*2))?int == 0>
-						<#assign htmlfile="McSheep.html">
+                    <#assign tool=tools[(value?index/(resultfolders?size*tools?size))?int]>
+					<#if (value?index%2 == 0)>
+						<#assign htmlfile="+.html">
 					<#else>
-						<#assign htmlfile="PMD.html">
+						<#assign htmlfile="-.html">
 					</#if>                	 
-	        	     <td><a href="${resultfolders[(value?index%(resultfolders?size*2))/(resultfolders?size/2)].name}/${repository.name}/${htmlfile}">${value}</a>
+	        	     <td><a href="${resultfolders[((value?index%(resultfolders?size*tools?size))/(resultfolders?size))?int].name}/${repository.name}/${tool}${htmlfile}">${value}</a>
+					<#if (value?index%2 == 1)>
+	        	       <td><a href="${resultfolders[((value?index%(resultfolders?size*2))/(resultfolders?size))?int].name}/${repository.name}/${tool}.html">${value+values[repository?index][value?index-1]}</a>
+					</#if>
 	            </#list>
 		  </tr>
     		</#items>

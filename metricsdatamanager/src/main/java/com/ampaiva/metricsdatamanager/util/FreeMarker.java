@@ -168,7 +168,7 @@ public class FreeMarker {
                 if (!pathname.isDirectory()) {
                     return false;
                 }
-                if (pathname.listFiles().length != 4) {
+                if (pathname.listFiles().length != 8) {
                     return false;
                 }
                 return true;
@@ -176,6 +176,8 @@ public class FreeMarker {
         };
         File[] resultFolders = getResultFolders(htmlFolderPath);
         root.put("resultfolders", resultFolders);
+        String[] tools = new String[] { "McSheep", "PMD" };
+        root.put("tools", tools);
         List<File> repositoriesList = new ArrayList<>();
         for (File resultFolder : resultFolders) {
             File[] repositoryFolder = resultFolder.listFiles(filterCloneFolders);
@@ -263,28 +265,38 @@ public class FreeMarker {
         Map<String, Object> root = new HashMap<>();
         root.put("repository", repository);
         root.put("tool", tool);
-        List<String> clonesList = new ArrayList<>();
-        for (CloneGroup cloneGroup : clones) {
-            clonesList.add(FreeMarker.ToString(cloneGroup));
-        }
-        root.put("clones", clonesList);
         File htmlFolder = new File(htmlFolderPath + File.separator + new File(repository.getLocation()).getName());
         htmlFolder.mkdirs();
-        Writer out2 = new OutputStreamWriter(new FileOutputStream(htmlFolder + File.separator + tool + ".html"));
-        FreeMarker.run("clones.ftl", root, out2);
-        File htmlToolFolder = new File(htmlFolder.getAbsolutePath() + File.separator + tool);
-        htmlToolFolder.mkdirs();
-        for (CloneGroup clone : clones) {
-            root.put("clone", FreeMarker.ToString(clone));
-            root.put("snippets", getUniqueNames(clone.snippets));
-            root.put("formattedSnippet", getFormattedSource(clone.snippets, true));
-            root.put("formattedSource", getFormattedSource(clone.snippets, false));
-            String fileName = htmlToolFolder + File.separator + FreeMarker.ToString(clone) + ".html";
-            Writer out3 = new OutputStreamWriter(new FileOutputStream(fileName));
-            FreeMarker.run("clone.ftl", root, out3);
-            out3.close();
+        for (int i = 0; i <= 2; i++) {
+            List<String> clonesList = new ArrayList<>();
+            for (CloneGroup cloneGroup : clones) {
+                if ((i == 1 && !cloneGroup.found) || (i == 2 && cloneGroup.found)) {
+                    continue;
+                }
+                clonesList.add(FreeMarker.ToString(cloneGroup));
+            }
+            root.put("clones", clonesList);
+
+            Writer out2 = new OutputStreamWriter(new FileOutputStream(
+                    htmlFolder + File.separator + tool + (i == 1 ? "+" : i == 2 ? "-" : "") + ".html"));
+            FreeMarker.run("clones.ftl", root, out2);
+            File htmlToolFolder = new File(htmlFolder.getAbsolutePath() + File.separator + tool);
+            htmlToolFolder.mkdirs();
+            for (CloneGroup cloneGroup : clones) {
+                if ((i == 1 && !cloneGroup.found) || (i == 2 && cloneGroup.found)) {
+                    continue;
+                }
+                root.put("clone", FreeMarker.ToString(cloneGroup));
+                root.put("snippets", getUniqueNames(cloneGroup.snippets));
+                root.put("formattedSnippet", getFormattedSource(cloneGroup.snippets, true));
+                root.put("formattedSource", getFormattedSource(cloneGroup.snippets, false));
+                String fileName = htmlToolFolder + File.separator + FreeMarker.ToString(cloneGroup) + ".html";
+                Writer out3 = new OutputStreamWriter(new FileOutputStream(fileName));
+                FreeMarker.run("clone.ftl", root, out3);
+                out3.close();
+            }
+            out2.close();
         }
-        out2.close();
     }
 
 }

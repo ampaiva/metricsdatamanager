@@ -86,22 +86,10 @@ public class FreeMarkerTest {
     }
 
     @Test
-    public void testSaveC() throws IOException, TemplateException {
+    public void testSaveIndex() throws IOException, TemplateException {
         BasicConfigurator.configure();
-        Repository repositoryB = new Repository();
-        repositoryB.setLocation("\\B\\C");
         FreeMarker.configure("target/classes/ftl");
-        String source1 = "public boolean x(){\n return Constants.isPersistent();\n}";
-        String source2 = "public void y(){\nif(Constants.isPersistent())\nb();\n}";
-        CloneGroup cloneGroup = new CloneGroup(new CloneSnippet[] { //
-                new CloneSnippet("file1", "file1", 1, 2, 2, source1), //
-                new CloneSnippet("file2", "file2", 1, 2, 2, source2) //
-        }, true);
-        List<CloneGroup> clones = Arrays.asList(cloneGroup);
-        FreeMarker.saveClonesToHTML(htmlClonesFolderPath, repositoryB, "McSheep", clones);
-        FreeMarker.saveClonesToHTML(htmlClonesFolderPath, repositoryB, "PMD", clones);
         FreeMarker.saveIndex(htmlFolderPath);
-
         BasicConfigurator.resetConfiguration();
     }
 
