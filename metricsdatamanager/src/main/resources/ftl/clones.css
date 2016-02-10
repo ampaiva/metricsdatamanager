@@ -1,24 +1,111 @@
 @CHARSET "ISO-8859-1";
 
+#tableid2 body:not(.nohover) tbody, #tableid2 tr:hover {
+  background-color: #ffa;
+ }
+
+#tableid2 td:hover::after,
+#tableid2 thead th:not(:empty):hover::after,
+#tableid2 td:focus::after,
+#tableid2 thead th:not(:empty):focus::after { 
+  content: '';  
+  height: 10000px;
+  left: 0;
+  position: absolute;  
+  top: -5000px;
+  width: 100%;
+  z-index: -1;
+}
+
+#tableid2 td:hover::after,
+#tableid2 th:hover::after {
+  background-color: #ffa;
+}
+
+#tableid2 td:focus::after,
+#tableid2 th:focus::after {
+  background-color: lightblue;
+}
+
+/* Focus stuff for mobile */
+#tableid2 td:focus::before,
+#tableid2 tbody th:focus::before {
+  background-color: lightblue;
+  content: '';  
+  height: 100%;
+  top: 0;
+  left: -5000px;
+  position: absolute;  
+  width: 10000px;
+  z-index: -1;
+}
+
 #tableid {
     font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
     border-collapse: collapse;
 }
 
+
 #tableid td, #tableid th {
     border: 1px solid #ddd;
-    text-align: left;
+    text-align: right;
     padding: 8px;
+    position: relative;
+    outline: 0;
 }
 
-#tableid tr:nth-child(even){background-color: #f2f2f2}
-
-#tableid tr:hover {background-color: #ddd;}
-
 #tableid th {
-    padding-top: 12px;
+	padding-top: 12px;
     padding-bottom: 12px;
     background-color: #4CAF50;
     color: white;
     text-align: center;
 }
+
+#tableid td:nth-child(1) {
+    text-align: left;
+}
+
+#tableid td:nth-child(2) {
+    text-align: left;
+}
+
+#tableid tr:nth-child(even){background-color: #f2f2f2}
+
+#tableid2 {
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    border-collapse: collapse;
+}
+
+
+#tableid2 td, #tableid2 th {
+    border: 1px solid #ddd;
+    text-align: right;
+    padding: 8px;
+    position: relative;
+    outline: 0;
+}
+
+#tableid2 th, #tableid2 td:nth-child(1) {
+	padding-top: 12px;
+    padding-bottom: 12px;
+    background-color: #4CAF50;
+    color: white;
+    text-align: center;
+}
+
+#tableid2 td:nth-child(1) {
+    text-align: right;
+}
+
+#tableid2 td:nth-child(2) {
+	padding-top: 12px;
+    padding-bottom: 12px;
+    background-color: #4CAF50;
+    color: white;
+    text-align: left;
+}
+
+//#tableid2 tr:nth-child(even){background-color: #ffa}
+
+

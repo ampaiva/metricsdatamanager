@@ -9,7 +9,7 @@
   	<br><#list repositories>
 		<div style="overflow-x:auto;">
           <#assign pna=3>
-		  <table id="tableid">
+		  <table id="tableid2">
 		   <tr>
 		       <th rowspan="3">#
 		       <th rowspan="3">System
