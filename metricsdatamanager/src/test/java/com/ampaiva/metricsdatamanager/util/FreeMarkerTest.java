@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.log4j.BasicConfigurator;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.ampaiva.hlo.util.Helper;
@@ -30,7 +31,7 @@ public class FreeMarkerTest {
         return sb.toString();
     }
 
-    @Test
+    @Ignore
     public void testSave() throws IOException, TemplateException {
         BasicConfigurator.configure();
         Repository repositoryA = new Repository();
@@ -49,7 +50,7 @@ public class FreeMarkerTest {
         BasicConfigurator.resetConfiguration();
     }
 
-    @Test
+    @Ignore
     public void testSaveB() throws IOException, TemplateException {
         BasicConfigurator.configure();
         Repository repositoryB = new Repository();
