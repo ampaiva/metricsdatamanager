@@ -52,6 +52,7 @@
     padding: 8px;
     position: relative;
     outline: 0;
+    text-align: left;
 }
 
 #tableid th {
@@ -60,14 +61,6 @@
     background-color: #4CAF50;
     color: white;
     text-align: center;
-}
-
-#tableid td:nth-child(1) {
-    text-align: left;
-}
-
-#tableid td:nth-child(2) {
-    text-align: left;
 }
 
 #tableid tr:nth-child(even){background-color: #f2f2f2}
